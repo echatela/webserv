@@ -58,6 +58,7 @@ void	Server::launch()
 	while (1)
 	{
 		int	n = epoll_wait(_epfd, _events, MAX_EVENTS, -1);
+		std::cout << "=== WAITING FOR CONNECTION ===\n";
 		if (n < 0) {
 			if (errno == EINTR)
 				continue;
@@ -71,7 +72,6 @@ void	Server::launch()
 			// event on listening socket, accept loop (ET)
 				char buffer[BUFFER_SIZE];
 				while (1) {
-					std::cout << "=== WAITING FOR CONNECTION ===\n";
 					int addrlen = sizeof(_address);
 					int newSocket = accept(_socket, (struct sockaddr*)&_address, (socklen_t*)&addrlen);
 					ssize_t bytesRead = read(newSocket, buffer, BUFFER_SIZE - 1);
@@ -80,7 +80,7 @@ void	Server::launch()
 						buffer[bytesRead] = '\0';
 						std::cout << buffer;
 					} else {
-						throw std::runtime_error("Error reading buffer...\n");
+						break;
 					}
 					const char *response =
 						"HTTP/1.1 200 OK\r\n"
@@ -92,6 +92,7 @@ void	Server::launch()
 						"</head>\r\n"
 						"<body>\r\n"
 						"Hello, Edouard!\r\n"
+						"<a href=\"http://localhost:8080/caca/\">Facebook</a>"
 						"</body>\r\n"
 						"</html>\r\n";
 					write(newSocket, response, std::strlen(response));
