@@ -1,30 +1,30 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include <cstdint>
+#include <netinet/in.h>
 #include <string>
 #include <vector>
 #include <sys/socket.h>
 
-struct Listen {
+struct ListenInfo {
 	std::string		host;
-	struct sockaddr	address;
-	uint16_t		port;
+	std::string		port;
+	struct sockaddr_in	address;
 };
-
-typedef std::vector<Listen>	Listens;
 
 class Config
 {
 private:
-
+	std::vector<ListenInfo>	_listensInfo;
 
 public:
 	Config();
-	Config(Config const & src);
+	Config(const Config & src);
 	~Config();
 
-	Config &	operator=(Config const & rhs);
+	Config &	operator=(const Config & rhs);
+
+	const std::vector<ListenInfo> &	getListensInfo() const;
 };
 
 #endif

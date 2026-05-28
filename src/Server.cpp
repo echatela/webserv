@@ -5,7 +5,13 @@ Server::Server()
 }
 
 Server::Server(Config const & config)
+: _config(config)
 {
+	const std::vector<ListenInfo>	listensInfo = _config.getListensInfo();
+
+	for (int i = 0; i < listensInfo.size(); i++) {
+
+	}
 }
 
 Server::Server(Server const & src)

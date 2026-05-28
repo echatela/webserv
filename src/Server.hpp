@@ -1,18 +1,17 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "Config.hpp"
-#include "Listener.hpp"
+#include "Listen.hpp"
 #include "Connection.hpp"
-#include "HttpRequest.hpp"
-#include "HttpResponse.hpp"
+#include "Config.hpp"
 #include <vector>
 
 class Server
 {
 private:
 	Config const		_config;
-	std::vector<Listener>	_listeners;
+	std::vector<Listen>	_listens;
+	std::vector<Connection>	_connections;
 
 public:
 	Server();
