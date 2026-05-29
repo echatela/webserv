@@ -3,7 +3,7 @@
 namespace webserv {
 
 namespace fd {
-int	setNonblock(int fd);
-int	setCloexec(int fd);
+int	SetNonBlock(int fd);
+int	SetCloExec(int fd);
 }
 }

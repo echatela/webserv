@@ -1,7 +1,7 @@
 #include "webserv.hpp"
 #include <fcntl.h>
 
-int	webserv::fd::setNonblock(int fd)
+int	webserv::fd::SetNonBlock(int fd)
 {
 	int flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
@@ -9,7 +9,7 @@ int	webserv::fd::setNonblock(int fd)
 	return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-int	webserv::fd::setCloexec(int fd)
+int	webserv::fd::SetCloExec(int fd)
 {
 	int flags = fcntl(fd, F_GETFD, 0);
 	if (flags == -1)

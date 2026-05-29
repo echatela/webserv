@@ -1,17 +1,17 @@
 #ifndef REACTOR_HPP
 #define REACTOR_HPP
 
-#include "Listen.hpp"
-#include "Connection.hpp"
-#include "Config.hpp"
+#include "listen.hpp"
+#include "connection.hpp"
+#include "config.hpp"
 #include <vector>
 
 class Reactor
 {
 private:
-	Config const		_config;
-	std::vector<Listen>	_listens;
-	std::vector<Connection>	_connections;
+	const Config		config_;
+	std::vector<Listen>	listens_;
+	std::vector<Connection>	connections_;
 
 public:
 	Reactor();
@@ -21,7 +21,7 @@ public:
 
 	Reactor &	operator=(Reactor const & rhs);
 
-	void	run();
+	void	Run();
 };
 
 #endif

@@ -15,7 +15,7 @@ struct ListenInfo {
 class Config
 {
 private:
-	std::vector<ListenInfo>	_listensInfo;
+	std::vector<ListenInfo>	listens_info_;
 
 public:
 	Config();
@@ -24,7 +24,7 @@ public:
 
 	Config &	operator=(const Config & rhs);
 
-	const std::vector<ListenInfo> &	getListensInfo() const;
+	const std::vector<ListenInfo> &	get_listens_info() const;
 };
 
 #endif

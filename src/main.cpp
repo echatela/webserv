@@ -1,4 +1,4 @@
-#include "Reactor.hpp"
+#include "reactor.hpp"
 
 int	main(int argc, char **argv)
 {
@@ -8,5 +8,5 @@ int	main(int argc, char **argv)
 	// config = parser.getConfig();
 	Reactor	reactor(config);
 
-	reactor.run();
+	reactor.Run();
 }

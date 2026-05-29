@@ -1,18 +1,18 @@
-#include "Reactor.hpp"
+#include "reactor.hpp"
 
 Reactor::Reactor()
 {
 }
 
 Reactor::Reactor(Config const & config)
-: _config(config)
+: config_(config)
 {
-	const std::vector<ListenInfo>	listensInfo = _config.getListensInfo();
+	const std::vector<ListenInfo>	listensInfo = config_.getListensInfo();
 
 	for (int i = 0; i < listensInfo.size(); i++) {
 
 		Listen	listen(listensInfo[i].address);
-		_listens.push_back(listen);
+		listens_.push_back(listen);
 	}
 }
 
@@ -32,4 +32,9 @@ Reactor &	Reactor::operator=(Reactor const & rhs)
 		// Copy attributes here
 	}
 	return (*this);
+}
+
+void	Reactor::Run()
+{
+
 }

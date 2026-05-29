@@ -5,9 +5,10 @@
 class Listen
 {
 private:
-	int	_fd;
+	int	fd_;
 
 public:
+	Listen();
 	Listen(sockaddr_in addr);
 	Listen(const Listen & src);
 	~Listen();
