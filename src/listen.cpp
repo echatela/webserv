@@ -1,5 +1,6 @@
 #include "listen.hpp"
 #include "webserv.hpp"
+#include <cstdint>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <stdexcept>
@@ -12,34 +13,32 @@ Listen::Listen(sockaddr_in addr)
 	if (fd_ < 0)
 		throw std::runtime_error("Couldn't initialize socket...\n");
 
-	if (bind(fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+	if (bind(fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		close(fd_);
 		throw std::runtime_error("Couldn't bind socket...\n");
-
-	if (listen(fd_, SOMAXCONN) < 0)
+	}
+	if (listen(fd_, SOMAXCONN) < 0) {
+		close(fd_);
 		throw std::runtime_error("Couldn't set socket to listen...\n");
-
-	if (webserv::fd::SetNonBlock(fd_) < 0)
+	}
+	if (webserv::fd::SetNonBlock(fd_) < 0) {
+		close(fd_);
 		throw std::runtime_error("Couldn't set socket nonblock...\n");
-
-	if (webserv::fd::SetCloExec(fd_) < 0)
+	}
+	if (webserv::fd::SetCloExec(fd_) < 0) {
+		close(fd_);
 		throw std::runtime_error("Couldn't set socket cloexec...\n");
+	}
 }
 
-Listen::Listen(Listen const & src)
+int	Listen::HandleEvent(uint32_t events)
 {
-	*this = src;
+	
 }
+
+int	Listen::get_fd() const { return fd_; }
 
 Listen::~Listen()
 {
 	close(fd_);
-}
-
-Listen &	Listen::operator=(Listen const & rhs)
-{
-	if (this != &rhs)
-	{
-		// Copy attributes here
-	}
-	return (*this);
 }

@@ -1,16 +1,23 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
-class Connection
+#include "event_handler.hpp"
+#include <cstdint>
+
+class Connection : public EventHandler
 {
 private:
+	int	fd_;
+
+	Connection(Connection const & src);
+	Connection &	operator=(Connection const & rhs);
 
 public:
 	Connection();
-	Connection(Connection const & src);
-	~Connection();
 
-	Connection &	operator=(Connection const & rhs);
+	int	HandleEvent(uint32_t events);
+
+	~Connection();
 };
 
 #endif

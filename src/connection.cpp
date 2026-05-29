@@ -1,23 +1,17 @@
 #include "connection.hpp"
+#include <cstdint>
+#include <unistd.h>
 
 Connection::Connection()
 {
 }
 
-Connection::Connection(Connection const & src)
+int	Connection::HandleEvent(uint32_t events)
 {
-	*this = src;
+
 }
 
 Connection::~Connection()
 {
-}
-
-Connection &	Connection::operator=(Connection const & rhs)
-{
-	if (this != &rhs)
-	{
-		// Copy attributes here
-	}
-	return (*this);
+	close(fd_);
 }

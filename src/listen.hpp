@@ -1,19 +1,27 @@
 #ifndef LISTEN_HPP
 #define LISTEN_HPP
 
+#include "event_handler.hpp"
+#include <cstdint>
 #include <netinet/in.h>
-class Listen
+
+class Listen : public EventHandler
 {
 private:
 	int	fd_;
 
-public:
 	Listen();
-	Listen(sockaddr_in addr);
 	Listen(const Listen & src);
-	~Listen();
-
 	Listen &	operator=(const Listen & rhs);
+
+public:
+	Listen(sockaddr_in addr);
+
+	int	HandleEvent(uint32_t events);
+
+	int	get_fd() const;
+
+	~Listen();
 };
 
 #endif

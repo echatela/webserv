@@ -1,4 +1,4 @@
-#include "Config.hpp"
+#include "config.hpp"
 
 Config::Config()
 {
@@ -13,11 +13,11 @@ Config::~Config()
 {
 }
 
-Config &	Config::operator=(Config const & rhs)
+Config &	Config::operator=(const Config & rhs)
 {
 	if (this != &rhs)
 	{
-		// Copy attributes here
+		listens_info_ = rhs.listens_info_;
 	}
 	return (*this);
 }
