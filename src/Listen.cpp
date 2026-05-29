@@ -1,8 +1,10 @@
 #include "Listen.hpp"
-#include "unistd.h"
+#include "webserv.hpp"
+#include <unistd.h>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <sys/socket.h>
+#include <fcntl.h>
 
 Listen::Listen(sockaddr_in addr)
 {
@@ -15,6 +17,12 @@ Listen::Listen(sockaddr_in addr)
 
 	if (listen(_fd, SOMAXCONN) < 0)
 		throw std::runtime_error("Couldn't set socket to listen...\n");
+
+	if (webserv::fd::setNonblock(_fd) < 0)
+		throw std::runtime_error("Couldn't set socket nonblock...\n");
+
+	if (webserv::fd::setCloexec(_fd) < 0)
+		throw std::runtime_error("Couldn't set socket cloexec...\n");
 }
 
 Listen::Listen(Listen const & src)

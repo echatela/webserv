@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "Reactor.hpp"
 
 int	main(int argc, char **argv)
 {
@@ -6,7 +6,7 @@ int	main(int argc, char **argv)
 	// ConfigParser	parser(argv);
 	Config	config;
 	// config = parser.getConfig();
-	Server	server(config);
+	Reactor	reactor(config);
 
-	server.run();
+	reactor.run();
 }

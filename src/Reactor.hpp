@@ -1,12 +1,12 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef REACTOR_HPP
+#define REACTOR_HPP
 
 #include "Listen.hpp"
 #include "Connection.hpp"
 #include "Config.hpp"
 #include <vector>
 
-class Server
+class Reactor
 {
 private:
 	Config const		_config;
@@ -14,12 +14,12 @@ private:
 	std::vector<Connection>	_connections;
 
 public:
-	Server();
-	Server(Config const & config);
-	Server(Server const & src);
-	~Server();
+	Reactor();
+	Reactor(Config const & config);
+	Reactor(Reactor const & src);
+	~Reactor();
 
-	Server &	operator=(Server const & rhs);
+	Reactor &	operator=(Reactor const & rhs);
 
 	void	run();
 };
