@@ -7,31 +7,17 @@ Reactor::Reactor()
 Reactor::Reactor(Config const & config)
 : config_(config)
 {
-	const std::vector<ListenInfo>	listensInfo = config_.getListensInfo();
+	const std::vector<ListenInfo>	listens_info = config_.get_listens_info();
 
-	for (int i = 0; i < listensInfo.size(); i++) {
+	for (int i = 0; i < listens_info.size(); i++) {
 
-		Listen	listen(listensInfo[i].address);
+		Listen	listen(listens_info[i].address);
 		listens_.push_back(listen);
 	}
 }
 
-Reactor::Reactor(Reactor const & src)
-{
-	*this = src;
-}
-
 Reactor::~Reactor()
 {
-}
-
-Reactor &	Reactor::operator=(Reactor const & rhs)
-{
-	if (this != &rhs)
-	{
-		// Copy attributes here
-	}
-	return (*this);
 }
 
 void	Reactor::Run()

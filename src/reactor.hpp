@@ -13,13 +13,13 @@ private:
 	std::vector<Listen>	listens_;
 	std::vector<Connection>	connections_;
 
-public:
 	Reactor();
-	Reactor(Config const & config);
 	Reactor(Reactor const & src);
-	~Reactor();
-
 	Reactor &	operator=(Reactor const & rhs);
+
+public:
+	Reactor(Config const & config);
+	~Reactor();
 
 	void	Run();
 };
