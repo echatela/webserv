@@ -2,6 +2,9 @@
 #define EVENT_HANDLER_HPP
 
 #include <cstdint>
+
+enum	HandleReturn { kKeep, kClose };
+
 class EventHandler
 {
 private:

@@ -1,4 +1,5 @@
 #include "reactor.hpp"
+#include "connection.hpp"
 #include "event_handler.hpp"
 #include <cerrno>
 #include <cstddef>
@@ -56,6 +57,22 @@ void	Reactor::Run()
 
 			handler->HandleEvent(ev[i].events);
 		}
+	}
+}
+
+void	Reactor::AddConnection(int fd)
+{
+	Connection	*conn = NULL;
+
+	try {
+		conn = new Connection(fd);
+		epoll_.add(conn->get_fd(), EPOLLIN, conn);
+		connections_.push_back(conn);
+	} catch (std::exception &) {
+		if (conn)
+			epoll_.del(conn->get_fd());
+		delete conn;
+		throw;
 	}
 }
 

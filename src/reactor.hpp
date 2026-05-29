@@ -24,6 +24,7 @@ public:
 	~Reactor();
 
 	void	Run();
+	void	AddConnection(int fd);
 };
 
 #endif

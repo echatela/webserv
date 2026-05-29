@@ -1,11 +1,15 @@
 #include "listen.hpp"
+#include "event_handler.hpp"
 #include "webserv.hpp"
 #include <cstdint>
+#include <exception>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <sys/epoll.h>
+#include "reactor.hpp"
 
 Listen::Listen(sockaddr_in addr)
 {
@@ -33,7 +37,17 @@ Listen::Listen(sockaddr_in addr)
 
 int	Listen::HandleEvent(uint32_t events)
 {
-	
+	if (events & (EPOLLIN | EPOLLHUP))
+		return kKeep;
+
+	int	client_fd = accept(fd_, NULL, NULL);
+	if (client_fd < 0)
+		return kKeep;
+
+	try {
+		reactor_->AddConnection(client_fd);
+	} catch (std::exception &) {}
+	return kKeep;
 }
 
 int	Listen::get_fd() const { return fd_; }

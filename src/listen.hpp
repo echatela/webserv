@@ -5,10 +5,13 @@
 #include <cstdint>
 #include <netinet/in.h>
 
+class Reactor;
+
 class Listen : public EventHandler
 {
 private:
 	int	fd_;
+	Reactor *reactor_;
 
 	Listen();
 	Listen(const Listen & src);
@@ -19,7 +22,7 @@ public:
 
 	int	HandleEvent(uint32_t events);
 
-	int	get_fd() const;
+	int	 get_fd() const;
 
 	~Listen();
 };
