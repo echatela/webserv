@@ -2,14 +2,22 @@
 #include "event_handler.hpp"
 #include "webserv.hpp"
 #include <cstdint>
+#include <exception>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-Connection::Connection(int fd) : fd_(fd)
+Connection::Connection(int fd, Epoll & epoll)
+: fd_(fd), epoll_(epoll)
 {
 	webserv::fd::SetNonBlock(fd_);
 	webserv::fd::SetCloExec(fd_);
+	try {
+		epoll_.add(fd_, EPOLLIN, this);
+	} catch (std::exception &) {
+		close(fd_);
+		throw;
+	}
 }
 
 int	Connection::HandleEvent(uint32_t events)
@@ -36,5 +44,6 @@ int	Connection::HandleEvent(uint32_t events)
 
 Connection::~Connection()
 {
+	epoll_.del(fd_);
 	close(fd_);
 }

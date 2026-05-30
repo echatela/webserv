@@ -11,25 +11,16 @@ Reactor::Reactor(Config const & config)
 {
 	const std::vector<ListenInfo>	listens_info = config_.get_listens_info();
 
-	for (size_t i = 0; i < listens_info.size(); i++)
-	{
-		Listen	*listen = NULL;
-		try
-		{
-			listen = new Listen(listens_info[i].address);
-			epoll_.add(listen->get_fd(), EPOLLIN, listen);
-			listens_.push_back(listen);
-		}
-		catch (std::exception&)
-		{
-			if (listen)
-				epoll_.del(listen->get_fd());
-			delete listen;
+	for (size_t i = 0; i < listens_info.size(); i++) {
+		Listen	*listen;
 
-			for (size_t i = 0; i < listens_.size(); i++) {
-				epoll_.del(listens_[i]->get_fd());
+		try {
+			listen = new Listen(listens_info[i].address, epoll_);
+			listens_.push_back(listen);
+		} catch (std::exception&) {
+			delete listen;
+			for (size_t i = 0; i < listens_.size(); i++)
 				delete listens_[i];
-			}
 			throw;
 		}
 	}
@@ -37,8 +28,7 @@ Reactor::Reactor(Config const & config)
 
 void	Reactor::Run()
 {
-	while (true)
-	{
+	while (true) {
 		int	n = epoll_.wait();
 
 		if (n < 0) {
@@ -50,8 +40,7 @@ void	Reactor::Run()
 
 		const struct epoll_event	*ev = epoll_.get_events();
 
-		for (int i = 0; i < n; i++)
-		{
+		for (int i = 0; i < n; i++) {
 			EventHandler	*handler
 				= static_cast<EventHandler*>(ev[i].data.ptr);
 
@@ -62,15 +51,12 @@ void	Reactor::Run()
 
 void	Reactor::AddConnection(int fd)
 {
-	Connection	*conn = NULL;
+	Connection	*conn;
 
 	try {
-		conn = new Connection(fd);
-		epoll_.add(conn->get_fd(), EPOLLIN, conn);
+		conn = new Connection(fd, epoll_);
 		connections_.push_back(conn);
 	} catch (std::exception &) {
-		if (conn)
-			epoll_.del(conn->get_fd());
 		delete conn;
 		throw;
 	}
@@ -78,8 +64,8 @@ void	Reactor::AddConnection(int fd)
 
 Reactor::~Reactor()
 {
-	for (size_t i = 0; i < listens_.size(); i++) {
-		epoll_.del(listens_[i]->get_fd());
+	for (size_t i = 0; i < listens_.size(); i++)
 		delete listens_[i];
-	}
+	for (size_t i = 0; i < connections_.size(); i++)
+		delete connections_[i];
 }
