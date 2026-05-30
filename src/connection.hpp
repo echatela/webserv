@@ -3,6 +3,7 @@
 
 #include "epoll.hpp"
 #include "event_handler.hpp"
+#include "listen.hpp"
 #include <cstdint>
 #include <vector>
 
@@ -10,6 +11,7 @@ class Connection : public EventHandler
 {
 private:
 	int			fd_;
+	const Listen &		listen_;
 	std::vector<char>	buf_;
 	Epoll &			epoll_;
 
@@ -20,7 +22,7 @@ private:
 	static const int	kReadBufferSize = 4096;
 
 public:
-	Connection(int fd, Epoll & epoll);
+	Connection(int fd, const Listen & listen, Epoll & epoll);
 
 	int	HandleEvent(uint32_t events);
 

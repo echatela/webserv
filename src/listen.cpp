@@ -11,7 +11,7 @@
 #include <sys/epoll.h>
 #include "reactor.hpp"
 
-Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor * reactor)
+Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor)
 : epoll_(epoll), reactor_(reactor)
 {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -51,8 +51,13 @@ int	Listen::HandleEvent(uint32_t events)
 	if (client_fd < 0)
 		return kKeep;
 
+	if (webserv::fd::SetNonBlock(fd_) < 0
+		|| webserv::fd::SetCloExec(fd_) < 0) {
+		close(fd_);
+		return kKeep;
+	}
 	try {
-		reactor_->AddConnection(client_fd);
+		reactor_.AddConnection(client_fd, *this);
 	} catch (std::exception &) {}
 	return kKeep;
 }
@@ -61,6 +66,8 @@ int	Listen::get_fd() const { return fd_; }
 
 Listen::~Listen()
 {
-	epoll_.Del(fd_);
+	try {
+		epoll_.Del(fd_);
+	} catch (std::exception &) {}
 	close(fd_);
 }

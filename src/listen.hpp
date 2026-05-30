@@ -12,7 +12,7 @@ class Listen : public EventHandler
 {
 private:
 	int		fd_;
-	Reactor *	reactor_;
+	Reactor &	reactor_;
 	Epoll &		epoll_;
 
 	Listen();
@@ -20,7 +20,7 @@ private:
 	Listen &	operator=(const Listen & rhs);
 
 public:
-	Listen(sockaddr_in addr, Epoll & epoll, Reactor * reactor);
+	Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor);
 
 	int	HandleEvent(uint32_t events);
 
