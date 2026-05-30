@@ -19,11 +19,11 @@ Reactor::Reactor(Config const & config)
 		try {
 			listen = new Listen(
 				listens_info[i].address, epoll_, *this);
-			listens_.push_back(listen);
+			handlers_.push_back(listen);
 		} catch (std::exception&) {
 			delete listen;
-			for (size_t i = 0; i < listens_.size(); i++)
-				delete listens_[i];
+			for (size_t i = 0; i < handlers_.size(); i++)
+				delete handlers_[i];
 			throw;
 		}
 	}
@@ -36,7 +36,7 @@ void	Reactor::Run()
 
 		Dispatch(n);
 
-		CleanupCloseHandler();
+		CloseHandlers();
 	}
 }
 
@@ -60,37 +60,32 @@ void	Reactor::Dispatch(int n)
 	}
 }
 
-void	Reactor::CloseHandler()
+void	Reactor::CloseHandlers()
 {
-	std::set<EventHandler*>::iterator	evh_it;
-	std::vector<Connection*>::iterator	con_it;
+	std::set<EventHandler*>::iterator	cev_it;
+	std::vector<EventHandler*>::iterator	ev_it;
 
-	for (evh_it = closed_.begin(); evh_it != closed_.end(); ++evh_it) {
-		con_it = std::find(
-			connections_.begin(), connections_.end(), *evh_it);
-		connections_.erase(con_it);
-		delete *evh_it;
+	for (cev_it = closed_.begin(); cev_it != closed_.end(); ++cev_it) {
+		ev_it = std::find(handlers_.begin(),
+		    handlers_.end(), *cev_it);
+		handlers_.erase(ev_it);
+		delete *ev_it;
 	}
 	closed_.clear();
 }
 
-void	Reactor::AddConnection(int fd, const Listen & listen)
+void	Reactor::AddEventHandler(EventHandler * ev)
 {
-	Connection	*conn = NULL;
-
 	try {
-		conn = new Connection(fd, listen, epoll_);
-		connections_.push_back(conn);
+		handlers_.push_back(ev);
 	} catch (std::exception &) {
-		delete conn;
+		delete ev;
 		throw;
 	}
 }
 
 Reactor::~Reactor()
 {
-	for (size_t i = 0; i < listens_.size(); i++)
-		delete listens_[i];
-	for (size_t i = 0; i < connections_.size(); i++)
-		delete connections_[i];
+	for (size_t i = 0; i < handlers_.size(); i++)
+		delete handlers_[i];
 }

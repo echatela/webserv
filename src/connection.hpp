@@ -7,13 +7,23 @@
 #include <cstdint>
 #include <vector>
 
+enum {
+	kReading,
+	kWriting
+};
+
 class Connection : public EventHandler
 {
 private:
 	int			fd_;
+	int			state_;
+
+	std::vector<char>	write_buf_;
+	int			write_off_;
+
 	const Listen &		listen_;
-	std::vector<char>	buf_;
 	Epoll &			epoll_;
+	// HttpRequestParser &	parser_
 
 	Connection();
 	Connection(Connection const & src);

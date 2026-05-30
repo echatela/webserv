@@ -1,4 +1,5 @@
 #include "listen.hpp"
+#include "connection.hpp"
 #include "event_handler.hpp"
 #include "webserv.hpp"
 #include <cstdint>
@@ -56,8 +57,11 @@ int	Listen::HandleEvent(uint32_t events)
 		close(fd_);
 		return kKeep;
 	}
+
+	Connection *	conn = NULL;
 	try {
-		reactor_.AddConnection(client_fd, *this);
+		conn = new Connection(client_fd, *this, epoll_);
+		reactor_.AddEventHandler(conn);
 	} catch (std::exception &) {}
 	return kKeep;
 }
