@@ -12,10 +12,10 @@ Reactor::Reactor(Config const & config)
 	const std::vector<ListenInfo>	listens_info = config_.get_listens_info();
 
 	for (size_t i = 0; i < listens_info.size(); i++) {
-		Listen	*listen;
+		Listen	*listen = NULL;
 
 		try {
-			listen = new Listen(listens_info[i].address, epoll_);
+			listen = new Listen(listens_info[i].address, epoll_, this);
 			listens_.push_back(listen);
 		} catch (std::exception&) {
 			delete listen;
@@ -29,7 +29,7 @@ Reactor::Reactor(Config const & config)
 void	Reactor::Run()
 {
 	while (true) {
-		int	n = epoll_.wait();
+		int	n = epoll_.Wait();
 
 		if (n < 0) {
 			if (errno == EINTR)
@@ -51,7 +51,7 @@ void	Reactor::Run()
 
 void	Reactor::AddConnection(int fd)
 {
-	Connection	*conn;
+	Connection	*conn = NULL;
 
 	try {
 		conn = new Connection(fd, epoll_);

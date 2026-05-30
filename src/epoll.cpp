@@ -14,33 +14,33 @@ Epoll::Epoll()
 		throw std::runtime_error("Couldn't SetCloExec(epfd_)...\n");
 }
 
-void	Epoll::add(int fd, int events, void *data)
+void	Epoll::Add(int fd, int events, void *data)
 {
 	struct epoll_event	ev;
 	ev.events = events;
 	ev.data.ptr = data;
 
-	if (epoll_ctl(epfd_, events, fd, &ev) < 0)
+	if (epoll_ctl(epfd_, EPOLL_CTL_ADD, fd, &ev) < 0)
 		throw std::runtime_error("Couldn't epoll_ctl(add)...\n");
 }
 
-void	Epoll::mod(int fd, int events, void *data)
+void	Epoll::Mod(int fd, int events, void *data)
 {
 	struct epoll_event	ev;
 	ev.events = events;
 	ev.data.ptr = data;
 
-	if (epoll_ctl(epfd_, events, fd, &ev) < 0)
+	if (epoll_ctl(epfd_, EPOLL_CTL_MOD, fd, &ev) < 0)
 		throw std::runtime_error("Couldn't epoll_ctl(mod)...\n");
 }
 
-void	Epoll::del(int fd)
+void	Epoll::Del(int fd)
 {
 	if (epoll_ctl(epfd_, EPOLL_CTL_DEL, fd, NULL) < 0)
 		throw std::runtime_error("Couldn't epoll_ctl(del)...\n");
 }
 
-int	Epoll::wait()
+int	Epoll::Wait()
 {
 	return (epoll_wait(epfd_, events_, MAX_EVENTS, -1));
 }

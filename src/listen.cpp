@@ -11,8 +11,8 @@
 #include <sys/epoll.h>
 #include "reactor.hpp"
 
-Listen::Listen(sockaddr_in addr, Epoll & epoll)
-: epoll_(epoll)
+Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor * reactor)
+: epoll_(epoll), reactor_(reactor)
 {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd_ < 0)
@@ -35,7 +35,7 @@ Listen::Listen(sockaddr_in addr, Epoll & epoll)
 		throw std::runtime_error("Couldn't set socket cloexec...\n");
 	}
 	try {
-		epoll_.add(fd_, EPOLLIN, this);
+		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception&) {
 		close(fd_);
 		throw std::runtime_error("Couldn't add socket to epoll...\n");
@@ -44,7 +44,7 @@ Listen::Listen(sockaddr_in addr, Epoll & epoll)
 
 int	Listen::HandleEvent(uint32_t events)
 {
-	if (events & (EPOLLIN | EPOLLHUP))
+	if (events & (EPOLLERR | EPOLLHUP))
 		return kKeep;
 
 	int	client_fd = accept(fd_, NULL, NULL);
@@ -61,6 +61,6 @@ int	Listen::get_fd() const { return fd_; }
 
 Listen::~Listen()
 {
-	epoll_.del(fd_);
+	epoll_.Del(fd_);
 	close(fd_);
 }

@@ -3,6 +3,7 @@
 #include "webserv.hpp"
 #include <cstdint>
 #include <exception>
+#include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -10,10 +11,17 @@
 Connection::Connection(int fd, Epoll & epoll)
 : fd_(fd), epoll_(epoll)
 {
-	webserv::fd::SetNonBlock(fd_);
-	webserv::fd::SetCloExec(fd_);
+
+	if (webserv::fd::SetNonBlock(fd_) < 0) {
+		close(fd_);
+		throw std::runtime_error("Couldn't set Connection nonblock...\n");
+	}
+	if (webserv::fd::SetCloExec(fd_) < 0) {
+		close(fd_);
+		throw std::runtime_error("Couldn't set Connection cloexec...\n");
+	}
 	try {
-		epoll_.add(fd_, EPOLLIN, this);
+		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
 		close(fd_);
 		throw;
@@ -22,7 +30,7 @@ Connection::Connection(int fd, Epoll & epoll)
 
 int	Connection::HandleEvent(uint32_t events)
 {
-	if (events & (EPOLLIN | EPOLLHUP))
+	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
 
 	if (events & EPOLLIN) {
@@ -38,12 +46,11 @@ int	Connection::HandleEvent(uint32_t events)
 	if (events & EPOLLOUT) {
 	}
 
-
 	return kKeep;
 }
 
 Connection::~Connection()
 {
-	epoll_.del(fd_);
+	epoll_.Del(fd_);
 	close(fd_);
 }

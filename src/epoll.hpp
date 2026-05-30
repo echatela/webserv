@@ -17,11 +17,11 @@ private:
 public:
 	Epoll();
 
-	void	add(int fd, int events, void *data);
-	void	mod(int fd, int events, void *data);
-	void	del(int fd);
+	void	Add(int fd, int events, void *data);
+	void	Mod(int fd, int events, void *data);
+	void	Del(int fd);
 
-	int	wait();
+	int	Wait();
 
 	const struct epoll_event *	get_events() const;
 

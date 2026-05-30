@@ -20,7 +20,7 @@ private:
 	Listen &	operator=(const Listen & rhs);
 
 public:
-	Listen(sockaddr_in addr, Epoll & epoll);
+	Listen(sockaddr_in addr, Epoll & epoll, Reactor * reactor);
 
 	int	HandleEvent(uint32_t events);
 
