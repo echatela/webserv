@@ -2,7 +2,7 @@
 #include "connection.hpp"
 #include "event_handler.hpp"
 #include "webserv.hpp"
-#include <cstdint>
+#include <stdint.h>
 #include <exception>
 #include <unistd.h>
 #include <netinet/in.h>

@@ -4,7 +4,7 @@
 #include "epoll.hpp"
 #include "event_handler.hpp"
 #include "listen.hpp"
-#include <cstdint>
+#include <stdint.h>
 #include <vector>
 
 enum {
@@ -21,8 +21,8 @@ private:
 	std::vector<char>	write_buf_;
 	int			write_off_;
 
-	const Listen &		listen_;
 	Epoll &			epoll_;
+	const Listen &		listen_;
 	// HttpRequestParser &	parser_
 
 	Connection();

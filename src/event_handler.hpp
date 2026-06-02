@@ -1,7 +1,7 @@
 #ifndef EVENT_HANDLER_HPP
 #define EVENT_HANDLER_HPP
 
-#include <cstdint>
+#include <stdint.h>
 
 enum	HandleReturn { kKeep, kClose };
 

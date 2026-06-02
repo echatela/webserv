@@ -3,7 +3,7 @@
 
 #include "epoll.hpp"
 #include "event_handler.hpp"
-#include <cstdint>
+#include <stdint.h>
 #include <netinet/in.h>
 
 class Reactor;
@@ -12,8 +12,8 @@ class Listen : public EventHandler
 {
 private:
 	int		fd_;
-	Reactor &	reactor_;
 	Epoll &		epoll_;
+	Reactor &	reactor_;
 
 	Listen();
 	Listen(const Listen & src);

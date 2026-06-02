@@ -1,10 +1,10 @@
 #include "reactor.hpp"
-#include "connection.hpp"
 #include "event_handler.hpp"
 #include <algorithm>
 #include <cerrno>
 #include <cstddef>
 #include <exception>
+#include <iostream>
 #include <sys/epoll.h>
 #include <vector>
 
@@ -12,6 +12,7 @@ Reactor::Reactor(Config const & config)
 : config_(config)
 {
 	const std::vector<ListenInfo> &	listens_info = config_.get_listens_info();
+	
 
 	for (size_t i = 0; i < listens_info.size(); i++) {
 		Listen	*listen = NULL;
@@ -43,9 +44,8 @@ void	Reactor::Run()
 void	Reactor::Dispatch(int n)
 {
 	if (n < 0) {
-		if (errno == EINTR)
+		if (errno == EINTR) {}
 		// ERROR handling
-			;
 	}
 
 	const struct epoll_event	*ev = epoll_.get_events();

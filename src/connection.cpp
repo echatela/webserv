@@ -1,15 +1,15 @@
 #include "connection.hpp"
 #include "event_handler.hpp"
 #include <cstddef>
-#include <cstdint>
+#include <iostream>
+#include <stdint.h>
 #include <exception>
-#include <iterator>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
-: fd_(fd), listen_(listen), epoll_(epoll), state_(kReading)
+: fd_(fd), state_(kReading), epoll_(epoll), listen_(listen)
 {
 	try {
 		epoll_.Add(fd_, EPOLLIN, this);
@@ -30,6 +30,7 @@ int	Connection::HandleEvent(uint32_t events)
 		size_t n = recv(fd_, read_buf, kReadBufferSize, 0);
 		if (n <= 0)
 			return kClose;
+		std::cout << read_buf << std::endl;
 
 		// int ret = parser_.add(read_buf, n);
 		// switch(ret)
