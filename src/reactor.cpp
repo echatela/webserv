@@ -4,7 +4,6 @@
 #include <cerrno>
 #include <cstddef>
 #include <exception>
-#include <iostream>
 #include <sys/epoll.h>
 #include <vector>
 

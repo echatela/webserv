@@ -52,9 +52,19 @@ int	Connection::HandleEvent(uint32_t events)
 		// 	return kClose;
 		// 
 	} else if (state_ == kWriting && events & EPOLLOUT) {
-//		size_t n = send(fd_, write_buf_.at(write_off_), , int flags)
-	}
+		size_t	remaining = write_buf_.size() - write_off_;
+		size_t	n = send(
+			fd_, write_buf_.data() + write_off_, remaining, 0);
 
+		if (n > 0) {
+			write_off_ += n;
+			// if HTTP 1.1 need to keep alive and turn to EPOLLIN
+			if (write_off_ == write_buf_.size())
+				return kClose;
+			return kKeep;
+		} else if (n <= 0)
+			return kClose;
+	}
 	return kKeep;
 }
 
