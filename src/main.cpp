@@ -1,5 +1,6 @@
 #include "reactor.hpp"
 #include <exception>
+#include "config/config_parser.hpp"
 #include <iostream>
 
 
@@ -11,7 +12,11 @@ int	main(int argc, char **argv)
 	
 	try
 	{
-		Config	config;
+		ConfigLexer Lexer(argv[1]);
+		ConfigParser config_parser(Lexer.Tokenize());
+		Config	config(config_parser);
+		// config = config_parser.parse();
+		std::cout << "config " << config.get_servers_info()[0].listen_info.port << std::endl;
 		Reactor	reactor(config);
 		reactor.Run();
 	}

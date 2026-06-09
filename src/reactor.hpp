@@ -2,7 +2,7 @@
 #define REACTOR_HPP
 
 #include "epoll.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "event_handler.hpp"
 #include <set>
 #include <vector>

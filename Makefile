@@ -8,7 +8,8 @@ CXXFLAGS = -Wall -Wextra -Werror -g -std=c++98
 TARGET = webserv
 
 # Source files
-SRCS = $(wildcard src/*.cpp)
+SRCS =	$(wildcard src/*.cpp) \
+		$(wildcard src/config/*.cpp)
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
