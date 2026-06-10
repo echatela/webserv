@@ -11,8 +11,11 @@ TARGET = webserv
 SRCS =	$(wildcard src/*.cpp) \
 		$(wildcard src/config/*.cpp)
 
+# Dossier pour Object files
+D_BUILD = .build/
+
 # Object files
-OBJS = $(SRCS:.cpp=.o)
+OBJS = $(SRCS:%.cpp=$(D_BUILD)%.o)
 
 # Default rule to build and run the executable
 all: $(TARGET)
@@ -22,12 +25,13 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
 # Rule to compile .cpp files into .o files
-%.o: %.cpp
+$(D_BUILD)%.o: %.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Clean rule to remove generated files
 clean:
-	rm -f $(OBJS)
+	rm -r $(D_BUILD)
 
 fclean: clean
 	rm -f $(TARGET)
@@ -36,4 +40,4 @@ re: fclean all
 
 # Rule to run the executable
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) src/Configuration.conf

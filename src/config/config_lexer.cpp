@@ -6,7 +6,7 @@
 /*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 14:19:42 by agalleze          #+#    #+#             */
-/*   Updated: 2026/06/09 16:04:19 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/09 16:25:49 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ ConfigLexer::ConfigLexer(std::string filename) {
 		file_content_.append(line);
 
 	file_content_.append(eof);
+	file.close();
 }
 	
 ConfigLexer::ConfigLexer(const ConfigLexer& other) : file_content_(other.file_content_) {}
