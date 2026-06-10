@@ -1,7 +1,11 @@
 #pragma once
 
+#include "http_parser.hpp"
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <map>
+#include <ostream>
 
 class httpRequest
 {
@@ -9,21 +13,21 @@ class httpRequest
 		httpRequest();	
 		~httpRequest();
 		
-		void setMethod(const std::string& method);
-		void setPath(const std::string& path);
-		void setVersion(const std::string& version);
-		void setHeader(const std::map<std::string, std::string>& header);
-		void setBody(const std::string& body);
-		
-		const std::string getMethod() const;
-		const std::string getPath() const;
-		const std::string getVersion() const;
-		const std::map<std::string, std::string> getHeader() const;
-		const std::string getBody() const;
+		httpRequest& operator=(const httpRequest& other);
+		// const std::string getMethod() const;
+		// const std::string getPath() const;
+		// const std::string getVersion() const;
+		// const std::map<std::string, std::string> getHeader() const;
+		// const std::string getBody() const;
+
+		int parseRequestLine(std::string requestline);
+		int parseMethod(const std::string& method);
+		int parsePath(const std::string& path);
+		int parseVersion(const std::string& version);
+		int parseHeader(std::string header);
 		
 	private :
 		httpRequest(const httpRequest& other);
-		httpRequest& operator=(const httpRequest& other);
 
 		std::string method_;
 		std::string path_;
