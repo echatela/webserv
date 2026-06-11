@@ -32,6 +32,9 @@ int	Connection::HandleEvent(uint32_t events)
 			return kClose;
 		std::cout << read_buf << std::endl;
 
+
+		// HttpRequest request();
+		// HttpResponse response = 
 		// int ret = parser_.add(read_buf, n);
 		// switch(ret)
 		// case kNeed:

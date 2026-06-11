@@ -19,14 +19,15 @@ private:
 	int			state_;
 
 	std::vector<char>	write_buf_;
-	int			write_off_;
+	int					write_off_;
 
-	Epoll &			epoll_;
+	Epoll &				epoll_;
 	const Listen &		listen_;
 	// HttpRequestParser &	parser_
 
 	Connection();
 	Connection(Connection const & src);
+	
 	Connection &	operator=(Connection const & rhs);
 
 	static const int	kReadBufferSize = 4096;
