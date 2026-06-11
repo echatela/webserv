@@ -1,6 +1,7 @@
 #ifndef LISTEN_HPP
 #define LISTEN_HPP
 
+#include "config.hpp"
 #include "epoll.hpp"
 #include "event_handler.hpp"
 #include <stdint.h>
@@ -14,6 +15,7 @@ private:
 	int		fd_;
 	Epoll &		epoll_;
 	Reactor &	reactor_;
+	const Config &	config_;
 
 	Listen();
 	Listen(const Listen & src);
