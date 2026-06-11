@@ -16,6 +16,8 @@ void		HttpResponse::set_header(std::string key, std::string value) {
 
 void		HttpResponse::set_status(int status) {status_code_ = status;}
 
+void		HttpResponse::set_version(std::string version) {version_ = version;}
+
 void		HttpResponse::set_reason_phrase() {
 	switch (status_code_) {
 		case OK:
@@ -27,8 +29,8 @@ void		HttpResponse::set_reason_phrase() {
 		case NO_CONTENT:
 			reason_phrase_ = "No content found";
 			break;
-		case BAD_REQUEST:
-			reason_phrase_ = "Bad request";
+		// case BAD_REQUEST:
+		// 	reason_phrase_ = "Bad request";
 			break;
 		case FORBIDDEN:
 			reason_phrase_ = "Forbidden";
@@ -36,8 +38,8 @@ void		HttpResponse::set_reason_phrase() {
 		case NOT_FOUND:
 			reason_phrase_ = "Not Found";
 			break;
-		case METHOD_NOT_ALLOWED:
-			reason_phrase_ = "Method not allowed";
+		// case METHOD_NOT_ALLOWED:
+		// 	reason_phrase_ = "Method not allowed";
 			break;
 		case PAYLOAD_TOO_LARGE:
 			reason_phrase_ = "Payload too large";
@@ -56,14 +58,14 @@ std::string		HttpResponse::get_reason_phrase(int status_code) {
 			return "Created";
 		case NO_CONTENT:
 			return "No content found";
-		case BAD_REQUEST:
-			return "Bad request";
+		// case BAD_REQUEST:
+		// 	return "Bad request";
 		case FORBIDDEN:
 			return "Forbidden";
 		case NOT_FOUND:
 			return "Not Found";
-		case METHOD_NOT_ALLOWED:
-			return "Method not allowed";
+		// case METHOD_NOT_ALLOWED:
+		// 	return "Method not allowed";
 		case PAYLOAD_TOO_LARGE:
 			return "Payload too large";
 		case INTERNAL_SERVER_ERROR:
@@ -83,16 +85,17 @@ std::string	HttpResponse::ToString() {
 	std::string response = version_;
 	
 	response.append(" " + int_to_string(status_code_) + " " + reason_phrase_);
-	response.append("r\n");
+	response.append("\r\n");
 	for (size_t i = 0; i < headers_.size(); i++)
 	{
-		response.append(headers_[i].key + ": " + headers_[i].value);
+		response.append(headers_[i].key + ": " + headers_[i].value + "\r\n");
 	}
-	response.append("r\n");
-	response.append("r\n");
+	// response.append("\r\n");
+	response.append("\r\n");
 	response.append(body_);
 		// DISCUTABLE -> le header de la requete est parse sous forme de map
 		// 
+	return response;
 }
 
 

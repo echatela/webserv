@@ -1,12 +1,13 @@
 #include "http_parser.hpp"
 #include "http_request.hpp"
+#include <stdlib.h>
 
-httpParser::httpParser() : 
+HttpParser::HttpParser() : 
 buf_(), buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0), flag_(0), content_length_(0) { }
 
-httpParser::~httpParser() { }
+HttpParser::~HttpParser() { }
 
-int httpParser::add(const std::string buf, size_t n)
+int HttpParser::add(const std::string buf, size_t n)
 {
 	if (n == 0)
 		return flag_;
@@ -24,7 +25,7 @@ int httpParser::add(const std::string buf, size_t n)
 		{
 			size_t endCL = this->buf_.find("\r\n");
 			std::string content_length_str = this->buf_.substr(startCL + 15, endCL - startCL - 15);
-			content_length_ = std::stoi(content_length_str);
+			content_length_ = atoi(content_length_str.c_str());
 			if (content_length_ == 0)
 				flag_ = true;
 			else
@@ -45,17 +46,17 @@ int httpParser::add(const std::string buf, size_t n)
 	return flag_;
 }
 
-int httpParser::getFlag() const
+int HttpParser::getFlag() const
 {
 	return flag_;
 }
 
-std::string httpParser::getBuf() const
+std::string HttpParser::getBuf() const
 {
 	return buf_;
 }
 
-int httpParser::parseRequest(httpRequest & req) const
+int HttpParser::parseRequest(HttpRequest & req) const
 {
 	int error = 0;
 

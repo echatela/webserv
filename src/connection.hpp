@@ -19,7 +19,7 @@ private:
 	int			state_;
 
 	std::vector<char>	write_buf_;
-	int					write_off_;
+	size_t				write_off_;
 
 	Epoll &				epoll_;
 	const Listen &		listen_;

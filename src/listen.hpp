@@ -1,7 +1,7 @@
 #ifndef LISTEN_HPP
 #define LISTEN_HPP
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "epoll.hpp"
 #include "event_handler.hpp"
 #include <stdint.h>

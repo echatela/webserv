@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-class httpRequest;
+class HttpRequest;
 
 enum ParseError
 {
@@ -15,22 +15,22 @@ enum ParseError
 	OTHER_ERROR = 999,
 };
 
-class httpParser
+class HttpParser
 {
 	public:
-		httpParser();
-		~httpParser();
+		HttpParser();
+		~HttpParser();
 
 		int add(const std::string buf, size_t n);
 
 		int getFlag() const;
 		std::string getBuf() const;
 
-		int parseRequest(httpRequest& req) const;
+		int parseRequest(HttpRequest& req) const;
 		
 	private :
-		httpParser(const httpParser& other);
-		httpParser& operator=(const httpParser& other);
+		HttpParser(const HttpParser& other);
+		HttpParser& operator=(const HttpParser& other);
 
 		std::string buf_;
 		size_t buf_size_;

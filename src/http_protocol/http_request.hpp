@@ -1,4 +1,6 @@
-#pragma once
+// #pragma once
+#ifndef HTTP_REQUEST_HPP
+#define HTTP_REQUEST_HPP
 
 #include "http_parser.hpp"
 #include <sstream>
@@ -7,13 +9,13 @@
 #include <map>
 #include <ostream>
 
-class httpRequest
+class HttpRequest
 {
 	public :
-		httpRequest();	
-		~httpRequest();
+		HttpRequest();	
+		~HttpRequest();
 		
-		httpRequest& operator=(const httpRequest& other);
+		HttpRequest& operator=(const HttpRequest& other);
 		const std::string getMethod() const;
 		const std::string getPath() const;
 		const std::string getVersion() const;
@@ -28,7 +30,7 @@ class httpRequest
 		int parseBody(std::string body);
 		
 	private :
-		httpRequest(const httpRequest& other);
+		HttpRequest(const HttpRequest& other);
 
 		std::string method_;
 		std::string path_;
@@ -36,3 +38,5 @@ class httpRequest
 		std::map<std::string, std::string> header_;
 		std::string body_;
 };
+
+#endif

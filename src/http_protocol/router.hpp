@@ -7,12 +7,14 @@
 #include "../event_handler.hpp"
 #include "http_response.hpp"
 #include "http_request.hpp"
-#include "config/config.hpp"
+#include "../config/config.hpp"
+
+class HttpRequest;
 
 class Router {
 
 public:
-	Router();
+	Router(ServerConfig config);
 	~Router();
 
 	HttpResponse	HandleRequest(HttpRequest & req);
@@ -33,3 +35,7 @@ private:
 
 
 #endif
+
+// TODO renforcer les verifications pour la requete GET et cleaner tout le bazar
+	// voir pour l'imbrication des classes qui peut etre amelioree
+	// letsgo pour la suite ! 

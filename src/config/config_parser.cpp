@@ -6,7 +6,7 @@
 /*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/11 14:58:33 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/11 19:37:08 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,6 @@ std::vector<ServerConfig> 	ConfigParser::Parse() {
 		}
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
-		current_++;
 	}
 	return (servers);
 }

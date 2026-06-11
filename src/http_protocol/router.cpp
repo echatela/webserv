@@ -1,10 +1,11 @@
+#include "http_request.hpp"
 #include "router.hpp"
-#include "webserv.hpp"
+#include "../webserv.hpp"
 
-Router::Router() {}
+
+Router::Router(ServerConfig config) : config_(config) {}
 
 Router::~Router() {}
-
 
 HttpResponse	Router::BuildErrorResponse(int status) {
 
@@ -16,39 +17,37 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 	resp.set_version("HTTP/1.1");
 	body.append("<html>\r\n<body>\r\n");
 	body.append("<h1>");
-	body.append(webserv::utils::IntToStr(status) + resp.get_reason_phrase(status));
-	body.append("</h1>");
-	body.append("</html>\r\n</body>\r\n");
+	body.append(webserv::utils::IntToStr(status) + " " + resp.get_reason_phrase(status));
+	body.append("</h1>\r\n");
+	body.append("</html>\r\n</body>");
 	resp.set_body(body);
-	resp.set_header("Content-Type", "text/htmlRequest");
+	resp.set_header("Content-Type", "text/html");
 	resp.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 	return (resp);
 }
 
-
 HttpResponse	Router::HandleRequest(HttpRequest& req) {
-	if (req.get_method() == "GET")
+	// if (req.getMethod() == "GET")
 		return (HandleGet(req));
-	if (req.get_method() == "POST")
-		return (HandlePost(req));
-	return (HandleDelete(req));
+	// if (req.getMethod() == "POST")
+	// 	return (HandlePost(req));
+	// return (HandleDelete(req));
 }
-
-
 
 HttpResponse	Router::HandleGet(HttpRequest& req) {
 	HttpResponse 		current;
 	std::string			absolute_path;
-	struct stat*		info;
-
-	absolute_path = config_.root + req.get_path();
-	if (stat(absolute_path.c_str(), info) == -1)
+	struct stat			info;
+	
+	absolute_path = config_.root + req.getPath();
+	std::cout << "=========================ABS PATH " << absolute_path << '\n';
+	if (stat(absolute_path.c_str(), &info) == -1)
 	{
-		current.set_status(NOT_FOUND);
+		std::cout << "ERRNO" << errno << '\n';
 		return (BuildErrorResponse(NOT_FOUND));
 	}
 	// check avec realpath si il est toujours contenu dans le root du server
-	std::fstream	file(absolute_path);
+	std::ifstream	file(absolute_path.c_str());
 	std::string		line;
 	std::string		body;
 
@@ -66,7 +65,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 	current.set_status(OK);
 	current.set_reason_phrase();
 	current.set_version("HTTP/1.1");
-	AddContentType(current, req.get_path());
+	AddContentType(current, req.getPath());
 	AddContentLength(current, body);
 	return (current);
 }
@@ -74,12 +73,12 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 std::string	value_from_extension(std::string extension) {
 	std::map<std::string, std::string> types;
 
-	types = { 	{".html", "text/htmlRequest"},
-				{".css", "text/css"},	
-				{".js", "application/javascript"},	
-				{".png", "image/png"},	
-				{".jpg", "image/jpeg"},	
-				{".gif", "image/gif"}};
+	types[".html"] = "text/htmlRequest";
+	types[".css"] = "text/css";	
+	types[".js"] = "application/javascript";	
+	types[".png"] = "image/png";	
+	types[".jpg"] = "image/jpeg";	
+	types[".gif"] = "image/gif";
 
 	return (types.at(extension));
 }
