@@ -22,30 +22,30 @@ httpRequest& httpRequest::operator=(const httpRequest& other)
 	return *this;
 }
 
-// const std::string httpRequest::getMethod() const
-// {
-// 	return method_;
-// }
+const std::string httpRequest::getMethod() const
+{
+	return method_;
+}
 
-// const std::string httpRequest::getPath() const
-// {
-// 	return path_;
-// }
+const std::string httpRequest::getPath() const
+{
+	return path_;
+}
 
-// const std::string httpRequest::getVersion() const
-// {
-// 	return version_;
-// }
+const std::string httpRequest::getVersion() const
+{
+	return version_;
+}
 
-// const std::map<std::string, std::string> httpRequest::getHeader() const
-// {
-// 	return header_;
-// }
+const std::map<std::string, std::string> httpRequest::getHeader() const
+{
+	return header_;
+}
 
-// const std::string httpRequest::getBody() const
-// {
-// 	return body_;
-// }
+const std::string httpRequest::getBody() const
+{
+	return body_;
+}
 
 int httpRequest::parseMethod(const std::string& method)
 {
@@ -108,6 +108,13 @@ int httpRequest::parseHeader(std::string header)
 		std::string value = line.substr(pos + 1);
 		this->header_[index] = value;
 	}
+	if (this->header_["Host"].empty())
+		return BAD_HEADER;
 	return NO_ERROR;
 }
 
+int httpRequest::parseBody(std::string body)
+{
+	this->body_ = body;
+	return NO_ERROR;
+}

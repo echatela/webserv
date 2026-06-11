@@ -2,7 +2,8 @@
 
 #include <string>
 #include <iostream>
-#include "http_request.hpp"
+
+class httpRequest;
 
 enum ParseError
 {
@@ -22,8 +23,8 @@ class httpParser
 
 		int add(const std::string buf, size_t n);
 
-		// int getFlag() const;
-		// std::string getBuf() const;
+		int getFlag() const;
+		std::string getBuf() const;
 
 		int parseRequest(httpRequest& req) const;
 		
@@ -32,5 +33,9 @@ class httpParser
 		httpParser& operator=(const httpParser& other);
 
 		std::string buf_;
+		size_t buf_size_;
+		size_t buf_size_without_body_;
+		size_t buf_size_with_body_;
 		int flag_;
+		int content_length_;
 };
