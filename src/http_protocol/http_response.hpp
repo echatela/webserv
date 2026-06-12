@@ -36,7 +36,8 @@ public:
 	void			set_reason_phrase();
 
 
-	std::string		ToString();
+	std::string			ToString();
+	std::vector<char>	ToCharVector();
 
 	static std::string get_reason_phrase(int status_code);
 

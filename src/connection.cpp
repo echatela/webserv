@@ -1,5 +1,6 @@
 #include "connection.hpp"
 #include "event_handler.hpp"
+
 #include <cstddef>
 #include <iostream>
 #include <stdint.h>
@@ -11,6 +12,7 @@
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
 : fd_(fd), state_(kReading), epoll_(epoll), listen_(listen)
 {
+	router_.set_config(listen_.get_config());
 	try {
 		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
@@ -30,35 +32,45 @@ int	Connection::HandleEvent(uint32_t events)
 		size_t n = recv(fd_, read_buf, kReadBufferSize, 0);
 		if (n <= 0)
 			return kClose;
-		std::cout << read_buf << std::endl;
+		// std::cout << read_buf << std::endl;
 
 
-		// HttpRequest request();
-		// HttpResponse response = 
-		// int ret = parser_.add(read_buf, n);
-		// switch(ret)
-		// case kNeed:
-		// 	return kKeep;
-		// case kComplete:
-		// 	request = parser_.get_request();
-		// 	response = parser.handler();
-		// 	response >> write_buf;
-		// 	state_ = kWriting;
-		// 	epoll_.Mod(fd_, EPOLLOUT, this);
-		// 	return kKeep
-		// case kError:
-		// 	error_response >> write_buf;
-		// 	state_ = kWriting;
-		// 	epoll_.Mod(fd_, EPOLLOUT, this);
-		// 	return kKeep;
-		// default:
-		// 	return kClose;
-		// 
-	} else if (state_ == kWriting && events & EPOLLOUT) {
+		int ret = parser_.add(read_buf, n);
+		switch(ret)
+		{
+			case false:
+				return kKeep;
+			case true:
+				parser_.parseRequest(request_);
+				std::cout << parser_.getBuf() << std::endl;
+				response_ = router_.HandleRequest(request_);
+				// response = parser_.handler();
+				// response_.ToString() >> write_buf_;
+				write_buf_ = response_.ToCharVector();
+				state_ = kWriting;
+				epoll_.Mod(fd_, EPOLLOUT, this);
+				return kKeep;
+			// case kError:
+			// 	error_response >> write_buf;
+			// 	state_ = kWriting;
+			// 	epoll_.Mod(fd_, EPOLLOUT, this);
+			// 	return kKeep;
+			default:
+				return kClose;
+		}
+		
+	}
+	else if (state_ == kWriting && events & EPOLLOUT)
+	{
+		// std::string response = response_.ToString();
 		size_t	remaining = write_buf_.size() - write_off_;
 		size_t	n = send(
 			fd_, write_buf_.data() + write_off_, remaining, 0);
 
+		// std::cout << "/////////RESPONSE//////////\n"<< response << std::endl;
+		// size_t	n = send(
+		// 	fd_, (response.substr(write_off_, response.length())).c_str(), remaining, 0);
+		// std::cout << "apres send." << '\n';
 		if (n > 0) {
 			write_off_ += n;
 			// if HTTP 1.1 need to keep alive and turn to EPOLLIN

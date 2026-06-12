@@ -35,7 +35,7 @@ public:
 	Config(const Config & src);
 	~Config();
 
-	Config &	operator=(const Config & rhs);
+	const Config &	operator=(const Config & rhs);
 
 	std::vector<ListenInfo>				get_listens_info() const;
 	const std::vector<ServerConfig> & 	get_servers_info() const;

@@ -17,9 +17,11 @@ class Router {
 
 public:
 	Router(ServerConfig config);
+	Router();
 	~Router();
 
 	HttpResponse	HandleRequest(HttpRequest & req);
+	void			set_config(const ServerConfig & config);
 
 private:
 	ServerConfig	config_;

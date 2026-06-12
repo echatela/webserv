@@ -16,7 +16,7 @@ Config::~Config()
 {
 }
 
-Config &	Config::operator=(const Config & rhs)
+const Config &	Config::operator=(const Config & rhs)
 {
 	if (this != &rhs)
 	{

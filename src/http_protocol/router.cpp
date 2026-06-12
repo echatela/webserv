@@ -5,7 +5,14 @@
 
 Router::Router(ServerConfig config) : config_(config) {}
 
+Router::Router() {}
+
 Router::~Router() {}
+
+void			Router::set_config(const ServerConfig & config) {
+	config_ = config;
+}
+
 
 HttpResponse	Router::BuildErrorResponse(int status) {
 
@@ -85,7 +92,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 std::string	value_from_extension(std::string extension) {
 	std::map<std::string, std::string> types;
 
-	types[".html"] = "text/htmlRequest";
+	types[".html"] = "text/html";
 	types[".css"] = "text/css";	
 	types[".js"] = "application/javascript";	
 	types[".png"] = "image/png";	

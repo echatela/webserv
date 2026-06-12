@@ -1,5 +1,9 @@
 #include "reactor.hpp"
 #include "event_handler.hpp"
+#include "http_protocol/http_request.hpp"
+#include "http_protocol/http_response.hpp"
+#include "http_protocol/router.hpp"
+#include "config/config_parser.hpp"
 #include <algorithm>
 #include <cerrno>
 #include <cstddef>
@@ -11,6 +15,7 @@ Reactor::Reactor(Config const & config)
 : config_(config)
 {
 	const std::vector<ListenInfo> &	listens_info = config_.get_listens_info();
+	const std::vector<ServerConfig> & servers_info = config_.get_servers_info();
 	
 
 	for (size_t i = 0; i < listens_info.size(); i++) {
@@ -18,7 +23,7 @@ Reactor::Reactor(Config const & config)
 
 		try {
 			listen = new Listen(
-				listens_info[i].address, epoll_, *this);
+				listens_info[i].address, epoll_, *this, servers_info[i]);
 			handlers_.push_back(listen);
 		} catch (std::exception&) {
 			delete listen;
@@ -52,7 +57,6 @@ void	Reactor::Dispatch(int n)
 	for (int i = 0; i < n; i++) {
 		EventHandler	*handler
 			= static_cast<EventHandler*>(ev[i].data.ptr);
-
 		if (closed_.find(handler) == closed_.end())
 			if (handler->HandleEvent(ev[i].events) == kClose)
 				closed_.insert(handler);

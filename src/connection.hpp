@@ -3,6 +3,10 @@
 
 #include "epoll.hpp"
 #include "event_handler.hpp"
+#include "http_protocol/http_request.hpp"
+#include "http_protocol/http_response.hpp"
+#include "http_protocol/router.hpp"
+#include "config/config_parser.hpp"
 #include "listen.hpp"
 #include <stdint.h>
 #include <vector>
@@ -23,7 +27,10 @@ private:
 
 	Epoll &				epoll_;
 	const Listen &		listen_;
-	// HttpRequestParser &	parser_
+	HttpParser			parser_;
+	HttpRequest			request_;
+	Router				router_;
+	HttpResponse		response_;
 
 	Connection();
 	Connection(Connection const & src);

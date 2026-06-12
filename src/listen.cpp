@@ -12,8 +12,8 @@
 #include <sys/epoll.h>
 #include "reactor.hpp"
 
-Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor)
-: epoll_(epoll), reactor_(reactor)
+Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const ServerConfig & config)
+: epoll_(epoll), reactor_(reactor), config_(config)
 {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd_ < 0)
@@ -67,6 +67,8 @@ int	Listen::HandleEvent(uint32_t events)
 }
 
 int	Listen::get_fd() const { return fd_; }
+
+const ServerConfig &	Listen::get_config() const { return config_; }
 
 Listen::~Listen()
 {

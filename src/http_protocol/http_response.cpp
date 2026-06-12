@@ -98,6 +98,17 @@ std::string	HttpResponse::ToString() {
 	return response;
 }
 
+std::vector<char> 	HttpResponse::ToCharVector() {
+
+	std::string response = this->ToString();
+	std::vector<char> vector;
+	for (size_t i = 0; i < response.size(); i++)
+	{
+		vector.push_back(response[i]);
+	}
+	return (vector);
+}
+
 
 // | Code | Signification         |
 // | ---- | --------------------- |

@@ -45,3 +45,13 @@ Convention de nommage / Nomenclature
 
 -> commentaires au dessus
 -> tab de 8
+
+
+_______________________________________________________________________
+-> POURQUOI le server ne se lance pas a chaque fois ? 
+-> Creer les locations == reflexion commune ? 
+-> Reflechir au produit final
+    -> architectures de fichiers / front
+    -> schema d actions ex(je clic sur un tel bouton, ca ouvre tel page)
+-> Clean reponses GET
+-> Construction reponses DELETE/POST
