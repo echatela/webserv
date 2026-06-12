@@ -5,10 +5,12 @@ int main()
 	httpParser parser;
 
 	std::string request = "POST /upload HTTP/1.1\r\nHost: localhost\nContent-Length: 11\r\n\r\nHel";
-	std::string request2 = "lo World";
+	std::string request2 = "lo Wo";
+	std::string request3 = "rld";
 
 	parser.add(request, request.size());
 	parser.add(request2, request2.size());
+	parser.add(request3, request2.size());
 
 	std::cout << "BUF => " << std::endl
 		<< "- - - - - - - - - - - -" << std::endl
