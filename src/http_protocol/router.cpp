@@ -34,33 +34,45 @@ HttpResponse	Router::HandleRequest(HttpRequest& req) {
 	// return (HandleDelete(req));
 }
 
-HttpResponse	Router::HandleGet(HttpRequest& req) {
-	HttpResponse 		current;
-	std::string			absolute_path;
-	struct stat			info;
-	
-	absolute_path = config_.root + req.getPath();
-	std::cout << "=========================ABS PATH " << absolute_path << '\n';
-	if (stat(absolute_path.c_str(), &info) == -1)
-	{
-		std::cout << "ERRNO" << errno << '\n';
-		return (BuildErrorResponse(NOT_FOUND));
-	}
-	// check avec realpath si il est toujours contenu dans le root du server
-	std::ifstream	file(absolute_path.c_str());
+std::string		Router::FillBody(std::string filepath, int* status_code)
+{
+	std::ifstream	file(filepath.c_str());
 	std::string		line;
 	std::string		body;
 
 	if (!file.is_open())
 	{
-		current.set_status(FORBIDDEN);
-		return (BuildErrorResponse(FORBIDDEN));
+		*status_code = FORBIDDEN;
+		return ("nul");
 	}
 	while (getline(file, line))
 		body.append(line);
+	return (body);
+}
+
+HttpResponse	Router::HandleGet(HttpRequest& req) {
+	HttpResponse 		current;
+	std::string			absolute_path;
+	// char				resolved_path[PATH_MAX]; WIP
+	struct stat			info;
+	int					status_code;
+	std::string			body;
+	
+// WIP
+	// realpath(req.getPath().c_str(), resolved_path);
+	// std::cout << "path: "  << req.getPath() << " resolved_path: "  << resolved_path << '\n';
+	// free(resolved_path);
+	absolute_path = config_.root + req.getPath();
+	if (stat(absolute_path.c_str(), &info) == -1)
+		return (BuildErrorResponse(NOT_FOUND));
+
+	// check avec realpath si il est toujours contenu dans le root du server
+	body = FillBody(absolute_path, &status_code);
+	if (body == "nul" && status_code == FORBIDDEN)
+		return (BuildErrorResponse(FORBIDDEN));
 	if (body.size() == 0)
 		return (BuildErrorResponse(NO_CONTENT));
-	
+
 	current.set_body(body);
 	current.set_status(OK);
 	current.set_reason_phrase();

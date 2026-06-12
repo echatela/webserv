@@ -3,6 +3,8 @@
 
 #include <sys/stat.h>
 #include <fstream>
+#include <stdlib.h>
+#include <limits.h>
 
 #include "../event_handler.hpp"
 #include "http_response.hpp"
@@ -27,6 +29,7 @@ private:
 
 
 	HttpResponse		HandleGet(HttpRequest & req);
+	std::string			FillBody(std::string path, int *status_code);
 	HttpResponse		HandleDelete(HttpRequest & req);
 	HttpResponse		HandlePost(HttpRequest & req);
 	HttpResponse		BuildErrorResponse(int status_code);

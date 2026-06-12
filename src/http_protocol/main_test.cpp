@@ -12,7 +12,7 @@ int main()
 		Config	config(config_parser);
 		ServerConfig serv = config.get_servers_info()[0];
 		
-		std::string request = "GET /index.html HTTP/1.1\r\nHost: localhost\nUser-Agent: Mo";
+		std::string request = "GET ../prout/test.css HTTP/1.1\r\nHost: localhost\nUser-Agent: Mo";
 	std::string request2 = "zilla/5.0";
 	
 	parser.add(request, request.size());
@@ -49,7 +49,6 @@ int main()
 	{
 		std::cout << e.what() << std::endl;
 	}
-		
 
 	return 0;
 }

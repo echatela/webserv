@@ -15,7 +15,7 @@ private:
 	int		fd_;
 	Epoll &		epoll_;
 	Reactor &	reactor_;
-	const Config &	config_;
+	// const Config &	config_;
 
 	Listen();
 	Listen(const Listen & src);
@@ -32,3 +32,5 @@ public:
 };
 
 #endif
+
+// COMMENTAIRE
