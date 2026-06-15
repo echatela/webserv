@@ -67,10 +67,12 @@ void	Reactor::CloseHandlers()
 	std::vector<EventHandler*>::iterator	ev_it;
 
 	for (cev_it = closed_.begin(); cev_it != closed_.end(); ++cev_it) {
+		EventHandler *handler = *cev_it;
 		ev_it = std::find(handlers_.begin(),
-		    handlers_.end(), *cev_it);
-		handlers_.erase(ev_it);
-		// delete *ev_it;
+		    handlers_.end(), handler);
+		delete handler;
+		if (ev_it != handlers_.end())
+			handlers_.erase(ev_it);
 	}
 	closed_.clear();
 }

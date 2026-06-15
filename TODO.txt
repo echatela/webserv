@@ -48,7 +48,7 @@ Convention de nommage / Nomenclature
 
 
 _______________________________________________________________________
--> POURQUOI le server ne se lance pas a chaque fois ? 
+-> POURQUOI le server ne se lance pas a chaque fois ? // -> OK
 -> Creer les locations == reflexion commune ? 
 -> Reflechir au produit final
     -> architectures de fichiers / front

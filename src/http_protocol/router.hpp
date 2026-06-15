@@ -35,6 +35,8 @@ private:
 	HttpResponse		HandleDelete(HttpRequest & req);
 	HttpResponse		HandlePost(HttpRequest & req);
 	HttpResponse		BuildErrorResponse(int status_code);
+
+	std::string			set_path(HttpRequest & req, int *status_code);
 	
 };
 

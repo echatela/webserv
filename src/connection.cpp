@@ -12,8 +12,8 @@
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
 : fd_(fd), state_(kReading), write_off_(0), epoll_(epoll), listen_(listen)
 {
-	router_.set_config(listen_.get_config());
 	try {
+		router_.set_config(listen_.get_config());
 		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
 		close(fd_);

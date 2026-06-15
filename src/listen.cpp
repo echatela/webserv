@@ -19,6 +19,10 @@ Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const ServerC
 	if (fd_ < 0)
 		throw std::runtime_error("Couldn't initialize socket...\n");
 
+	int opt = 1;
+	if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		throw std::runtime_error("Couldn't set adress to be reuseable...\n");
+		
 	if (bind(fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		close(fd_);
 		throw std::runtime_error("Couldn't bind socket...\n");
