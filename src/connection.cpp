@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
-: fd_(fd), state_(kReading), epoll_(epoll), listen_(listen)
+: fd_(fd), state_(kReading), write_off_(0), epoll_(epoll), listen_(listen)
 {
 	router_.set_config(listen_.get_config());
 	try {
@@ -29,9 +29,10 @@ int	Connection::HandleEvent(uint32_t events)
 	if (state_ == kReading && events & EPOLLIN) {
 		char read_buf[kReadBufferSize];
 
-		size_t n = recv(fd_, read_buf, kReadBufferSize, 0);
+		size_t n = recv(fd_, read_buf, kReadBufferSize - 1, 0);
 		if (n <= 0)
 			return kClose;
+		read_buf[n] = '\0';
 		// std::cout << read_buf << std::endl;
 
 
@@ -44,8 +45,7 @@ int	Connection::HandleEvent(uint32_t events)
 				parser_.parseRequest(request_);
 				std::cout << parser_.getBuf() << std::endl;
 				response_ = router_.HandleRequest(request_);
-				// response = parser_.handler();
-				// response_.ToString() >> write_buf_;
+				std::cout << "caca\n";
 				write_buf_ = response_.ToCharVector();
 				state_ = kWriting;
 				epoll_.Mod(fd_, EPOLLOUT, this);
@@ -71,14 +71,15 @@ int	Connection::HandleEvent(uint32_t events)
 		// size_t	n = send(
 		// 	fd_, (response.substr(write_off_, response.length())).c_str(), remaining, 0);
 		// std::cout << "apres send." << '\n';
-		if (n > 0) {
+		if (n <= 0)
+			return kClose;
+		else {
 			write_off_ += n;
 			// if HTTP 1.1 need to keep alive and turn to EPOLLIN
 			if (write_off_ == write_buf_.size())
 				return kClose;
 			return kKeep;
-		} else if (n <= 0)
-			return kClose;
+		}
 	}
 	return kKeep;
 }
