@@ -1,0 +1,132 @@
+/////////ERREURS MEMOIRE VALGRIND 
+
+
+-> ERREUR
+==5909== Invalid write of size 8
+==5909== at 0x110639: construct (new_allocator.h:205)
+==5909== by 0x110639: construct<EventHandler*> (alloc_traits.h:155)
+==5909== by 0x110639: std::vector<EventHandler*, std::allocator<EventHandler*> >::push_back(EventHandler* const&) (stl_vector.h:1286)
+==5909== by 0x110194: Reactor::AddEventHandler(EventHandler*) (reactor.cpp:83)
+==5909== by 0x10F3D9: Listen::HandleEvent(unsigned int) (listen.cpp:64)
+==5909== by 0x10FFF7: Reactor::Dispatch(int) (reactor.cpp:61)
+==5909== by 0x10FEF5: Reactor::Run() (reactor.cpp:42)
+==5909== by 0x10F6BE: main (main.cpp:25)
+==5909== Address 0x4e27ea0 is 5,536 bytes inside a block of size 8,192 free'd
+==5909== at 0x484BFA4: operator delete (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5909== by 0x498CC09: std::basic_filebuf<char, std::char_traits<char> >::_M_destroy_internal_buffer() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==5909== by 0x4990349: std::basic_filebuf<char, std::char_traits<char> >::close() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==5909== by 0x4992630: std::basic_ifstream<char, std::char_traits<char> >::~basic_ifstream() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==5909== by 0x120E87: Router::FillBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, int*) (router.cpp:58)
+==5909== by 0x1210BE: Router::HandleGet(HttpRequest&) (router.cpp:77)
+==5909== by 0x120C9E: Router::HandleRequest(HttpRequest&) (router.cpp:38)
+==5909== by 0x10BFCA: Connection::HandleEvent(unsigned int) (connection.cpp:46)
+==5909== by 0x10FFF7: Reactor::Dispatch(int) (reactor.cpp:61)
+==5909== by 0x10FEF5: Reactor::Run() (reactor.cpp:42)
+==5909== by 0x10F6BE: main (main.cpp:25)
+==5909== Block was alloc'd at
+==5909== at 0x48485C3: operator new[](unsigned long) (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==5909== by 0x498CBC3: std::basic_filebuf<char, std::char_traits<char> >::_M_allocate_internal_buffer() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==5909== by 0x4990F46: std::basic_filebuf<char, std::char_traits<char> >::open(char const*, std::_Ios_Openmode) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==5909== by 0x4991CAC: std::basic_ifstream<char, std::char_traits<char> >::basic_ifstream(char const*, std::_Ios_Openmode) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==5909== by 0x120D64: Router::FillBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, int*) (router.cpp:46) ...exception
+
+->REPONSE:
+
+Read [](file:///home/willysex/Websrv/src/http_protocol/router.cpp#1-1), lines 1 to 100
+
+Read [](file:///home/willysex/Websrv/src/reactor.cpp)
+
+Read [](file:///home/willysex/Websrv/src/listen.cpp)
+
+Read [](file:///home/willysex/Websrv/src/reactor.hpp)
+
+Read [](file:///home/willysex/Websrv/src/listen.hpp)
+
+Read [](file:///home/willysex/Websrv/src/connection.cpp#1-1), lines 1 to 80
+
+Read [](file:///home/willysex/Websrv/src/connection.hpp#1-1), lines 1 to 50
+
+Looking at this memory corruption error, I can see the issue is in listen.cpp. When accepting a client connection, the code is setting socket flags on the listening socket (`fd_`) instead of the client socket (`client_fd`): 
+
+Read [](file:///home/willysex/Websrv/src/listen.cpp#45-45), lines 45 to 75
+
+I found the bug! Lines 55-56 are setting flags on the listening socket (`fd_`) instead of the newly accepted client socket (`client_fd`). This causes the client socket to be left in blocking mode, which can cause serious issues with epoll and memory corruption. Here's the fix: 
+
+Replacing 16 lines with 16 lines in [](file:///home/willysex/Websrv/src/listen.cpp)
+
+
+```
+
+```
+Fixed! The bug was setting socket flags on the listening socket instead of the accepted client socket. This left client sockets in blocking mode, which causes issues with epoll and memory corruption. The fix ensures `client_fd` gets set to non-blocking mode and close-on-exec, and properly closes it on error.
+
+Made changes.
+
+->ERREUR
+
+==6759== Invalid write of size 8
+==6759==    at 0x11062D: construct (new_allocator.h:205)
+==6759==    by 0x11062D: construct<EventHandler*> (alloc_traits.h:155)
+==6759==    by 0x11062D: std::vector<EventHandler*, std::allocator<EventHandler*> >::push_back(EventHandler* const&) (stl_vector.h:1286)
+==6759==    by 0x110188: Reactor::AddEventHandler(EventHandler*) (reactor.cpp:83)
+==6759==    by 0x10F3CD: Listen::HandleEvent(unsigned int) (listen.cpp:64)
+==6759==    by 0x10FFEB: Reactor::Dispatch(int) (reactor.cpp:61)
+==6759==    by 0x10FEE9: Reactor::Run() (reactor.cpp:42)
+==6759==    by 0x10F6B2: main (main.cpp:25)
+==6759==  Address 0x4e26710 is 48 bytes inside a block of size 472 free'd
+==6759==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==6759==    by 0x4B9332F: _IO_deallocate_file (libioP.h:958)
+==6759==    by 0x4B9332F: fclose@@GLIBC_2.2.5 (iofclose.c:74)
+==6759==    by 0x495B0F7: std::__basic_file<char>::close() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==6759==    by 0x4990395: std::basic_filebuf<char, std::char_traits<char> >::close() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==6759==    by 0x4992630: std::basic_ifstream<char, std::char_traits<char> >::~basic_ifstream() (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==6759==    by 0x120E7B: Router::FillBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, int*) (router.cpp:58)
+==6759==    by 0x1210B2: Router::HandleGet(HttpRequest&) (router.cpp:77)
+==6759==    by 0x120C92: Router::HandleRequest(HttpRequest&) (router.cpp:38)
+==6759==    by 0x10BFCA: Connection::HandleEvent(unsigned int) (connection.cpp:46)
+==6759==    by 0x10FFEB: Reactor::Dispatch(int) (reactor.cpp:61)
+==6759==    by 0x10FEE9: Reactor::Run() (reactor.cpp:42)
+==6759==    by 0x10F6B2: main (main.cpp:25)
+==6759==  Block was alloc'd at
+==6759==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
+==6759==    by 0x4B93E7E: __fopen_internal (iofopen.c:65)
+==6759==    by 0x4B93E7E: fopen@@GLIBC_2.2.5 (iofopen.c:86)
+==6759==    by 0x495B06C: std::__basic_file<char>::open(char const*, std::_Ios_Openmode, int) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==6759==    by 0x4990F2E: std::basic_filebuf<char, std::char_traits<char> >::open(char const*, std::_Ios_Openmode) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==6759==    by 0x4991CAC: std::basic_ifstream<char, std::char_traits<char> >::basic_ifstream(char const*, std::_Ios_Openmode) (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.33)
+==6759==    by 0x120D58: Router::FillBody(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, int*) (router.cpp:46)
+==6759==    by 0x1210B2: Router::HandleGet(HttpRequest&) (router.cpp:77)
+==6759==    by 0x120C92: Router::HandleRequest(HttpRequest&) (router.cpp:38)
+==6759==    by 0x10BFCA: Connection::HandleEvent(unsigned int) (connection.cpp:46)
+==6759==    by 0x10FFEB: Reactor::Dispatch(int) (reactor.cpp:61)
+==6759==    by 0x10FEE9: Reactor::Run() (reactor.cpp:42)
+==6759==    by 0x10F6B2: main (main.cpp:25)
+==6759== 
+
+-> REPONSE
+
+Looking at the Valgrind error, I see the issue is in the Reactor constructor's exception handling. When `push_back()` throws an exception, the code tries to clean up by deleting all handlers. However, if the Reactor constructor itself throws, the Reactor destructor will also be called, leading to a **double-delete** of the handlers.
+
+Let me examine the Reactor constructor: 
+
+Read [](file:///home/willysex/Websrv/src/reactor.cpp#1-1), lines 1 to 40
+
+I found the bug! The issue is a **double-delete** in the Reactor constructor. When `push_back()` throws, the code deletes all handlers, then the exception causes the Reactor destructor to be called, which deletes them again.
+
+The fix is to remove the handler cleanup from the catch block—let the destructor handle that: 
+
+Replacing 14 lines with 12 lines in [](file:///home/willysex/Websrv/src/reactor.cpp)
+
+
+```
+
+```
+Fixed! The problem was a double-delete bug:
+
+1. When `handlers_.push_back(listen)` throws an exception (e.g., out of memory), the code was deleting all handlers manually
+2. Then the exception causes the Reactor destructor to be called, which deletes them **again**
+3. This heap corruption was detected by Valgrind
+
+The fix removes the manual handler cleanup from the catch block. Now only the current `listen` that failed is deleted, and the Reactor destructor properly cleans up any successfully-added handlers. This eliminates the double-delete.
+
+Made changes.

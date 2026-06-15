@@ -54,6 +54,7 @@ std::string		Router::FillBody(std::string filepath, int* status_code)
 	}
 	while (getline(file, line))
 		body.append(line);
+	file.close();
 	return (body);
 }
 

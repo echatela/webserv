@@ -52,9 +52,9 @@ int	Listen::HandleEvent(uint32_t events)
 	if (client_fd < 0)
 		return kKeep;
 
-	if (webserv::fd::SetNonBlock(fd_) < 0
-		|| webserv::fd::SetCloExec(fd_) < 0) {
-		close(fd_);
+	if (webserv::fd::SetNonBlock(client_fd) < 0
+		|| webserv::fd::SetCloExec(client_fd) < 0) {
+		close(client_fd);
 		return kKeep;
 	}
 

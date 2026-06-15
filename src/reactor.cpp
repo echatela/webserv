@@ -27,8 +27,6 @@ Reactor::Reactor(Config const & config)
 			handlers_.push_back(listen);
 		} catch (std::exception&) {
 			delete listen;
-			for (size_t i = 0; i < handlers_.size(); i++)
-				delete handlers_[i];
 			throw;
 		}
 	}
@@ -72,7 +70,7 @@ void	Reactor::CloseHandlers()
 		ev_it = std::find(handlers_.begin(),
 		    handlers_.end(), *cev_it);
 		handlers_.erase(ev_it);
-		delete *ev_it;
+		// delete *ev_it;
 	}
 	closed_.clear();
 }
