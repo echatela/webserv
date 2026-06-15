@@ -69,8 +69,10 @@ void	Reactor::CloseHandlers()
 	for (cev_it = closed_.begin(); cev_it != closed_.end(); ++cev_it) {
 		ev_it = std::find(handlers_.begin(),
 		    handlers_.end(), *cev_it);
-		handlers_.erase(ev_it);
-		// delete *ev_it;
+		if (ev_it != handlers_.end()) {
+			handlers_.erase(ev_it);
+			delete *ev_it;
+		}
 	}
 	closed_.clear();
 }
