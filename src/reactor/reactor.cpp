@@ -1,9 +1,9 @@
 #include "reactor.hpp"
 #include "event_handler.hpp"
-#include "http_protocol/http_request.hpp"
-#include "http_protocol/http_response.hpp"
-#include "http_protocol/router.hpp"
-#include "config/config_parser.hpp"
+#include "../http_protocol/http_request.hpp"
+#include "../http_protocol/http_response.hpp"
+#include "../http_protocol/router.hpp"
+#include "../config/config_parser.hpp"
 #include <algorithm>
 #include <cerrno>
 #include <cstddef>
@@ -12,7 +12,7 @@
 #include <vector>
 
 Reactor::Reactor(Config const & config)
-: config_(config)
+: config_(config) //configs_ -> vecteur de serveur config
 {
 	const std::vector<ListenInfo> &	listens_info = config_.get_listens_info();
 	const std::vector<ServerConfig> & servers_info = config_.get_servers_info();

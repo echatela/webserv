@@ -3,10 +3,10 @@
 
 #include "epoll.hpp"
 #include "event_handler.hpp"
-#include "http_protocol/http_request.hpp"
-#include "http_protocol/http_response.hpp"
-#include "http_protocol/router.hpp"
-#include "config/config_parser.hpp"
+#include "../http_protocol/http_request.hpp"
+#include "../http_protocol/http_response.hpp"
+#include "../http_protocol/router.hpp"
+#include "../config/config_parser.hpp"
 #include "listen.hpp"
 #include <stdint.h>
 #include <vector>

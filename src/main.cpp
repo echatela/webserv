@@ -1,4 +1,4 @@
-#include "reactor.hpp"
+#include "reactor/reactor.hpp"
 #include <exception>
 #include "config/config_parser.hpp"
 #include "http_protocol/http_request.hpp"
@@ -10,18 +10,15 @@
 
 int	main(int argc, char **argv)
 {
-	(void)argc, (void)argv;
-	// ConfigParser	config_parser(argv);
-	// config = parser.get_config();
-	
+	if (argc != 2)
+		return 1;	
 	try
 	{
 		ConfigLexer Lexer(argv[1]);
 		ConfigParser config_parser(Lexer.Tokenize());
-		Config	config(config_parser);
-		// config = config_parser.parse();
+		Config	config(config_parser); // -> vecteur direct 
 		std::cout << "config " << config.get_servers_info()[0].listen_info.port << std::endl;
-		Reactor	reactor(config);
+		Reactor	reactor(config);// -> envoyer vecteur 
 		reactor.Run();
 	}
 	catch (std::exception & e)

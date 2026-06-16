@@ -76,7 +76,7 @@ std::string 	Router::set_path(HttpRequest& req, int *status_code) {
 	char 	*res = realpath(req.getPath().c_str(), resolved_path);
 	if (res != NULL)
 	{
-		std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
+		// std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
 		std::string filename = extract_filename(req.getPath());
 		return ((config_.root + resolved_path + filename).c_str());
 	}
