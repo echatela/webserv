@@ -16,19 +16,22 @@ class HttpRequest
 		~HttpRequest();
 		
 		HttpRequest& operator=(const HttpRequest& other);
-		const std::string getMethod() const;
-		const std::string getPath() const;
-		const std::string getVersion() const;
-		const std::map<std::string, std::string> getHeader() const;
-		const std::string getBody() const;
-
-		int parseRequestLine(std::string requestline);
-		int parseMethod(const std::string& method);
-		int parsePath(const std::string& path);
-		int parseVersion(const std::string& version);
-		int parseHeader(std::string header);
-		int parseBody(std::string body);
+		const std::string get_method() const;
+		const std::string get_path() const;
+		const std::string get_version() const;
+		const std::map<std::string, std::string> get_header() const;
+		const std::string get_body() const;
+		int get_error() const;
 		
+		void set_error(int error);
+
+		int ParseRequestLine(std::string requestline);
+		int ParseMethod(const std::string& method);
+		int ParsePath(const std::string& path);
+		int ParseVersion(const std::string& version);
+		int ParseHeader(std::string header);
+		int ParseBody(std::string body);
+
 	private :
 		HttpRequest(const HttpRequest& other);
 
@@ -37,6 +40,8 @@ class HttpRequest
 		std::string version_;
 		std::map<std::string, std::string> header_;
 		std::string body_;
+
+		int error_;
 };
 
 #endif
