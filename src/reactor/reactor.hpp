@@ -11,7 +11,7 @@
 class Reactor
 {
 private:
-	const Config				config_;
+	const std::vector<Config>	configs_;
 
 	Epoll						epoll_;
 	std::vector<EventHandler*>	handlers_;
@@ -26,7 +26,7 @@ private:
 	Reactor &	operator=(const Reactor & rhs);
 
 public:
-	Reactor(const Config & config);
+	Reactor(const std::vector<Config> & configs);
 
 	void	Run();
 	void	AddEventHandler(EventHandler * ev);

@@ -14,11 +14,11 @@ int	main(int argc, char **argv)
 		return 1;	
 	try
 	{
-		ConfigLexer Lexer(argv[1]);
-		ConfigParser config_parser(Lexer.Tokenize());
-		Config	config(config_parser); // -> vecteur direct 
-		std::cout << "config " << config.get_servers_info()[0].listen_info.port << std::endl;
-		Reactor	reactor(config);// -> envoyer vecteur 
+		ConfigLexer 		Lexer(argv[1]);
+		ConfigParser 		config_parser(Lexer.Tokenize());
+		std::vector<Config>	configs = config_parser.Parse(); // -> vecteur direct 
+		// std::cout << "config " << config.get_servers_info()[0].listen_info.port << std::endl;
+		Reactor	reactor(configs);// -> envoyer vecteur 
 		reactor.Run();
 	}
 	catch (std::exception & e)

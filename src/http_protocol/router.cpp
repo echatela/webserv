@@ -3,13 +3,13 @@
 #include "../webserv.hpp"
 
 
-Router::Router(ServerConfig config) : config_(config) {}
+Router::Router(Config config) : config_(config) {}
 
 Router::Router() {}
 
 Router::~Router() {}
 
-void			Router::set_config(const ServerConfig & config) {
+void			Router::set_config(const Config & config) {
 	config_ = config;
 }
 
@@ -72,17 +72,17 @@ std::string 	Router::set_path(HttpRequest& req, int *status_code) {
 
 	// condition pour les path vides -> pages d'accueil
 	if (req.getPath().size() <= 1)
-		return (config_.root + "/index.html");
+		return (config_.get_root() + "/index.html");
 	char 	*res = realpath(req.getPath().c_str(), resolved_path);
 	if (res != NULL)
 	{
 		// std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
 		std::string filename = extract_filename(req.getPath());
-		return ((config_.root + resolved_path + filename).c_str());
+		return ((config_.get_root() + resolved_path + filename).c_str());
 	}
 	else
 	{
-		return ((config_.root + req.getPath()).c_str());
+		return ((config_.get_root() + req.getPath()).c_str());
 	}
 }
 

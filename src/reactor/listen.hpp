@@ -15,19 +15,19 @@ private:
 	int		fd_;
 	Epoll &		epoll_;
 	Reactor &	reactor_;
-	const ServerConfig &	config_;
+	const Config &	config_;
 
 	Listen();
 	Listen(const Listen & src);
 	Listen &	operator=(const Listen & rhs);
 
 public:
-	Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const ServerConfig & config);
+	Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const Config & config);
 
 	int	HandleEvent(uint32_t events);
 
 	int				get_fd() const;
-	const ServerConfig &	get_config() const;
+	const Config &	get_config() const;
 
 	~Listen();
 };

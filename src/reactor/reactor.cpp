@@ -11,23 +11,22 @@
 #include <sys/epoll.h>
 #include <vector>
 
-Reactor::Reactor(Config const & config)
-: config_(config) //configs_ -> vecteur de serveur config
+Reactor::Reactor(std::vector<Config> const & configs)
+: configs_(configs) //configs_ -> vecteur de serveur config
 {
-	const std::vector<ListenInfo> &	listens_info = config_.get_listens_info();
-	const std::vector<ServerConfig> & servers_info = config_.get_servers_info();
-	
+	for (size_t i = 0; i < configs_.size(); ++i) {
+		const std::vector<ListenInfo> &cur_listens = configs_[i].get_listens_info();
+		for (size_t j = 0; j < cur_listens.size(); ++j) {
+			Listen *listen = NULL;
 
-	for (size_t i = 0; i < listens_info.size(); i++) {
-		Listen	*listen = NULL;
-
-		try {
-			listen = new Listen(
-				listens_info[i].address, epoll_, *this, servers_info[i]);
-			handlers_.push_back(listen);
-		} catch (std::exception&) {
-			delete listen;
-			throw;
+			try {
+				listen = new Listen(
+					cur_listens[j].address, epoll_, *this, configs_[i]);
+				handlers_.push_back(listen);
+			} catch (std::exception&) {
+				delete listen;
+				throw;
+			}
 		}
 	}
 }
@@ -67,7 +66,7 @@ void	Reactor::CloseHandlers()
 	std::vector<EventHandler*>::iterator	ev_it;
 
 	for (cev_it = closed_.begin(); cev_it != closed_.end(); ++cev_it) {
-		EventHandler *handler = *cev_it;
+		// EventHandler *handler = *cev_it;
 		ev_it = std::find(handlers_.begin(),
 		    handlers_.end(), *cev_it);
 		if (ev_it != handlers_.end()) {

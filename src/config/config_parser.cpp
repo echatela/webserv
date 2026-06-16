@@ -6,7 +6,7 @@
 /*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/11 19:37:08 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/16 13:57:39 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,30 +82,31 @@ std::string 		ConfigParser::ParseRoot() {
 	return (root);
 }
 
-LocationConfig 				ConfigParser::ParseLocation() {
+std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 
-	LocationConfig location;
-	
+	std::string		base;
+	LocationConfig directives;
 	present("location");
-	location.base_location = current().content;
+	base = current().content;
 	current_++;
 	present("{");
 	
 	while (current_ < tokens_.size() && current().content != "}")
 	{
 		if (current().content == "root")
-			location.root = ParseRoot();
+		directives.root = ParseRoot();
 		else
-			throw std::logic_error("Unknown directive: " + current().content);
+		throw std::logic_error("Unknown directive: " + current().content);
 	}
 	present("}");
+	std::pair<std::string, LocationConfig> location(base, directives);
 
 	return (location);
 }
 
-ServerConfig 				ConfigParser::ParseServer() {
+Config		 				ConfigParser::ParseServer() {
 
-	ServerConfig server;
+	Config server;
 
 	present("server");
 	present("{");
@@ -113,11 +114,11 @@ ServerConfig 				ConfigParser::ParseServer() {
 	while (current_ < tokens_.size() && current().content != "}")
 	{
 		if (current().content == "listen")
-			server.listen_info = ParseListen();
+			server.add_listen_info(ParseListen());
 		else if (current().content == "root")
-			server.root = ParseRoot();
+			server.set_root(ParseRoot());
 		else if (current().content == "location")
-			server.locations.push_back(ParseLocation());
+			server.add_location(ParseLocation());
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
 	}
@@ -127,9 +128,9 @@ ServerConfig 				ConfigParser::ParseServer() {
 }
 
 
-std::vector<ServerConfig> 	ConfigParser::Parse() {
+std::vector<Config> 	ConfigParser::Parse() {
 
-	std::vector<ServerConfig> 	servers;
+	std::vector<Config> 	servers;
 	
 	while (current_ < tokens_.size() && current().content != "EOF")
 	{

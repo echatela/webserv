@@ -16,15 +16,15 @@ class HttpRequest;
 class Router {
 
 public:
-	Router(ServerConfig config);
+	Router(Config config);
 	Router();
 	~Router();
 
 	HttpResponse	HandleRequest(HttpRequest & req);
-	void			set_config(const ServerConfig & config);
+	void			set_config(const Config & config);
 
 private:
-	ServerConfig	config_;
+	Config	config_;
 
 	void				AddContentType(HttpResponse & current, std::string filepath);
 	void				AddContentLength(HttpResponse & current, std::string filepath);
