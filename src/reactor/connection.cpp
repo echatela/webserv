@@ -12,8 +12,8 @@
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
 : fd_(fd), state_(kReading), write_off_(0), epoll_(epoll), listen_(listen)
 {
-	router_.set_config(listen_.get_config());
 	try {
+		router_.set_config(listen_.get_config());
 		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
 		close(fd_);
@@ -45,6 +45,7 @@ int	Connection::HandleEvent(uint32_t events)
 				response_ = router_.HandleRequest(request_);
 				// response = parser_.handler();
 				// response_.ToString() >> write_buf_;
+				std::cout << response_.ToString() << std::endl;
 				write_buf_ = response_.ToCharVector();
 				state_ = kWriting;
 				epoll_.Mod(fd_, EPOLLOUT, this);

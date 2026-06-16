@@ -58,26 +58,52 @@ std::string		Router::FillBody(std::string filepath, int* status_code)
 	return (body);
 }
 
+std::string		extract_filename(std::string filepath) {
+	std::string filename;
+	size_t 		slash_pos = filepath.find_last_of('/');
+
+	return (filepath.substr(slash_pos, filepath.length()));
+}
+
+// TODO path 
+std::string 	Router::set_path(HttpRequest& req, int *status_code) {
+	char				resolved_path[PATH_MAX];
+	(void)status_code;
+
+	// condition pour les path vides -> pages d'accueil
+	if (req.getPath().size() <= 1)
+		return (config_.root + "/index.html");
+	char 	*res = realpath(req.getPath().c_str(), resolved_path);
+	if (res != NULL)
+	{
+		// std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
+		std::string filename = extract_filename(req.getPath());
+		return ((config_.root + resolved_path + filename).c_str());
+	}
+	else
+	{
+		return ((config_.root + req.getPath()).c_str());
+	}
+}
+
 HttpResponse	Router::HandleGet(HttpRequest& req) {
 	HttpResponse 		current;
 	std::string			absolute_path;
-	// char				resolved_path[PATH_MAX]; WIP
 	struct stat			info;
-	int					status_code;
+	int					status_code = -1;
 	std::string			body;
 	
-// WIP
-	// realpath(req.getPath().c_str(), resolved_path);
-	// std::cout << "path: "  << req.getPath() << " resolved_path: "  << resolved_path << '\n';
-	// free(resolved_path);
-	absolute_path = config_.root + req.getPath();
+	absolute_path = set_path(req, &status_code);
+	if (absolute_path.c_str() == NULL)
+		return (BuildErrorResponse(status_code));
 	if (stat(absolute_path.c_str(), &info) == -1)
 		return (BuildErrorResponse(NOT_FOUND));
+	std::cout << "searched for: " << absolute_path << '\n';
 
 	// check avec realpath si il est toujours contenu dans le root du server
 	body = FillBody(absolute_path, &status_code);
-	if (body == "nul" && status_code == FORBIDDEN)
-		return (BuildErrorResponse(FORBIDDEN));
+	if (body == "nul" && status_code != -1)
+		return (BuildErrorResponse(status_code));
 	if (body.size() == 0)
 		return (BuildErrorResponse(NO_CONTENT));
 
@@ -85,7 +111,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 	current.set_status(OK);
 	current.set_reason_phrase();
 	current.set_version("HTTP/1.1");
-	AddContentType(current, req.getPath());
+	AddContentType(current, absolute_path);
 	AddContentLength(current, body);
 	return (current);
 }
@@ -106,20 +132,20 @@ std::string	value_from_extension(std::string extension) {
 void		Router::AddContentType(HttpResponse & current, std::string filepath) {
 	size_t		dot = filepath.find_last_of('.');
 	std::string	extension;
-	// Header		content_type;
-	
-	// content_type.key = "Content-Type";
 	
 	if (dot != std::string::npos)
 		extension = filepath.substr(dot, filepath.size());
-
-	// content_type.value = value_from_extension(extension);
+	std::cout << "" << '\n';
 	current.set_header("Content-Type", value_from_extension(extension));
 }
 
 void		Router::AddContentLength(HttpResponse & current, std::string body) {
 	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 }
+
+
+// TODO:
+	// gerer les locations
 
 //  stat() permet de recuperer les infos du fichiers demande, utile pour la reponse http
 // realpath() -> transforme uri zarbi en chemin absolu

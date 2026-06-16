@@ -48,10 +48,27 @@ Convention de nommage / Nomenclature
 
 
 _______________________________________________________________________
--> POURQUOI le server ne se lance pas a chaque fois ? 
+-> POURQUOI le server ne se lance pas a chaque fois ? // -> OK
 -> Creer les locations == reflexion commune ? 
 -> Reflechir au produit final
     -> architectures de fichiers / front
     -> schema d actions ex(je clic sur un tel bouton, ca ouvre tel page)
 -> Clean reponses GET
 -> Construction reponses DELETE/POST
+
+___________________________________________________________________________________________
+
+/////////////////TODO
+
+Alyssia
+	.vector serv config dans main
+	.remaniement structure routeur pour accueillir locations
+
+Alice
+	.modifier la synthaxe/nomenclature .cf README
+	.commencer le front
+	.definir les locations
+
+Doudou
+	.changement config into vector conf dans Reactor
+	.CGI

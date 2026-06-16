@@ -10,7 +10,9 @@ TARGET = webserv
 # Source files
 SRCS =	$(wildcard src/*.cpp) \
 		$(wildcard src/config/*.cpp) \
-		$(wildcard src/http_protocol/*.cpp) 
+		$(wildcard src/http_protocol/*.cpp) \
+		$(wildcard src/reactor/*.cpp)
+
 
 # Dossier pour Object files
 D_BUILD = .build/
