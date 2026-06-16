@@ -7,13 +7,13 @@
 #include <map>
 #include <ostream>
 
-class httpRequest
+class HttpRequest
 {
 	public :
-		httpRequest();	
-		~httpRequest();
+		HttpRequest();	
+		~HttpRequest();
 		
-		httpRequest& operator=(const httpRequest& other);
+		HttpRequest& operator=(const HttpRequest& other);
 		const std::string get_method() const;
 		const std::string get_path() const;
 		const std::string get_version() const;
@@ -31,7 +31,7 @@ class httpRequest
 		int ParseBody(std::string body);
 
 	private :
-		httpRequest(const httpRequest& other);
+		HttpRequest(const HttpRequest& other);
 
 		std::string method_;
 		std::string path_;

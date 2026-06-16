@@ -2,7 +2,7 @@
 
 int main()
 {
-	httpParser parser;
+	HttpParser parser;
 
 	std::string request = "POST /upload HTTP/1.1\r\nHost: localhost\nContent-Length: 11\r\n\r\nHel";
 	std::string request2 = "lo Wo";
@@ -17,7 +17,7 @@ int main()
 		<< parser.get_buf() << std::endl << std::endl;
 
 	std::cout << "_________________________________________" << std::endl;
-	httpRequest req;
+	HttpRequest req;
 	std::cout << "CODE PARSING => " << std::endl
 		<< "- - - - - - - - - - - -" << std::endl
 		<< parser.ParseRequest(req) << std::endl << std::endl;
