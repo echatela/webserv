@@ -8,7 +8,7 @@
 class Epoll
 {
 private:
-	int	epfd_;
+	int			epfd_;
 	struct epoll_event	events_[MAX_EVENTS];
 
 	Epoll(Epoll const & src);

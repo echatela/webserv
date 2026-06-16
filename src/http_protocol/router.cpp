@@ -1,6 +1,7 @@
 #include "http_request.hpp"
 #include "router.hpp"
 #include "../webserv.hpp"
+#include <fstream>
 
 
 Router::Router(Config config) : config_(config) {}
@@ -9,7 +10,7 @@ Router::Router() {}
 
 Router::~Router() {}
 
-void			Router::set_config(const Config & config) {
+void	Router::set_config(const Config & config) {
 	config_ = config;
 }
 
@@ -17,7 +18,7 @@ void			Router::set_config(const Config & config) {
 HttpResponse	Router::BuildErrorResponse(int status) {
 
 	HttpResponse	resp;
-	std::string		body;
+	std::string	body;
 
 	resp.set_status(status);
 	resp.set_reason_phrase();
@@ -44,8 +45,8 @@ HttpResponse	Router::HandleRequest(HttpRequest& req) {
 std::string		Router::FillBody(std::string filepath, int* status_code)
 {
 	std::ifstream	file(filepath.c_str());
-	std::string		line;
-	std::string		body;
+	std::string	line;
+	std::string	body;
 
 	if (!file.is_open())
 	{
@@ -59,7 +60,7 @@ std::string		Router::FillBody(std::string filepath, int* status_code)
 }
 
 std::string		extract_filename(std::string filepath) {
-	std::string filename;
+	std::string	filename;
 	size_t 		slash_pos = filepath.find_last_of('/');
 
 	return (filepath.substr(slash_pos, filepath.length()));
@@ -71,27 +72,27 @@ std::string 	Router::set_path(HttpRequest& req, int *status_code) {
 	(void)status_code;
 
 	// condition pour les path vides -> pages d'accueil
-	if (req.getPath().size() <= 1)
+	if (req.get_path().size() <= 1)
 		return (config_.get_root() + "/index.html");
-	char 	*res = realpath(req.getPath().c_str(), resolved_path);
+	char 	*res = realpath(req.get_path().c_str(), resolved_path);
 	if (res != NULL)
 	{
 		// std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
-		std::string filename = extract_filename(req.getPath());
+		std::string filename = extract_filename(req.get_path());
 		return ((config_.get_root() + resolved_path + filename).c_str());
 	}
 	else
 	{
-		return ((config_.get_root() + req.getPath()).c_str());
+		return ((config_.get_root() + req.get_path()).c_str());
 	}
 }
 
 HttpResponse	Router::HandleGet(HttpRequest& req) {
-	HttpResponse 		current;
-	std::string			absolute_path;
-	struct stat			info;
-	int					status_code = -1;
-	std::string			body;
+	HttpResponse 	current;
+	std::string	absolute_path;
+	struct stat	info;
+	int		status_code = 0;
+	std::string	body;
 	
 	absolute_path = set_path(req, &status_code);
 	if (absolute_path.c_str() == NULL)
@@ -102,7 +103,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 
 	// check avec realpath si il est toujours contenu dans le root du server
 	body = FillBody(absolute_path, &status_code);
-	if (body == "nul" && status_code != -1)
+	if (body == "nul" && status_code != 0)
 		return (BuildErrorResponse(status_code));
 	if (body.size() == 0)
 		return (BuildErrorResponse(NO_CONTENT));

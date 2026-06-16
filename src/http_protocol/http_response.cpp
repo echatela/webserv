@@ -1,4 +1,6 @@
 #include "http_response.hpp"
+#include <sstream>
+#include <string>
 
 HttpResponse::HttpResponse() {}
 
@@ -76,7 +78,7 @@ std::string		HttpResponse::get_reason_phrase(int status_code) {
 
 
 std::string int_to_string(int value) {
-	std::ostringstream s;
+	std::ostringstream	s;
 	s << value;
 	return (s.str());
 }

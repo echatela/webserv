@@ -34,27 +34,20 @@ int	Connection::HandleEvent(uint32_t events)
 			return kClose;
 		read_buf[n] = '\0';
 
-		int ret = parser_.add(read_buf, n);
+		int ret = parser_.Add(read_buf, n);
 		switch(ret)
 		{
 			case false:
 				return kKeep;
 			case true:
-				parser_.parseRequest(request_);
-				std::cout << parser_.getBuf() << std::endl;
+				parser_.ParseRequest(request_);
+				std::cout << parser_.get_buf() << std::endl;
 				response_ = router_.HandleRequest(request_);
-				// response = parser_.handler();
-				// response_.ToString() >> write_buf_;
 				std::cout << response_.ToString() << std::endl;
 				write_buf_ = response_.ToCharVector();
 				state_ = kWriting;
 				epoll_.Mod(fd_, EPOLLOUT, this);
 				return kKeep;
-			// case kError:
-			// 	error_response >> write_buf;
-			// 	state_ = kWriting;
-			// 	epoll_.Mod(fd_, EPOLLOUT, this);
-			// 	return kKeep;
 			default:
 				return kClose;
 		}
@@ -62,7 +55,6 @@ int	Connection::HandleEvent(uint32_t events)
 	}
 	else if (state_ == kWriting && events & EPOLLOUT)
 	{
-		// std::string response = response_.ToString();
 		size_t	remaining = write_buf_.size() - write_off_;
 		size_t	n = send(
 			fd_, write_buf_.data() + write_off_, remaining, 0);

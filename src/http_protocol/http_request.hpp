@@ -3,11 +3,8 @@
 #define HTTP_REQUEST_HPP
 
 #include "http_parser.hpp"
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <map>
-#include <ostream>
 
 class HttpRequest
 {

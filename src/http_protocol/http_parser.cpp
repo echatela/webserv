@@ -2,12 +2,13 @@
 #include "http_request.hpp"
 #include <stdlib.h>
 
-HttpParser::HttpParser() : 
-buf_(), buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0), flag_(0), content_length_(0) { }
+HttpParser::HttpParser()
+: buf_(), buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0),
+	flag_(0), content_length_(0) { }
 
 HttpParser::~HttpParser() { }
 
-int HttpParser::add(const std::string buf, size_t n)
+int HttpParser::Add(const std::string buf, size_t n)
 {
 	if (n == 0)
 		return flag_;

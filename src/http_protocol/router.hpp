@@ -2,11 +2,9 @@
 #define ROUTER_HPP
 
 #include <sys/stat.h>
-#include <fstream>
 #include <stdlib.h>
 #include <limits.h>
 
-#include "../reactor/event_handler.hpp"
 #include "http_response.hpp"
 #include "http_request.hpp"
 #include "../config/config.hpp"
@@ -21,25 +19,25 @@ public:
 	~Router();
 
 	HttpResponse	HandleRequest(HttpRequest & req);
-	void			set_config(const Config & config);
+	void		set_config(const Config & config);
 
 private:
 	Config	config_;
 
-	void				AddContentType(HttpResponse & current, std::string filepath);
-	void				AddContentLength(HttpResponse & current, std::string filepath);
+	void	AddContentType(HttpResponse & current, std::string filepath);
+	void	AddContentLength(HttpResponse & current, std::string filepath);
 
 
-	HttpResponse		HandleGet(HttpRequest & req);
-	std::string			FillBody(std::string path, int *status_code);
+	HttpResponse	HandleGet(HttpRequest & req);
+	std::string	FillBody(std::string path, int *status_code);
 
-	HttpResponse		HandleDelete(HttpRequest & req);
+	HttpResponse	HandleDelete(HttpRequest & req);
 
-	HttpResponse		HandlePost(HttpRequest & req);
+	HttpResponse	HandlePost(HttpRequest & req);
 
-	HttpResponse		BuildErrorResponse(int status_code);
+	HttpResponse	BuildErrorResponse(int status_code);
 
-	std::string			set_path(HttpRequest & req, int *status_code);
+	std::string	set_path(HttpRequest & req, int *status_code);
 
 	// 
 };

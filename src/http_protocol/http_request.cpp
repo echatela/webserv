@@ -1,4 +1,5 @@
 #include "http_request.hpp"
+#include <sstream>
 
 HttpRequest::HttpRequest() : error_(NO_ERROR) { }
 
@@ -83,7 +84,7 @@ int HttpRequest::ParseVersion(const std::string& version)
 
 int HttpRequest::ParseRequestLine(std::string requestline)
 {
-	std::istringstream iss(requestline);
+	std::istringstream	iss(requestline);
 
 	std::string method;
 	std::string path;

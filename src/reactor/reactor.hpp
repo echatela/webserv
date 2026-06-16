@@ -13,7 +13,7 @@ class Reactor
 private:
 	const std::vector<Config>	configs_;
 
-	Epoll						epoll_;
+	Epoll				epoll_;
 	std::vector<EventHandler*>	handlers_;
 
 	std::set<EventHandler*>		closed_;

@@ -6,7 +6,6 @@
 #include "../http_protocol/http_request.hpp"
 #include "../http_protocol/http_response.hpp"
 #include "../http_protocol/router.hpp"
-#include "../config/config_parser.hpp"
 #include "listen.hpp"
 #include <stdint.h>
 #include <vector>
@@ -23,13 +22,13 @@ private:
 	int			state_;
 
 	std::vector<char>	write_buf_;
-	size_t				write_off_;
+	size_t			write_off_;
 
-	Epoll &				epoll_;
+	Epoll &			epoll_;
 	const Listen &		listen_;
-	HttpParser			parser_;
-	HttpRequest			request_;
-	Router				router_;
+	HttpParser		parser_;
+	HttpRequest		request_;
+	Router			router_;
 	HttpResponse		response_;
 
 	Connection();

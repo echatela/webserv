@@ -1,10 +1,8 @@
 #ifndef HTTP_RESPONSE_HPP
 #define HTTP_RESPONSE_HPP
 
-#include <iostream>
+#include <string>
 #include <vector>
-#include <map>
-#include <sstream>
 
 enum	HttpStatusCode {
 	OK = 200,
