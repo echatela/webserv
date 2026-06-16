@@ -46,6 +46,7 @@ int	Connection::HandleEvent(uint32_t events)
 				response_ = router_.HandleRequest(request_);
 				// response = parser_.handler();
 				// response_.ToString() >> write_buf_;
+				std::cout << response_.ToString() << std::endl;
 				write_buf_ = response_.ToCharVector();
 				state_ = kWriting;
 				epoll_.Mod(fd_, EPOLLOUT, this);

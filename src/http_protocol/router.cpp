@@ -71,11 +71,12 @@ std::string 	Router::set_path(HttpRequest& req, int *status_code) {
 	(void)status_code;
 
 	// condition pour les path vides -> pages d'accueil
-	if 
+	if (req.getPath().size() <= 1)
+		return (config_.root + "/index.html");
 	char 	*res = realpath(req.getPath().c_str(), resolved_path);
-	std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
 	if (res != NULL)
 	{
+		std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
 		std::string filename = extract_filename(req.getPath());
 		return ((config_.root + resolved_path + filename).c_str());
 	}
@@ -92,7 +93,6 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 	int					status_code = -1;
 	std::string			body;
 	
-	// WIP
 	absolute_path = set_path(req, &status_code);
 	if (absolute_path.c_str() == NULL)
 		return (BuildErrorResponse(status_code));
@@ -111,7 +111,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 	current.set_status(OK);
 	current.set_reason_phrase();
 	current.set_version("HTTP/1.1");
-	AddContentType(current, req.getPath());
+	AddContentType(current, absolute_path);
 	AddContentLength(current, body);
 	return (current);
 }
@@ -135,7 +135,7 @@ void		Router::AddContentType(HttpResponse & current, std::string filepath) {
 	
 	if (dot != std::string::npos)
 		extension = filepath.substr(dot, filepath.size());
-
+	std::cout << "" << '\n';
 	current.set_header("Content-Type", value_from_extension(extension));
 }
 
