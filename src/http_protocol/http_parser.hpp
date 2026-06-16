@@ -23,10 +23,10 @@ class httpParser
 
 		int add(const std::string buf, size_t n);
 
-		int getFlag() const;
-		std::string getBuf() const;
+		int get_flag() const;
+		std::string get_buf() const;
 
-		int parseRequest(httpRequest& req) const;
+		int ParseRequest(httpRequest& req) const;
 		
 	private :
 		httpParser(const httpParser& other);

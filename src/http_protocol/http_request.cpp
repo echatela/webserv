@@ -1,11 +1,11 @@
 #include "http_request.hpp"
 
-httpRequest::httpRequest() { }
+httpRequest::httpRequest() : error_(NO_ERROR) { }
 
 httpRequest::~httpRequest() { }
 
 httpRequest::httpRequest(const httpRequest& other)
-: method_(other.method_), path_(other.path_), version_(other.version_), header_(other.header_), body_(other.body_)
+: method_(other.method_), path_(other.path_), version_(other.version_), header_(other.header_), body_(other.body_), error_(other.error_)
 {
 }
 
@@ -22,46 +22,56 @@ httpRequest& httpRequest::operator=(const httpRequest& other)
 	return *this;
 }
 
-const std::string httpRequest::getMethod() const
+const std::string httpRequest::get_method() const
 {
 	return method_;
 }
 
-const std::string httpRequest::getPath() const
+const std::string httpRequest::get_path() const
 {
 	return path_;
 }
 
-const std::string httpRequest::getVersion() const
+const std::string httpRequest::get_version() const
 {
 	return version_;
 }
 
-const std::map<std::string, std::string> httpRequest::getHeader() const
+const std::map<std::string, std::string> httpRequest::get_header() const
 {
 	return header_;
 }
 
-const std::string httpRequest::getBody() const
+const std::string httpRequest::get_body() const
 {
 	return body_;
 }
 
-int httpRequest::parseMethod(const std::string& method)
+int httpRequest::get_error() const
+{
+	return error_;
+}
+
+void httpRequest::set_error(int error)
+{
+	error_ = error;
+}
+
+int httpRequest::ParseMethod(const std::string& method)
 {
 	if (method != "GET" && method != "POST" && method != "DELETE")
 		return METHOD_NOT_ALLOWED;
 	return NO_ERROR;
 }
 
-int httpRequest::parsePath(const std::string& path)
+int httpRequest::ParsePath(const std::string& path)
 {
 	if (path.empty() || path[0] != '/')
 		return BAD_REQUEST;
 	return NO_ERROR;
 }
 
-int httpRequest::parseVersion(const std::string& version)
+int httpRequest::ParseVersion(const std::string& version)
 {
 	if (version != "HTTP/1.1")
 		return HTTP_VERSION_NOT_SUPPORTED;
@@ -70,7 +80,7 @@ int httpRequest::parseVersion(const std::string& version)
 	return NO_ERROR;
 }
 
-int httpRequest::parseRequestLine(std::string requestline)
+int httpRequest::ParseRequestLine(std::string requestline)
 {
 	std::istringstream iss(requestline);
 
@@ -85,7 +95,7 @@ int httpRequest::parseRequestLine(std::string requestline)
 	this->path_ = path;
 	this->version_ = version;
 
-	int error[3] = {parseMethod(this->method_), parsePath(this->path_), parseVersion(this->version_)};
+	int error[3] = {ParseMethod(this->method_), ParsePath(this->path_), ParseVersion(this->version_)};
 	for (int i = 0; i < 3; i++)
 	{
 		if (error[i] != NO_ERROR)
@@ -94,7 +104,7 @@ int httpRequest::parseRequestLine(std::string requestline)
 	return NO_ERROR;
 }
 
-int httpRequest::parseHeader(std::string header)
+int httpRequest::ParseHeader(std::string header)
 {
 	std::istringstream iss(header);
 	std::string line;
@@ -113,7 +123,7 @@ int httpRequest::parseHeader(std::string header)
 	return NO_ERROR;
 }
 
-int httpRequest::parseBody(std::string body)
+int httpRequest::ParseBody(std::string body)
 {
 	this->body_ = body;
 	return NO_ERROR;

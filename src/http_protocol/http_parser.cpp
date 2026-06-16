@@ -45,23 +45,23 @@ int httpParser::add(const std::string buf, size_t n)
 	return flag_;
 }
 
-int httpParser::getFlag() const
+int httpParser::get_flag() const
 {
 	return flag_;
 }
 
-std::string httpParser::getBuf() const
+std::string httpParser::get_buf() const
 {
 	return buf_;
 }
 
-int httpParser::parseRequest(httpRequest & req) const
+int httpParser::ParseRequest(httpRequest & req) const
 {
 	int error = 0;
 
 	size_t pos = this->buf_.find("\r\n");
 	std::string requestLine = this->buf_.substr(0, pos);
-	error = req.parseRequestLine(requestLine);
+	error = req.ParseRequestLine(requestLine);
 
 	if (error != NO_ERROR)
 		return error;
@@ -71,13 +71,15 @@ int httpParser::parseRequest(httpRequest & req) const
 	if (endHeader == std::string::npos)
 		return OTHER_ERROR;
 	std::string header = this->buf_.substr(startHeader, endHeader - startHeader);
-	error = req.parseHeader(header);
+	error = req.ParseHeader(header);
 
 	if (error != NO_ERROR)
 		return error;
 
 	size_t startBody = endHeader + 4;
 	std::string body = this->buf_.substr(startBody);
-	error = req.parseBody(body);
+	error = req.ParseBody(body);
+	req.set_error(error);
 	return error;
 }
+
