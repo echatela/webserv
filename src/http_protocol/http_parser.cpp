@@ -19,7 +19,7 @@ int HttpParser::Add(const std::string buf, size_t n)
 		buf_ = buf;
 	if (n >= 4 && buf.compare(n - 4, 4, "\r\n\r\n") == 0)
 	{
-		size_t startCL = buf.find("Content-Lenght");
+		size_t startCL = buf.find("Content-Length");
 		if (startCL == std::string::npos)
 			flag_ = true;
 		else

@@ -42,12 +42,20 @@ void				Config::add_location(std::pair<std::string, LocationConfig> location) {
 	locations_.insert(location);
 }
 
+void				Config::set_max_body_size(int size) {
+	max_body_size_ = size;
+}
+
 // const std::vector<ServerConfig> & Config::get_servers_info() const {
 	// 	return servers_info_;
 	// }
 	
 std::string				Config::get_root() {
 	return (root_);
+}
+
+std::map<std::string, LocationConfig>	Config::get_locations() const {
+	return (locations_);
 }
 
 const std::vector<ListenInfo> &Config::get_listens_info() const

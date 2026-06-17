@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <map>
 
 #include "http_response.hpp"
 #include "http_request.hpp"
@@ -29,16 +30,20 @@ private:
 
 
 	HttpResponse	HandleGet(HttpRequest & req);
-	std::string	FillBody(std::string path, int *status_code);
+	void			FillBody(std::string& body, std::string path, int *status_code);
 
 	HttpResponse	HandleDelete(HttpRequest & req);
+	std::string		MakeFileDeletedBody(std::string path);
 
 	HttpResponse	HandlePost(HttpRequest & req);
 
 	HttpResponse	BuildErrorResponse(int status_code);
 
-	std::string	set_path(HttpRequest & req, int *status_code);
-
+	void			FindLocationRoot(std::string & root, HttpRequest & req);
+	std::string		AddRoot(HttpRequest & req, int *status_code);
+	void			CheckAndSetPath(std::string& path, HttpRequest & req, int *status_code);
+	bool			IsPathResolved(std::string& path, int *status_code);
+	std::string		Filename(std::string path);
 	// 
 };
 

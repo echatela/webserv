@@ -1,5 +1,6 @@
 #include "http_request.hpp"
 #include <sstream>
+#include <iostream>
 
 HttpRequest::HttpRequest() : error_(NO_ERROR) { }
 
@@ -97,6 +98,7 @@ int HttpRequest::ParseRequestLine(std::string requestline)
 	this->path_ = path;
 	this->version_ = version;
 
+	std::cout << "method found is " << method << '\n';
 	int error[3] = {ParseMethod(this->method_), ParsePath(this->path_), ParseVersion(this->version_)};
 	for (int i = 0; i < 3; i++)
 	{

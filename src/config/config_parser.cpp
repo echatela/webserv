@@ -6,11 +6,12 @@
 /*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/16 13:57:39 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/17 13:53:13 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "config_parser.hpp"
+#include "../webserv.hpp"
 
 ConfigParser::ConfigParser(std::vector<Token> tokens) : tokens_(tokens), current_(0) {}
 
@@ -82,6 +83,16 @@ std::string 		ConfigParser::ParseRoot() {
 	return (root);
 }
 
+int					ConfigParser::ParseMaxBodySize() {
+	
+	present("client_max_body_size");
+	unsigned int max_size = webserv::utils::ParseUInt(current().content);
+
+	current_++;
+	present(";");
+	return (max_size);
+}
+
 std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 
 	std::string		base;
@@ -94,9 +105,9 @@ std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 	while (current_ < tokens_.size() && current().content != "}")
 	{
 		if (current().content == "root")
-		directives.root = ParseRoot();
+			directives.root = ParseRoot();
 		else
-		throw std::logic_error("Unknown directive: " + current().content);
+			throw std::logic_error("Unknown directive: " + current().content);
 	}
 	present("}");
 	std::pair<std::string, LocationConfig> location(base, directives);
@@ -119,6 +130,8 @@ Config		 				ConfigParser::ParseServer() {
 			server.set_root(ParseRoot());
 		else if (current().content == "location")
 			server.add_location(ParseLocation());
+		else if (current().content == "client_max_body_size")
+			server.set_max_body_size(ParseMaxBodySize());
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
 	}

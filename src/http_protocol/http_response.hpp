@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "http_parser.hpp"
 
 enum	HttpStatusCode {
 	OK = 200,
@@ -33,6 +34,7 @@ public:
 	void			set_body(std::string body_content);
 	void			set_reason_phrase();
 
+	std::string		get_body() const;
 
 	std::string			ToString();
 	std::vector<char>	ToCharVector();
@@ -41,12 +43,11 @@ public:
 
 private:
 // type
-	int									status_code_;
-	std::string							reason_phrase_;
-	std::string							body_;
-	std::vector<Header>					headers_;
-	std::string							version_;
-
+	int			status_code_;
+	std::string		reason_phrase_;
+	std::string		body_;
+	std::vector<Header>	headers_;
+	std::string		version_;
 
 };
 

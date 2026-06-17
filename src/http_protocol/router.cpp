@@ -2,7 +2,8 @@
 #include "router.hpp"
 #include "../webserv.hpp"
 #include <fstream>
-
+#include <cerrno>
+#include <string.h>
 
 Router::Router(Config config) : config_(config) {}
 
@@ -10,10 +11,108 @@ Router::Router() {}
 
 Router::~Router() {}
 
-void	Router::set_config(const Config & config) {
-	config_ = config;
+void			Router::set_config(const Config & config) { config_ = config; }
+
+void			Router::FindLocationRoot(std::string & root, HttpRequest & req) {
+
+	size_t		first_dir = req.get_path().substr(1, req.get_path().size()).find_first_of('/');
+	std::string 	base;
+	LocationConfig	location;
+
+	if (first_dir == std::string::npos)
+		root = "none";
+	base = req.get_path().substr(0, first_dir + 1);
+	try {
+		location = this->config_.get_locations().at(base);
+		root = location.root;
+	}
+	catch (std::exception& e)
+	{
+		root = "none";
+	}
 }
 
+bool			Router::IsPathResolved(std::string& path, int *status_code) {
+
+	char		resolved_path[PATH_MAX];
+	char*		res = realpath(path.c_str(), resolved_path);
+	struct stat	info;
+
+	if (res == NULL)
+	{
+		*status_code = NOT_FOUND;
+		return false;
+	}
+	if (stat(path.c_str(), &info) == -1)
+	{
+		*status_code = NOT_FOUND;
+		return false;
+	}	
+	return true;
+}
+
+std::string		Router::Filename(std::string path) {
+
+	std::string	filename;
+	size_t 		slash_pos = path.find_last_of('/');
+
+	return (path.substr(slash_pos, path.length()));
+
+}
+
+void		Router::CheckAndSetPath(std::string& path, HttpRequest & req, int *status_code) {
+
+	std::string		request_path = req.get_path();
+	std::string		loc_root;
+
+	FindLocationRoot(loc_root, req);
+	if (loc_root != "none")
+	{
+		loc_root.replace(0, 1, config_.get_root());
+		path = loc_root + Filename(request_path);
+		IsPathResolved(path, status_code);
+	}
+	else
+	{
+		path = config_.get_root() + request_path;
+		IsPathResolved(path, status_code);
+	}
+
+}
+
+
+
+std::string	value_from_extension(std::string extension) {
+
+	std::map<std::string, std::string> types;
+
+	types[".html"] = "text/html";
+	types[".css"] = "text/css";	
+	types[".js"] = "application/javascript";	
+	types[".png"] = "image/png";	
+	types[".jpg"] = "image/jpeg";	
+	types[".gif"] = "image/gif";
+
+	return (types.at(extension));
+}
+
+void		Router::AddContentType(HttpResponse & current, std::string filepath) {
+
+	size_t		dot = filepath.find_last_of('.');
+	std::string	extension;
+	
+	if (dot != std::string::npos)
+		extension = filepath.substr(dot, filepath.size());
+	std::cout << "" << '\n';
+	current.set_header("Content-Type", value_from_extension(extension));
+
+}
+
+void		Router::AddContentLength(HttpResponse & current, std::string body) {
+
+	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
+
+}
 
 HttpResponse	Router::BuildErrorResponse(int status) {
 
@@ -32,137 +131,129 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 	resp.set_header("Content-Type", "text/html");
 	resp.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 	return (resp);
+
 }
+
+
+
 
 HttpResponse	Router::HandleRequest(HttpRequest& req) {
-	// if (req.getMethod() == "GET")
+	
+	if (req.get_method() == "GET")
 		return (HandleGet(req));
-	// if (req.getMethod() == "POST")
-	// 	return (HandlePost(req));
-	// return (HandleDelete(req));
+	if (req.get_method() == "DELETE")
+		return (HandleDelete(req));
+	if (req.get_method() == "POST")
+	{
+		std::cout << "\n=== POST REQUEST DEBUG ===" << std::endl;
+		std::cout << "Method: " << req.get_method() << std::endl;
+		std::cout << "Path: " << req.get_path() << std::endl;
+		std::cout << "Version: " << req.get_version() << std::endl;
+		std::cout << "Body: " << req.get_body() << std::endl;
+		std::cout << "=== END POST REQUEST DEBUG ===" << std::endl;
+		return (BuildErrorResponse(METHOD_NOT_ALLOWED));
+	}
+	return (BuildErrorResponse(METHOD_NOT_ALLOWED));
 }
 
-std::string		Router::FillBody(std::string filepath, int* status_code)
-{
+
+void		Router::FillBody(std::string& body, std::string filepath, int* status_code) {
+
 	std::ifstream	file(filepath.c_str());
 	std::string	line;
-	std::string	body;
 
 	if (!file.is_open())
-	{
 		*status_code = FORBIDDEN;
-		return ("nul");
-	}
 	while (getline(file, line))
 		body.append(line);
 	file.close();
-	return (body);
-}
+	if (body.size() == 0)
+		*status_code = NO_CONTENT;
 
-std::string		extract_filename(std::string filepath) {
-	std::string	filename;
-	size_t 		slash_pos = filepath.find_last_of('/');
-
-	return (filepath.substr(slash_pos, filepath.length()));
-}
-
-// TODO path 
-std::string 	Router::set_path(HttpRequest& req, int *status_code) {
-	char				resolved_path[PATH_MAX];
-	(void)status_code;
-
-	// condition pour les path vides -> pages d'accueil
-	if (req.get_path().size() <= 1)
-		return (config_.get_root() + "/index.html");
-	char 	*res = realpath(req.get_path().c_str(), resolved_path);
-	if (res != NULL)
-	{
-		// std::cout << "===========CC======path is: " << req.getPath() << "=========\n";
-		std::string filename = extract_filename(req.get_path());
-		return ((config_.get_root() + resolved_path + filename).c_str());
-	}
-	else
-	{
-		return ((config_.get_root() + req.get_path()).c_str());
-	}
 }
 
 HttpResponse	Router::HandleGet(HttpRequest& req) {
-	HttpResponse 	current;
-	std::string	absolute_path;
-	struct stat	info;
-	int		status_code = 0;
+	
+	int 		status_code = NO_ERROR;
+	std::string	path;
 	std::string	body;
+	HttpResponse response;
+
+	std::cout << "request path = " << req.get_path() << '\n';
+	CheckAndSetPath(path, req, &status_code);
+	if (status_code != NO_ERROR)
+		return BuildErrorResponse(status_code);
+
+	FillBody(body, path, &status_code);
+	if (status_code != NO_ERROR)
+		return BuildErrorResponse(status_code);
 	
-	absolute_path = set_path(req, &status_code);
-	if (absolute_path.c_str() == NULL)
-		return (BuildErrorResponse(status_code));
-	if (stat(absolute_path.c_str(), &info) == -1)
-		return (BuildErrorResponse(NOT_FOUND));
-	std::cout << "searched for: " << absolute_path << '\n';
+	response.set_body(body);
+	response.set_status(OK);
+	response.set_reason_phrase();
+	response.set_version("HTTP/1.1");
 
-	// check avec realpath si il est toujours contenu dans le root du server
-	body = FillBody(absolute_path, &status_code);
-	if (body == "nul" && status_code != 0)
-		return (BuildErrorResponse(status_code));
-	if (body.size() == 0)
-		return (BuildErrorResponse(NO_CONTENT));
+	AddContentType(response, path);
+	AddContentLength(response, body);
 
-	current.set_body(body);
-	current.set_status(OK);
-	current.set_reason_phrase();
-	current.set_version("HTTP/1.1");
-	AddContentType(current, absolute_path);
-	AddContentLength(current, body);
-	return (current);
+	return response;
+
+	// find path
+		// location root ?
+			// oui -> remplace par root
+				// check realpath
+			// non -> ajout root server au debut
+				// check realpath
+		// resolved path
 }
 
-std::string	value_from_extension(std::string extension) {
-	std::map<std::string, std::string> types;
+std::string		Router::MakeFileDeletedBody(std::string path) {
+	std::string body;
 
-	types[".html"] = "text/html";
-	types[".css"] = "text/css";	
-	types[".js"] = "application/javascript";	
-	types[".png"] = "image/png";	
-	types[".jpg"] = "image/jpeg";	
-	types[".gif"] = "image/gif";
-
-	return (types.at(extension));
+	body = "<html lang=\"en-US\">\r\n<body>\r\n<h1>File ";
+	body += "\"" + Filename(path) + "\"";
+	body += " deleted.</h1>\r\n";
+	body += "</body>\r\n</html>\r\n";
+	return body;
 }
 
-void		Router::AddContentType(HttpResponse & current, std::string filepath) {
-	size_t		dot = filepath.find_last_of('.');
-	std::string	extension;
+
+HttpResponse	Router::HandleDelete(HttpRequest& req) {
+
+	int				status_code = NO_ERROR;
+	std::string		path;
+	HttpResponse	response;
+
+	CheckAndSetPath(path, req, &status_code);
+	if (status_code != NO_ERROR)
+		return BuildErrorResponse(status_code);
+
+	status_code = std::remove(path.c_str());
+	if (status_code != NO_ERROR)
+		return BuildErrorResponse(METHOD_NOT_ALLOWED);
+
+	response.set_status(OK);
+	response.set_reason_phrase();
+	response.set_version("HTTP/1.1");
+	AddContentType(response, path);
+	response.set_body(MakeFileDeletedBody(path));
+	AddContentLength(response, response.get_body());
 	
-	if (dot != std::string::npos)
-		extension = filepath.substr(dot, filepath.size());
-	std::cout << "" << '\n';
-	current.set_header("Content-Type", value_from_extension(extension));
+	return response;
 }
 
-void		Router::AddContentLength(HttpResponse & current, std::string body) {
-	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
-}
+// HttpResponse	Router::HandlePost(HttpRequest& req) {
 
+// 	int status_code = NO_ERROR;
 
-// TODO:
-	// gerer les locations
+	// multipart/form-data -> creation de fichier a partir d'une structure .cf TODO_perso
+	// application/x-www-form-urlencoded -> cas de formulaire (connexion username + mdp par exemple)
+	// application/json
+	// application/x-www-form-urlencoded + location cgi-bin par exemple = cgi 
 
-//  stat() permet de recuperer les infos du fichiers demande, utile pour la reponse http
-// realpath() -> transforme uri zarbi en chemin absolu
-// 
-// 
+// same workflow pour la determination du chemin
 
+// il faut un body 
+// sa taille doit correspondre a content length
 
-// recuperer le chemin complet vers le fichier 
-	// verif qu'il est dans le root (pour les chemins bizarre)
-// determiner l'extension pour le content-type
-	// si texte -> content-length
-	// si image -> content-length aussi ? ou 
-
-
-// HTTP/1.1 200 OK
-// Content-Type: text/html
-// Content-Length: 42
-
-// <html><body>Hello World</body></html>
+// }

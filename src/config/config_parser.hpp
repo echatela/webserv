@@ -6,7 +6,7 @@
 /*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 14:07:33 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/16 14:21:15 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/17 13:44:11 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,14 @@ class ConfigParser {
 
 		const ConfigParser& 					operator=(const ConfigParser& other);
 		
+		std::vector<Config>						Parse();
+
 		Config		 							ParseServer();
 		std::pair<std::string, LocationConfig>	ParseLocation();
+
 		ListenInfo								ParseListen();
 		std::string								ParseRoot();
-		std::vector<Config>						Parse();
+		int										ParseMaxBodySize();
 
 		void						next();
 		Token						current();

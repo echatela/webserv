@@ -34,22 +34,27 @@ int	Connection::HandleEvent(uint32_t events)
 			return kClose;
 		read_buf[n] = '\0';
 
+		std::cout << "=== RAW REQUEST ===\n" << read_buf << "\n=== END RAW REQUEST ===\n";
 		int ret = parser_.Add(read_buf, n);
+
 		switch(ret)
 		{
 			case false:
 				return kKeep;
+
 			case true:
 				parser_.ParseRequest(request_);
 				std::cout << parser_.get_buf() << std::endl;
 				response_ = router_.HandleRequest(request_);
-				std::cout << response_.ToString() << std::endl;
+				std::cout << response_.ToString() << std::endl << std::endl;
 				write_buf_ = response_.ToCharVector();
 				state_ = kWriting;
 				epoll_.Mod(fd_, EPOLLOUT, this);
 				return kKeep;
+
 			default:
 				return kClose;
+				
 		}
 		
 	}
@@ -63,6 +68,7 @@ int	Connection::HandleEvent(uint32_t events)
 		// size_t	n = send(
 		// 	fd_, (response.substr(write_off_, response.length())).c_str(), remaining, 0);
 		// std::cout << "apres send." << '\n';
+		
 		if (n > 0) {
 			write_off_ += n;
 			// if HTTP 1.1 need to keep alive and turn to EPOLLIN

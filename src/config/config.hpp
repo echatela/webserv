@@ -29,6 +29,8 @@ private:
 	std::vector<ListenInfo>					listens_info_;
 	std::string								root_;
 	std::map<std::string, LocationConfig>	locations_;
+	unsigned int							max_body_size_;
+	
 	// std::vector<ServerConfig>	servers_info_;
 
 public:
@@ -41,8 +43,11 @@ public:
 	void								add_listen_info(ListenInfo listen);
 	void								set_root(std::string root);
 	void								add_location(std::pair<std::string, LocationConfig> location);
+	void								set_max_body_size(int size);
 
-	std::string							get_root();	const std::vector<ListenInfo> &	get_listens_info() const;
+	std::string							get_root();	
+	const std::vector<ListenInfo> &					get_listens_info() const;
+	std::map<std::string, LocationConfig>				get_locations() const;	
 	static std::vector<ListenInfo>		get_listens_info(std::vector<Config> configs);
 	// const std::vector<ServerConfig> & 	get_servers_info() const;
 };

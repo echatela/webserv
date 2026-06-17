@@ -40,8 +40,8 @@ void		HttpResponse::set_reason_phrase() {
 		case NOT_FOUND:
 			reason_phrase_ = "Not Found";
 			break;
-		// case METHOD_NOT_ALLOWED:
-		// 	reason_phrase_ = "Method not allowed";
+		case METHOD_NOT_ALLOWED:
+			reason_phrase_ = "Method not allowed";
 			break;
 		case PAYLOAD_TOO_LARGE:
 			reason_phrase_ = "Payload too large";
@@ -50,6 +50,10 @@ void		HttpResponse::set_reason_phrase() {
 			reason_phrase_ = "Internal server error";
 			break;
 	}
+}
+
+std::string		HttpResponse::get_body() const {
+	return body_;
 }
 
 std::string		HttpResponse::get_reason_phrase(int status_code) {

@@ -6,7 +6,7 @@
 /*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 14:19:42 by agalleze          #+#    #+#             */
-/*   Updated: 2026/06/09 16:25:49 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/17 14:08:54 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,10 @@ ConfigLexer::ConfigLexer(std::string filename) {
 		throw std::runtime_error("Could not open config file");
 
 	while (std::getline(file, line))
-		file_content_.append(line);
+	{
+		if (line[0] != '#')
+			file_content_.append(line);
+	}
 
 	file_content_.append(eof);
 	file.close();
