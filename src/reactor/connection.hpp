@@ -26,6 +26,7 @@ private:
 
 	Epoll &			epoll_;
 	const Listen &		listen_;
+
 	HttpParser		parser_;
 	HttpRequest		request_;
 	Router			router_;
@@ -35,6 +36,8 @@ private:
 	Connection(Connection const & src);
 	
 	Connection &	operator=(Connection const & rhs);
+
+	void		HandleRequest();
 
 	static const int	kReadBufferSize = 4096;
 

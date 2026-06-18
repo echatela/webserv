@@ -35,9 +35,9 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 }
 
 HttpResponse	Router::HandleRequest(HttpRequest& req) {
-	// if (req.getMethod() == "GET")
+	// if (req.get_method() == "GET")
 		return (HandleGet(req));
-	// if (req.getMethod() == "POST")
+	// if (req.get_method() == "POST")
 	// 	return (HandlePost(req));
 	// return (HandleDelete(req));
 }

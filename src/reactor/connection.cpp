@@ -21,6 +21,19 @@ Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
 	}
 }
 
+void	Connection::HandleRequest()
+{
+	parser_.ParseRequest(request_);
+	std::cout << parser_.get_buf() << std::endl;
+
+	response_ = router_.HandleRequest(request_);
+	std::cout << response_.ToString() << std::endl;
+
+	write_buf_ = response_.ToCharVector();
+	state_ = kWriting;
+	epoll_.Mod(fd_, EPOLLOUT, this);
+}
+
 int	Connection::HandleEvent(uint32_t events)
 {
 	if (events & (EPOLLERR | EPOLLHUP))
@@ -40,13 +53,7 @@ int	Connection::HandleEvent(uint32_t events)
 			case false:
 				return kKeep;
 			case true:
-				parser_.ParseRequest(request_);
-				std::cout << parser_.get_buf() << std::endl;
-				response_ = router_.HandleRequest(request_);
-				std::cout << response_.ToString() << std::endl;
-				write_buf_ = response_.ToCharVector();
-				state_ = kWriting;
-				epoll_.Mod(fd_, EPOLLOUT, this);
+				HandleRequest();
 				return kKeep;
 			default:
 				return kClose;
