@@ -3,6 +3,7 @@
 #include <sstream>
 #include <limits.h>
 #include <stdlib.h>
+#include <cerrno>
 
 int	webserv::fd::SetNonBlock(int fd)
 {

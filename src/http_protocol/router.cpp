@@ -13,17 +13,38 @@ Router::~Router() {}
 
 void			Router::set_config(const Config & config) { config_ = config; }
 
+std::string		FirstDir(std::string path) {
+
+	std::string first_dir;
+	size_t		first_slash = path.find('/');
+
+	if (first_slash != std::string::npos)
+		return (path.substr(1, first_slash));
+	return path.substr(1, path.length());
+
+}
+
+// checks existing folder in given location, root is none if not found
 void			Router::FindLocationRoot(std::string & root, HttpRequest & req) {
 
-	size_t		first_dir = req.get_path().substr(1, req.get_path().size()).find_first_of('/');
+	size_t			first_dir = req.get_path().substr(1, req.get_path().size()).find_first_of('/');
 	std::string 	base;
 	LocationConfig	location;
 
-	if (first_dir == std::string::npos)
-		root = "none";
-	base = req.get_path().substr(0, first_dir + 1);
+	std::cout << "::::::::::::::::req path" << req.get_path() << '\n';
+
 	try {
-		location = this->config_.get_locations().at(base);
+	
+		if (first_dir == std::string::npos)
+		{
+			base = req.get_path();
+		}
+		else
+		{
+			base = req.get_path().substr(0, first_dir + 1);
+		}
+	
+			location = this->config_.get_locations().at(base);
 		root = location.root;
 	}
 	catch (std::exception& e)
@@ -145,13 +166,14 @@ HttpResponse	Router::HandleRequest(HttpRequest& req) {
 		return (HandleDelete(req));
 	if (req.get_method() == "POST")
 	{
-		std::cout << "\n=== POST REQUEST DEBUG ===" << std::endl;
-		std::cout << "Method: " << req.get_method() << std::endl;
-		std::cout << "Path: " << req.get_path() << std::endl;
-		std::cout << "Version: " << req.get_version() << std::endl;
-		std::cout << "Body: " << req.get_body() << std::endl;
-		std::cout << "=== END POST REQUEST DEBUG ===" << std::endl;
-		return (BuildErrorResponse(METHOD_NOT_ALLOWED));
+		// std::cout << "\n=== POST REQUEST DEBUG ===" << std::endl;
+		// std::cout << "Method: " << req.get_method() << std::endl;
+		// std::cout << "Path: " << req.get_path() << std::endl;
+		// std::cout << "Version: " << req.get_version() << std::endl;
+		// std::cout << "Body: " << req.get_body() << std::endl;
+		// std::cout << "=== END POST REQUEST DEBUG ===" << std::endl;
+		return HandlePost(req);
+		// return (BuildErrorResponse(METHOD_NOT_ALLOWED));
 	}
 	return (BuildErrorResponse(METHOD_NOT_ALLOWED));
 }
@@ -239,6 +261,55 @@ HttpResponse	Router::HandleDelete(HttpRequest& req) {
 	response.set_body(MakeFileDeletedBody(path));
 	AddContentLength(response, response.get_body());
 	
+	return response;
+}
+
+std::string		PostType(std::string content_type) {
+
+	std::string post_type;
+	size_t		sep = content_type.find(';');
+
+	if (sep != std::string::npos)
+		return content_type.substr(0, sep);
+	return "none";
+}
+
+std::string		Delimiter(std::string content_type) {
+
+	size_t sep = content_type.find(' ');
+	std::string	boundary;
+	
+	if (sep != std::string::npos)
+		boundary = content_type.substr(sep, content_type.length());
+
+	sep = boundary.find('=');
+	if (sep != std::string::npos)
+		return boundary.substr(sep, boundary.length());
+	return "none";	
+}
+
+HttpResponse	Router::HandlePost(HttpRequest& req) {
+	
+	// int 		status_code = NO_ERROR;
+	std::string	root;
+	HttpResponse response;
+	
+
+	std::string		post_type;
+	std::string		delim;
+	
+	FindLocationRoot(root, req);
+	if (root == "none")
+	return BuildErrorResponse(BAD_REQUEST);
+	// std::cout << "////////////////body is: " << req.get_body();
+	std::cout << "/////////" << req.get_header().at("Content-Type") << std::endl;
+	post_type = PostType(req.get_header().at("Content-Type"));
+	std::cout << "////////////////post_type ." << post_type << '\n';
+	if (post_type == "multipart/form-data")
+		delim = Delimiter(req.get_header().at("Content-Type"));
+
+	std::cout << "////////////////delim " << delim << '\n';
+
 	return response;
 }
 
