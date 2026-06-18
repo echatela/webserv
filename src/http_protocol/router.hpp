@@ -8,6 +8,7 @@
 #include "http_response.hpp"
 #include "http_request.hpp"
 #include "../config/config.hpp"
+#include "route_result.hpp"
 
 class HttpRequest;
 
@@ -18,7 +19,7 @@ public:
 	Router();
 	~Router();
 
-	HttpResponse	HandleRequest(HttpRequest & req);
+	RouteResult	HandleRequest(HttpRequest & req);
 	void		set_config(const Config & config);
 
 private:
@@ -28,7 +29,7 @@ private:
 	void	AddContentLength(HttpResponse & current, std::string filepath);
 
 
-	HttpResponse	HandleGet(HttpRequest & req);
+	RouteResult	HandleGet(HttpRequest & req);
 	std::string	FillBody(std::string path, int *status_code);
 
 	HttpResponse	HandleDelete(HttpRequest & req);

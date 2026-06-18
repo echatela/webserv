@@ -26,8 +26,9 @@ public:
 
 	int	HandleEvent(uint32_t events);
 
-	int				get_fd() const;
+	int		get_fd() const;
 	const Config &	get_config() const;
+	Reactor &	get_reactor() const;
 
 	~Listen();
 };

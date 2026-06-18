@@ -1,24 +1,21 @@
 #ifndef CONNECTION_HPP
 #define CONNECTION_HPP
 
-#include "epoll.hpp"
 #include "event_handler.hpp"
 #include "../http_protocol/http_request.hpp"
-#include "../http_protocol/http_response.hpp"
 #include "../http_protocol/router.hpp"
-#include "listen.hpp"
 #include <ctime>
 #include <stdint.h>
 #include <vector>
 
-enum {
-	kReading,
-	kWriting
-};
+class CgiHandler;
+class Listen;
+class Epoll;
+
+enum { kReading, kWriting, kCgi };
 
 class Connection : public EventHandler
 {
-private:
 	int			fd_;
 	int			state_;
 
@@ -28,18 +25,19 @@ private:
 
 	Epoll &			epoll_;
 	const Listen &		listen_;
+	CgiHandler*		cgi_;
 
 	HttpParser		parser_;
 	HttpRequest		request_;
 	Router			router_;
-	HttpResponse		response_;
 
 	Connection();
 	Connection(Connection const & src);
 	
-	Connection &	operator=(Connection const & rhs);
+	Connection &	operator=(const Connection & rhs);
 
 	void		HandleRequest();
+	void		StartCgi(const CgiPlan & plan);
 
 	static const int	kReadBufferSize = 4096;
 	static const int	kTimeoutSecs = 60;
@@ -49,6 +47,7 @@ public:
 
 	int	HandleEvent(uint32_t events);
 	int	CheckTimeout(time_t now);
+	void	OnCgiDone(const std::string& output);
 
 	int	get_fd() const;
 

@@ -1,9 +1,14 @@
 #include "connection.hpp"
+#include "cgi_handler.hpp"
 #include "event_handler.hpp"
+#include "epoll.hpp"
+#include "listen.hpp"
+#include "../webserv.hpp"
 
 #include <cstddef>
 #include <ctime>
 #include <iostream>
+#include <stdexcept>
 #include <stdint.h>
 #include <exception>
 #include <sys/epoll.h>
@@ -12,7 +17,7 @@
 
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
 : fd_(fd), state_(kReading), write_off_(0), last_activity_(time(NULL)),
-	epoll_(epoll), listen_(listen)
+	epoll_(epoll), listen_(listen), cgi_(NULL)
 {
 	try {
 		router_.set_config(listen_.get_config());
@@ -21,19 +26,6 @@ Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
 		close(fd_);
 		throw;
 	}
-}
-
-void	Connection::HandleRequest()
-{
-	parser_.ParseRequest(request_);
-	std::cout << parser_.get_buf() << std::endl;
-
-	response_ = router_.HandleRequest(request_);
-	std::cout << response_.ToString() << std::endl;
-
-	write_buf_ = response_.ToCharVector();
-	state_ = kWriting;
-	epoll_.Mod(fd_, EPOLLOUT, this);
 }
 
 int	Connection::HandleEvent(uint32_t events)
@@ -52,8 +44,7 @@ int	Connection::HandleEvent(uint32_t events)
 		read_buf[n] = '\0';
 
 		int ret = parser_.Add(read_buf, n);
-		switch(ret)
-		{
+		switch(ret) {
 			case false:
 				return kKeep;
 			case true:
@@ -70,10 +61,6 @@ int	Connection::HandleEvent(uint32_t events)
 		size_t	n = send(
 			fd_, write_buf_.data() + write_off_, remaining, 0);
 
-		// std::cout << "/////////RESPONSE//////////\n"<< response << std::endl;
-		// size_t	n = send(
-		// 	fd_, (response.substr(write_off_, response.length())).c_str(), remaining, 0);
-		// std::cout << "apres send." << '\n';
 		if (n > 0) {
 			write_off_ += n;
 			// if HTTP 1.1 need to keep alive and turn to EPOLLIN
@@ -84,6 +71,63 @@ int	Connection::HandleEvent(uint32_t events)
 			return kClose;
 	}
 	return kKeep;
+}
+
+void	Connection::HandleRequest()
+{
+	parser_.ParseRequest(request_);
+	std::cout << parser_.get_buf() << std::endl;
+
+	RouteResult result = router_.HandleRequest(request_);
+	switch (result.get_type()) {
+		case kRouteResponse:
+			HttpResponse response = result.get_response();
+			std::cout << response.ToString() << std::endl;
+
+			write_buf_ = response.ToCharVector();
+			state_ = kWriting;
+			epoll_.Mod(fd_, EPOLLOUT, this);
+			break;
+		case kRouteCgi:
+			StartCgi(result.get_plan());
+			break;
+		default:
+			break;
+	}
+}
+
+void	Connection::StartCgi(const CgiPlan & plan)
+{
+	// Construire argv et envp MAINTENANT, dans le parent.
+	// Pourquoi avant le fork ? Parce qu'allouer de la mémoire / lancer des
+	// exceptions après un fork, c'est fragile. On veut un enfant minimaliste.
+	//   argv = { interpreter, script_path, NULL }   (ou { script_path, NULL } si interpreter vide)
+	//   envp = { "REQUEST_METHOD=GET", "QUERY_STRING=...", ..., NULL }
+	
+	int	out_pipe[2];
+	if (pipe(out_pipe) < 0)
+		throw std::runtime_error("pipe() failed");
+
+	pid_t	pid = fork();
+	if (pid < 0) {
+		close(out_pipe[0]); close(out_pipe[1]);
+		throw std::runtime_error("fork() failed");
+	}
+
+	if (pid == 0) {
+		dup2(out_pipe[1], STDOUT_FILENO);
+		close(out_pipe[0]);
+		close(out_pipe[1]);
+		chdir(/* path */);
+		execve(path, argv, envp);
+		_exit(1);
+	}
+
+	close(out_pipe[1]);
+	webserv::fd::SetNonBlock(out_pipe[0]);
+	webserv::fd::SetCloExec(out_pipe[0]);
+
+	CgiHandler *	cgi = new CgiHandler(pid, out_pipe[0], this, listen_.get_reactor())
 }
 
 int	Connection::CheckTimeout(time_t now)

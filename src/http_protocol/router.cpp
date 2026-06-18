@@ -1,6 +1,7 @@
 #include "http_request.hpp"
 #include "router.hpp"
 #include "../webserv.hpp"
+#include "route_result.hpp"
 #include <fstream>
 
 
@@ -34,7 +35,8 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 	return (resp);
 }
 
-HttpResponse	Router::HandleRequest(HttpRequest& req) {
+// RouteResult doit renvoyer soit response soit cgiplan
+RouteResult	Router::HandleRequest(HttpRequest& req) {
 	// if (req.get_method() == "GET")
 		return (HandleGet(req));
 	// if (req.get_method() == "POST")
@@ -87,7 +89,7 @@ std::string 	Router::set_path(HttpRequest& req, int *status_code) {
 	}
 }
 
-HttpResponse	Router::HandleGet(HttpRequest& req) {
+RouteResult	Router::HandleGet(HttpRequest& req) {
 	HttpResponse 	current;
 	std::string	absolute_path;
 	struct stat	info;

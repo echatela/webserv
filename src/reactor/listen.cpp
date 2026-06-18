@@ -74,6 +74,8 @@ int	Listen::get_fd() const { return fd_; }
 
 const Config &	Listen::get_config() const { return config_; }
 
+Reactor &	Listen::get_reactor() const { return reactor_; }
+
 Listen::~Listen()
 {
 	try {
