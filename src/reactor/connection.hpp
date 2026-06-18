@@ -10,6 +10,10 @@
 #include <stdint.h>
 #include <vector>
 
+#define BLUE "\033[1;34m"
+#define RED "\033[1;31m"
+#define RESET "\033[0m"
+
 enum {
 	kReading,
 	kWriting

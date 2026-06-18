@@ -41,9 +41,9 @@ int	Connection::HandleEvent(uint32_t events)
 				return kKeep;
 			case true:
 				parser_.ParseRequest(request_);
-				std::cout << parser_.get_buf() << std::endl;
+				std::cout << RED << "\n Request =>\n" << parser_.get_buf() << RESET << std::endl << std::endl;
 				response_ = router_.HandleRequest(request_);
-				std::cout << response_.ToString() << std::endl;
+				std::cout << BLUE << "\n Response =>\n" << response_.ToString() << RESET << std::endl << std::endl;
 				write_buf_ = response_.ToCharVector();
 				state_ = kWriting;
 				epoll_.Mod(fd_, EPOLLOUT, this);

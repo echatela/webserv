@@ -9,6 +9,7 @@ TARGET = webserv
 
 # Source files
 SRCS =	$(wildcard src/*.cpp) \
+		$(wildcard src/Response/*.cpp) \
 		$(wildcard src/config/*.cpp) \
 		$(wildcard src/http_protocol/*.cpp) \
 		$(wildcard src/reactor/*.cpp)
