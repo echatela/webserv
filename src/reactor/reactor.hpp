@@ -20,6 +20,9 @@ private:
 
 	void	Dispatch(int n);
 	void	CloseHandlers();
+	void	CheckTimeouts();
+
+	static const int	kEpollTimeoutMs =  5000;
 
 	Reactor();
 	Reactor(const Reactor & src);

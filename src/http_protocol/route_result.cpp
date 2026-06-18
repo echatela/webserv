@@ -1,3 +1,4 @@
+/*
 #include "route_result.hpp"
 #include "http_response.hpp"
 
@@ -15,3 +16,4 @@ RouteResult::~RouteResult()
 
 RouteResult &	RouteResult::operator=(RouteResult const & rhs)
 { return (*this); }
+*/

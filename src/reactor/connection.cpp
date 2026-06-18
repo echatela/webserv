@@ -2,6 +2,7 @@
 #include "event_handler.hpp"
 
 #include <cstddef>
+#include <ctime>
 #include <iostream>
 #include <stdint.h>
 #include <exception>
@@ -10,7 +11,8 @@
 #include <unistd.h>
 
 Connection::Connection(int fd, const Listen & listen, Epoll & epoll)
-: fd_(fd), state_(kReading), write_off_(0), epoll_(epoll), listen_(listen)
+: fd_(fd), state_(kReading), write_off_(0), last_activity_(time(NULL)),
+	epoll_(epoll), listen_(listen)
 {
 	try {
 		router_.set_config(listen_.get_config());
@@ -38,6 +40,8 @@ int	Connection::HandleEvent(uint32_t events)
 {
 	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
+
+	last_activity_ = time(NULL);
 
 	if (state_ == kReading && events & EPOLLIN) {
 		char read_buf[kReadBufferSize];
@@ -79,6 +83,13 @@ int	Connection::HandleEvent(uint32_t events)
 		} else if (n <= 0)
 			return kClose;
 	}
+	return kKeep;
+}
+
+int	Connection::CheckTimeout(time_t now)
+{
+	if (difftime(now, last_activity_) >= kTimeoutSecs)
+		return kClose;
 	return kKeep;
 }
 

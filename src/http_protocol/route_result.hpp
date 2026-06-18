@@ -1,6 +1,7 @@
 #ifndef ROUTERESULT_HPP
 #define ROUTERESULT_HPP
 
+/*
 #include "http_response.hpp"
 
 struct CgiPlan
@@ -32,5 +33,5 @@ public:
 
 	RouteResult &	operator=(RouteResult const & rhs);
 };
-
+*/
 #endif

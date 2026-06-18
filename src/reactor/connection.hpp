@@ -7,6 +7,7 @@
 #include "../http_protocol/http_response.hpp"
 #include "../http_protocol/router.hpp"
 #include "listen.hpp"
+#include <ctime>
 #include <stdint.h>
 #include <vector>
 
@@ -23,6 +24,7 @@ private:
 
 	std::vector<char>	write_buf_;
 	size_t			write_off_;
+	time_t			last_activity_;
 
 	Epoll &			epoll_;
 	const Listen &		listen_;
@@ -40,11 +42,13 @@ private:
 	void		HandleRequest();
 
 	static const int	kReadBufferSize = 4096;
+	static const int	kTimeoutSecs = 60;
 
 public:
 	Connection(int fd, const Listen & listen, Epoll & epoll);
 
 	int	HandleEvent(uint32_t events);
+	int	CheckTimeout(time_t now);
 
 	int	get_fd() const;
 

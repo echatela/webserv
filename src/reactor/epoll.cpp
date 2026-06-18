@@ -40,9 +40,9 @@ void	Epoll::Del(int fd)
 		throw std::runtime_error("Couldn't epoll_ctl(del)...\n");
 }
 
-int	Epoll::Wait()
+int	Epoll::Wait(int timeout_ms)
 {
-	return (epoll_wait(epfd_, events_, MAX_EVENTS, -1));
+	return (epoll_wait(epfd_, events_, MAX_EVENTS, timeout_ms));
 }
 
 const struct epoll_event *	Epoll::get_events() const { return events_; }
