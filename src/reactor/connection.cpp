@@ -127,7 +127,7 @@ void	Connection::StartCgi(const CgiPlan & plan)
 	webserv::fd::SetNonBlock(out_pipe[0]);
 	webserv::fd::SetCloExec(out_pipe[0]);
 
-	CgiHandler *	cgi = new CgiHandler(pid, out_pipe[0], this, listen_.get_reactor())
+	CgiHandler *	cgi = new CgiHandler(pid, out_pipe[0], this, listen_.get_reactor());
 }
 
 int	Connection::CheckTimeout(time_t now)
