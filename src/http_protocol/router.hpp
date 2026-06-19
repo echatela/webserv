@@ -10,6 +10,20 @@
 #include "http_request.hpp"
 #include "../config/config.hpp"
 
+struct HeaderValue {
+	std::string							directive;
+	std::map <std::string, std::string> parameters;
+};
+
+struct FormParts {
+	
+	std::map< std::string, HeaderValue > 	headers;
+	std::string								body;
+};
+
+
+
+
 class HttpRequest;
 
 class Router {
@@ -36,6 +50,8 @@ private:
 	std::string		MakeFileDeletedBody(std::string path);
 
 	HttpResponse	HandlePost(HttpRequest & req);
+	void			ParsePostBody(HttpRequest & req);
+
 
 	HttpResponse	BuildErrorResponse(int status_code);
 

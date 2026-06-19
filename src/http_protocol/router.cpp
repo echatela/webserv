@@ -160,6 +160,7 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 
 HttpResponse	Router::HandleRequest(HttpRequest& req) {
 	
+	std::cout << "in handlerequest\n";
 	if (req.get_method() == "GET")
 		return (HandleGet(req));
 	if (req.get_method() == "DELETE")
@@ -269,23 +270,49 @@ std::string		PostType(std::string content_type) {
 	std::string post_type;
 	size_t		sep = content_type.find(';');
 
-	if (sep != std::string::npos)
-		return content_type.substr(0, sep);
+	if (sep != std::string::npos)				// TODO
+		return content_type.substr(1, sep - 1); // on commence a 1 pour enlever l'espace = nul, pas clean ni stable
+												// sep - 1 pour le ';' -> idem
+
 	return "none";
 }
 
 std::string		Delimiter(std::string content_type) {
 
-	size_t sep = content_type.find(' ');
+	size_t boundary_start = content_type.find("boundary");
 	std::string	boundary;
 	
-	if (sep != std::string::npos)
-		boundary = content_type.substr(sep, content_type.length());
+	std::cout << "/////////////bound start -> " << boundary_start << '\n';
+	if (boundary_start != std::string::npos)
+	{
+		std::cout << "////////////found delim " << content_type.substr(boundary_start + 8, content_type.length()) << '\n';
+		return content_type.substr(boundary_start + 9, content_type.length());
+	}
 
-	sep = boundary.find('=');
-	if (sep != std::string::npos)
-		return boundary.substr(sep, boundary.length());
+
+	// sep = boundary.find('=');
+	// if (sep != std::string::npos)
+	// 	return boundary.substr(sep, boundary.length());
 	return "none";	
+}
+
+
+void			Router::ParsePostBody(HttpRequest& req) {
+
+	std::string 			delim;
+	std::vector<FormParts>	form_parts;
+	int						i;
+	std::string				body = req.get_body();
+
+	delim = Delimiter(req.get_header().at("Content-Type"));
+	
+	while (delim[i] == body[i])
+		i++;
+	
+	size_t block_start = body.find(delim);
+	if (block_start != std::string::npos)
+		
+
 }
 
 HttpResponse	Router::HandlePost(HttpRequest& req) {
@@ -298,17 +325,17 @@ HttpResponse	Router::HandlePost(HttpRequest& req) {
 	std::string		post_type;
 	std::string		delim;
 	
+	std::cout << "////////////////////in handle post \n";
 	FindLocationRoot(root, req);
 	if (root == "none")
 	return BuildErrorResponse(BAD_REQUEST);
-	// std::cout << "////////////////body is: " << req.get_body();
 	std::cout << "/////////" << req.get_header().at("Content-Type") << std::endl;
 	post_type = PostType(req.get_header().at("Content-Type"));
 	std::cout << "////////////////post_type ." << post_type << '\n';
 	if (post_type == "multipart/form-data")
-		delim = Delimiter(req.get_header().at("Content-Type"));
 
 	std::cout << "////////////////delim " << delim << '\n';
+	std::cout << "////////////////body is: " << req.get_body() << "/////////////////";
 
 	return response;
 }
@@ -328,3 +355,39 @@ HttpResponse	Router::HandlePost(HttpRequest& req) {
 // sa taille doit correspondre a content length
 
 // }
+
+std::vector<Token>	ConfigLexer::Tokenize() {
+
+	std::vector<Token> tokens;
+	std::string		current_str;
+	size_t i = 0;
+	while (i < file_content_.size())
+	{
+		while (i < file_content_.size() 
+			&& !std::isspace(file_content_[i])
+			&& !isSpecial(file_content_[i]))
+			current_str += file_content_[i++];
+		if (!current_str.empty())
+		{
+			tokens.push_back(MakeToken(current_str));
+			current_str.clear();
+		}
+		if (isSpecial(file_content_[i]))
+		{
+			current_str += file_content_[i];
+			if (!current_str.empty())
+			{
+				tokens.push_back(MakeToken(current_str));
+				current_str.clear();
+			}
+		}
+		i++;
+	}
+	
+	// for (size_t i = 0; i < tokens.size(); i++)
+	// {
+	// 	std::cout << "token type: " << tokens[i]._type << "token content: " << tokens[i]._content << std::endl;
+	// }
+	return (tokens);
+}
+

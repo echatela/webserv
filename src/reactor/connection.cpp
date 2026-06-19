@@ -36,6 +36,8 @@ int	Connection::HandleEvent(uint32_t events)
 
 		std::cout << "=== RAW REQUEST ===\n" << read_buf << "\n=== END RAW REQUEST ===\n";
 		int ret = parser_.Add(read_buf, n);
+		
+		std::cout << ret << " /////////////////cc\n";
 
 		switch(ret)
 		{

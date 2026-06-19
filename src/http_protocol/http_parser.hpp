@@ -37,4 +37,5 @@ private :
 	size_t		buf_size_with_body_;
 	int		flag_;
 	int		content_length_;
+	bool	has_body_;
 };
