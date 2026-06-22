@@ -44,10 +44,10 @@ public:
 	void		set_root(std::string root);
 	void		add_location(std::pair<std::string, LocationConfig> location);
 
-	std::string			get_root();
-	const std::vector<ListenInfo> &	get_listens_info() const;
-	static std::vector<ListenInfo>	get_listens_info(std::vector<Config> configs);
-	const std::string &		get_server_name() const;
+	std::string			root();
+	const std::vector<ListenInfo> &	listens_info() const;
+	static std::vector<ListenInfo>	listens_info(std::vector<Config> configs);
+	const std::string &		server_name() const;
 	// const std::vector<ServerConfig> & 	get_servers_info() const;
 };
 

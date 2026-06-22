@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <vector>
 
+class Reactor;
 class CgiHandler;
 class ListenHandler;
 class Epoll;
@@ -18,13 +19,15 @@ class ConnHandler : public EventHandler
 {
 	int			fd_;
 	int			state_;
+	sockaddr_in		addr_;
 
 	std::vector<char>	write_buf_;
 	size_t			write_off_;
 	time_t			last_activity_;
 
 	Epoll &			epoll_;
-	const ListenHandler &		listen_;
+	Reactor &		reactor_;
+	const ListenHandler &	listen_;
 	CgiHandler*		cgi_;
 
 	HttpParser		parser_;
@@ -44,13 +47,14 @@ class ConnHandler : public EventHandler
 	static const int	kTimeoutSecs = 60;
 
 public:
-	ConnHandler(int fd, const ListenHandler & listen, Epoll & epoll);
+	ConnHandler(sockaddr_in addr ,int fd, const ListenHandler & listen,
+	     Epoll & epoll, Reactor & reactor);
 
 	int	HandleEvent(uint32_t events);
 	int	CheckTimeout(time_t now);
 	void	OnCgiDone(const std::string& output);
 
-	int	get_fd() const;
+	int	fd() const;
 
 	~ConnHandler();
 };

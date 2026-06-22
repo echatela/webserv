@@ -23,7 +23,7 @@ public:
 
 	int	Wait(int timeout_ms);
 
-	const struct epoll_event *	get_events() const;
+	const struct epoll_event *	events() const;
 
 	~Epoll();
 };

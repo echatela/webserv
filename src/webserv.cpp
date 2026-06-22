@@ -27,7 +27,19 @@ std::string	webserv::utils::IntToStr(int value)
 	return (s.str());
 }
 
-std::vector<char *>	webserv::utils::ToCstrArray(
+std::string webserv::utils::AddrToString(const struct sockaddr_in& addr)
+{
+	const unsigned char* b =
+		reinterpret_cast<const unsigned char*>(&addr.sin_addr.s_addr);
+	std::ostringstream	oss;
+	oss << static_cast<int>(b[0]) << '.'
+		<< static_cast<int>(b[1]) << '.'
+		<< static_cast<int>(b[2]) << '.'
+		<< static_cast<int>(b[3]);
+	return oss.str();
+}
+
+std::vector<char *>	webserv::utils::ToCStrArray(
 	std::vector<std::string> & v)
 {
 	std::vector<char *>	out;

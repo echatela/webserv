@@ -28,10 +28,10 @@ public:
 
 	int	HandleEvent(uint32_t events);
 
-	int			get_fd() const;
-	Reactor &		get_reactor() const;
-	const Config &		get_config() const;
-	const ListenInfo &	get_listen_info() const;
+	int			fd() const;
+	Reactor &		reactor() const;
+	const Config &		config() const;
+	const ListenInfo &	listen_info() const;
 
 
 	~ListenHandler();

@@ -54,7 +54,10 @@ int	ListenHandler::HandleEvent(uint32_t events)
 	if (events & (EPOLLERR | EPOLLHUP))
 		return kKeep;
 
-	int	client_fd = accept(fd_, NULL, NULL);
+	struct sockaddr_in	addr;
+	socklen_t		len = sizeof(addr);
+	int	client_fd = accept(fd_, reinterpret_cast<
+			struct sockaddr *>(&addr), &len);
 	if (client_fd < 0)
 		return kKeep;
 
@@ -66,17 +69,17 @@ int	ListenHandler::HandleEvent(uint32_t events)
 
 	ConnHandler *	conn = NULL;
 	try {
-		conn = new ConnHandler(client_fd, *this, epoll_);
+		conn = new ConnHandler(addr, client_fd, *this, epoll_, reactor_);
 		reactor_.AddEventHandler(conn);
 	} catch (std::exception &) {}
 	return kKeep;
 }
 
-int	ListenHandler::get_fd() const { return fd_; }
+int	ListenHandler::fd() const { return fd_; }
 
-const Config &	ListenHandler::get_config() const { return config_; }
+const Config &	ListenHandler::config() const { return config_; }
 
-Reactor &	ListenHandler::get_reactor() const { return reactor_; }
+Reactor &	ListenHandler::reactor() const { return reactor_; }
 
 ListenHandler::~ListenHandler()
 {
