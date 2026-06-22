@@ -15,12 +15,11 @@ Reactor::Reactor(std::vector<Config> const & configs)
 		const std::vector<ListenInfo> &cur_listens
 			= configs_[i].get_listens_info();
 		for (size_t j = 0; j < cur_listens.size(); ++j) {
-			Listen *listen = NULL;
+			ListenHandler *listen = NULL;
 
 			try {
-				listen = new Listen(
-					cur_listens[j].address, epoll_,
-					*this, configs_[i]);
+				listen = new ListenHandler(cur_listens[j],
+			epoll_, *this, configs_[i]);
 				handlers_.push_back(listen);
 			} catch (std::exception&) {
 				delete listen;

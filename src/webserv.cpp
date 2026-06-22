@@ -1,6 +1,8 @@
 #include "webserv.hpp"
+#include <cstddef>
 #include <fcntl.h>
 #include <sstream>
+#include <vector>
 
 int	webserv::fd::SetNonBlock(int fd)
 {
@@ -23,4 +25,15 @@ std::string	webserv::utils::IntToStr(int value)
 	std::ostringstream s;
 	s << value;
 	return (s.str());
+}
+
+std::vector<char *>	webserv::utils::ToCstrArray(
+	std::vector<std::string> & v)
+{
+	std::vector<char *>	out;
+
+	for (size_t i = 0; i < v.size(); i++)
+		out.push_back(const_cast<char *>(v[i].c_str()));
+	out.push_back(NULL);
+	return out;
 }

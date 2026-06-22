@@ -9,12 +9,12 @@
 #include <vector>
 
 class CgiHandler;
-class Listen;
+class ListenHandler;
 class Epoll;
 
 enum { kReading, kWriting, kCgi };
 
-class Connection : public EventHandler
+class ConnHandler : public EventHandler
 {
 	int			fd_;
 	int			state_;
@@ -24,26 +24,27 @@ class Connection : public EventHandler
 	time_t			last_activity_;
 
 	Epoll &			epoll_;
-	const Listen &		listen_;
+	const ListenHandler &		listen_;
 	CgiHandler*		cgi_;
 
 	HttpParser		parser_;
 	HttpRequest		request_;
 	Router			router_;
 
-	Connection();
-	Connection(Connection const & src);
+	ConnHandler();
+	ConnHandler(ConnHandler const & src);
 	
-	Connection &	operator=(const Connection & rhs);
+	ConnHandler &	operator=(const ConnHandler & rhs);
 
-	void		HandleRequest();
-	void		StartCgi(const CgiPlan & plan);
+	void				HandleRequest();
+	void				StartCgi(const CgiPlan & plan);
+	std::vector<std::string>	BuildCgiEnv(const CgiPlan & plan) const;
 
 	static const int	kReadBufferSize = 4096;
 	static const int	kTimeoutSecs = 60;
 
 public:
-	Connection(int fd, const Listen & listen, Epoll & epoll);
+	ConnHandler(int fd, const ListenHandler & listen, Epoll & epoll);
 
 	int	HandleEvent(uint32_t events);
 	int	CheckTimeout(time_t now);
@@ -51,7 +52,7 @@ public:
 
 	int	get_fd() const;
 
-	~Connection();
+	~ConnHandler();
 };
 
 #endif

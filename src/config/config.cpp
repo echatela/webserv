@@ -1,6 +1,5 @@
 #include "config.hpp"
 #include <cstring>
-#include "config_parser.hpp"
 
 Config::Config()
 {
@@ -68,3 +67,5 @@ std::vector<ListenInfo> Config::get_listens_info(std::vector<Config> configs)
 	}
 	return listens;
 }
+
+const std::string &	Config::get_server_name() const { return server_name_; }
