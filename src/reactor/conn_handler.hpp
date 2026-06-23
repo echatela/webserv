@@ -53,6 +53,7 @@ public:
 	int	HandleEvent(uint32_t events);
 	int	CheckTimeout(time_t now);
 	void	OnCgiDone(const std::string& output);
+	void	Detach();
 
 	int	fd() const;
 

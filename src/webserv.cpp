@@ -49,3 +49,19 @@ std::vector<char *>	webserv::utils::ToCStrArray(
 	out.push_back(NULL);
 	return out;
 }
+
+std::string	webserv::utils::Basename(const std::string & path)
+{
+	std::string::size_type	pos = path.find_last_of('/');
+	if (pos == std::string::npos)
+		return path;
+	return path.substr(pos + 1);
+}
+
+std::string	webserv::utils::Basedir(const std::string & path)
+{
+	std::string::size_type	pos = path.find_last_of('/');
+	if (pos == std::string::npos)
+		return "./";
+	return path.substr(0, pos);
+}

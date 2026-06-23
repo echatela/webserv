@@ -32,9 +32,9 @@ int	CgiHandler::HandleEvent(uint32_t events)
 
 	char	read_buf[kReadBufferSize];
 	size_t	n = read(stdout_fd_, read_buf, kReadBufferSize - 1);
-	if (n < 0)
+	if (n < 0) {
 		return kClose;
-	else if (read_buf[n] == '\0') {
+	} else if (read_buf[n] == '\0') {
 		connection_->OnCgiDone(output_buf_);
 		return kClose;
 	}
@@ -50,6 +50,7 @@ int	CgiHandler::CheckTimeout(time_t now)
 
 CgiHandler::~CgiHandler()
 {
+	connection_->Detach();
 	epoll_.Del(stdout_fd_);
 	close(stdout_fd_);
 }

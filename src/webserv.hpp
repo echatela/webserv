@@ -10,6 +10,8 @@ namespace utils {
 std::string		IntToStr(int value);
 std::vector<char *>	ToCStrArray(std::vector<std::string> & v);
 std::string 		AddrToString(const struct sockaddr_in& addr);
+std::string		Basename(const std::string & path);
+std::string		Basedir(const std::string & path);
 }
 namespace fd {
 int	SetNonBlock(int fd);

@@ -29,7 +29,6 @@ public:
 
 	int	HandleEvent(uint32_t events);
 	int	CheckTimeout(time_t now);
-	void	Detach();
 
 	~CgiHandler();
 };

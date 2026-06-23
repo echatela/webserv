@@ -102,13 +102,6 @@ void	ConnHandler::HandleRequest()
 	}
 }
 
-static std::string	Basename(const std::string & path)
-{
-	std::string::size_type	pos = path.find_last_of('/');
-	if (pos == std::string::npos)
-		return path;
-	return path.substr(pos + 1);
-}
 
 
 std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
@@ -148,7 +141,7 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 
 
 	path = plan.interpreter.empty() ? plan.script_path : plan.interpreter;
-	argv_str.push_back(Basename(path));
+	argv_str.push_back(webserv::utils::Basename(path));
 	if (path == plan.interpreter)
 		argv_str.push_back(plan.script_path);
 
@@ -177,7 +170,7 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 		dup2(out_pipe[1], STDOUT_FILENO);
 		close(out_pipe[0]);
 		close(out_pipe[1]);
-		// NOTE: chdir script dir
+		chdir(plan.script_path.c_str());
 		execve(path.c_str(), &argv[0], &envp[0]);
 		_exit(1);
 	}
@@ -195,6 +188,8 @@ void	ConnHandler::OnCgiDone(const std::string & output)
 	state_ = kWriting;
 	epoll_.Mod(fd_, EPOLLOUT, this);
 }
+
+void	ConnHandler::Detach() { cgi_ = NULL; }
 
 int	ConnHandler::CheckTimeout(time_t now)
 {
