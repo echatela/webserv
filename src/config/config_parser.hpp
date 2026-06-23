@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config_parser.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
+/*   By: alygalleze <alygalleze@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 14:07:33 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/17 13:44:11 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/23 17:50:17 by alygalleze       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ class ConfigParser {
 		ListenInfo								ParseListen();
 		std::string								ParseRoot();
 		int										ParseMaxBodySize();
+		std::string								ParseCgi();
+		std::vector<std::string>				ParseStr(std::string directive);
 
 		void						next();
 		Token						current();

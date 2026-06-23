@@ -81,6 +81,8 @@ const Config &	ListenHandler::config() const { return config_; }
 
 Reactor &	ListenHandler::reactor() const { return reactor_; }
 
+const ListenInfo &	ListenHandler::listen_info() const { return listen_info_; }
+
 ListenHandler::~ListenHandler()
 {
 	try {

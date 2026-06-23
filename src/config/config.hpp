@@ -17,7 +17,8 @@ struct ListenInfo {
 
 struct LocationConfig {
 	std::string	base_location;
-	std::string	root;
+	std::vector<std::string>	root;
+	std::vector<std::string> cgi;
 };
 
 struct	ServerConfig {

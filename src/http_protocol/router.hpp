@@ -11,6 +11,7 @@
 #include "http_request.hpp"
 #include "../config/config.hpp"
 #include "route_result.hpp"
+#include "route_result.hpp"
 
 struct HeaderValue {
 	std::string							directive;
@@ -24,7 +25,7 @@ struct FormParts {
 };
 
 
-
+class RouteResult;
 
 class HttpRequest;
 
@@ -36,12 +37,16 @@ public:
 	~Router();
 
 	RouteResult	HandleRequest(HttpRequest & req);
+	HttpResponse	CgiResponse(const std::string output);
 	void		set_config(const Config & config);
 
 private:
 	Config	config_;
 
-	void	AddContentType(HttpResponse & current, std::string filepath);
+	bool	IsCgi(HttpRequest& req);
+	CgiPlan	MakeCgiPlan(HttpRequest& req);
+
+	void	AddContentType(HttpResponse & current, std::string filepath, int *status_code);
 	void	AddContentLength(HttpResponse & current, std::string filepath);
 
 

@@ -45,8 +45,8 @@ void			Router::FindLocationRoot(std::string & root, HttpRequest & req) {
 			base = req.get_path().substr(0, first_dir + 1);
 		}
 	
-			location = this->config_.get_locations().at(base);
-		root = location.root;
+		location = this->config_.get_locations().at(base);
+		root = location.root[0];
 	}
 	catch (std::exception& e)
 	{
@@ -118,15 +118,23 @@ std::string	value_from_extension(std::string extension) {
 	return (types.at(extension));
 }
 
-void		Router::AddContentType(HttpResponse & current, std::string filepath) {
+void		Router::AddContentType(HttpResponse & current, std::string filepath, int *status_code) {
 
 	size_t		dot = filepath.find_last_of('.');
 	std::string	extension;
+	std::string content_type;
 	
 	if (dot != std::string::npos)
 		extension = filepath.substr(dot, filepath.size());
 	std::cout << "" << '\n';
-	current.set_header("Content-Type", value_from_extension(extension));
+	try {
+		current.set_header("Content-Type", value_from_extension(extension));
+
+	}
+	catch (std::exception& e)
+	{
+		*status_code = kMethodNotAllowed;
+	}
 
 }
 
@@ -156,12 +164,67 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 
 }
 
+bool	Router::IsCgi(HttpRequest& req) {
+
+	std::string location;
+
+	FindLocationRoot(location, req);
+	std::cout << "::::LOCQATION" << location << ".\n";
+	if (location == "./cgi-bin")
+	{
+		std::cout << "cgi true ?\n";
+		return true;
+	}
+	return false;
+}
 
 
+CgiPlan		Router::MakeCgiPlan(HttpRequest & req) {
+
+	CgiPlan cgi;
+	std::string path = req.get_path();
+	size_t sep;
+
+	cgi.interpreter = config_.get_locations().at("/cgi").cgi[1];
+	sep = path.find(".py");
+	if (sep != std::string::npos)
+	{
+		cgi.script_name = path.substr(0, sep + 3);
+		std::string full_path = cgi.script_name.replace(0, 4, config_.root() + "/cgi-bin");
+		std::cout << "///////////////////////testing path" << full_path << "\n";
+		char	resolved_path[PATH_MAX];
+		char* res = realpath(full_path.c_str(), resolved_path);
+		if (res != NULL)
+			cgi.script_path = resolved_path;
+		path = path.substr(sep + 3, path.length());
+	}
+
+	sep = path.find('?');
+	if (sep != std::string::npos)
+	{
+		cgi.path_info = path.substr(0, sep);
+		cgi.query_string = path.substr(sep + 1, path.length());
+	}
+
+	std::cout << "interpreter" << cgi.interpreter << "\n";
+	std::cout << "script_name" << cgi.script_name << "\n";
+	std::cout << "script_path" << cgi.script_path << "\n";
+	std::cout << "path_info" << cgi.path_info << "\n";
+	std::cout << "query_string" << cgi.query_string << "\n";
+	std::cout << "cgi plan done\n";
+	return cgi;
+}
 
 RouteResult	Router::HandleRequest(HttpRequest& req) {
 	
 	std::cout << "in handlerequest\n";
+
+	if (IsCgi(req))
+	{
+		std::cout << "handle as cgi\n";
+		return RouteResult::Cgi(MakeCgiPlan(req));
+	}
+
 	if (req.get_method() == "GET")
 		return (HandleGet(req));
 	if (req.get_method() == "DELETE")
@@ -197,6 +260,7 @@ void		Router::FillBody(std::string& body, std::string filepath, int* status_code
 }
 
 RouteResult	Router::HandleGet(HttpRequest& req) {
+
 	std::string	path;
 	int		status_code = 0;
 	std::string	body;
@@ -206,7 +270,6 @@ RouteResult	Router::HandleGet(HttpRequest& req) {
 	CheckAndSetPath(path, req, &status_code);
 	if (status_code != NO_ERROR)
 		return RouteResult::Response(BuildErrorResponse(status_code));
-
 	FillBody(body, path, &status_code);
 	if (status_code != NO_ERROR)
 		return RouteResult::Response(BuildErrorResponse(status_code));
@@ -216,8 +279,9 @@ RouteResult	Router::HandleGet(HttpRequest& req) {
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
 
-	AddContentType(response, path);
+	AddContentType(response, path, &status_code);
 	AddContentLength(response, body);
+	std::cout << "here\n";
 
 	return RouteResult::Response(response);
 
@@ -258,7 +322,9 @@ RouteResult	Router::HandleDelete(HttpRequest& req) {
 	response.set_status(kOk);
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
-	AddContentType(response, path);
+	AddContentType(response, path, &status_code);
+	if (status_code != NO_ERROR)
+		return RouteResult::Response(BuildErrorResponse(status_code));
 	response.set_body(MakeFileDeletedBody(path));
 	AddContentLength(response, response.get_body());
 	
@@ -342,6 +408,39 @@ RouteResult	Router::HandlePost(HttpRequest& req) {
 	return RouteResult::Response(response);
 }
 
+HttpResponse	Router::CgiResponse(const std::string output) {
+
+	HttpResponse	response;
+	std::string		cgi_result = output;
+
+	response.set_version("HTTP/1.1");
+	response.set_status(kOk);
+	response.set_reason_phrase();
+
+	size_t headers_end = cgi_result.find("\n\n");
+	size_t	line_end = cgi_result.find("\n");
+	while (line_end != std::string::npos)
+	{
+		size_t sep = cgi_result.find(':');
+		if (sep != std::string::npos)
+		{
+
+			response.set_header(cgi_result.substr(0, sep), cgi_result.substr(sep + 2, line_end - 1));
+			// response.set_header(cgi_result.substr(0, sep), "text/html");
+			cgi_result.erase(0, line_end);
+		}
+		if (line_end == headers_end)
+			break;
+		line_end = cgi_result.find("\n");
+	}
+
+	int i = 0;
+	while (cgi_result[i] == '\n')
+		i++;
+	cgi_result.substr(i, cgi_result.length());
+	response.set_body(cgi_result);
+	return response;
+}
 // HttpResponse	Router::HandlePost(HttpRequest& req) {
 
 // 	int status_code = NO_ERROR;

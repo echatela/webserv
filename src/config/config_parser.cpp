@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config_parser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
+/*   By: alygalleze <alygalleze@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/17 13:53:13 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/06/23 18:12:09 by alygalleze       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,29 @@ std::string 		ConfigParser::ParseRoot() {
 	return (root);
 }
 
+std::string			ConfigParser::ParseCgi() {
+	
+	present("cgi");
+	std::string cgi = current().content;
+
+	current_++;
+	present(";");
+	return (cgi);
+}
+
+std::vector<std::string>			ConfigParser::ParseStr(std::string directive) {
+
+	present(directive);
+	std::vector<std::string> result;
+	while (current().content != ";")
+	{
+		result.push_back(current().content);
+		current_++;
+	}
+	present(";");
+	return result;
+}
+
 int					ConfigParser::ParseMaxBodySize() {
 	
 	present("client_max_body_size");
@@ -105,7 +128,9 @@ std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 	while (current_ < tokens_.size() && current().content != "}")
 	{
 		if (current().content == "root")
-			directives.root = ParseRoot();
+			directives.root = ParseStr("root");
+		else if (current().content == "cgi")
+			directives.cgi = ParseStr("cgi");
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
 	}
