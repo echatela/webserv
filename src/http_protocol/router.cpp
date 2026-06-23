@@ -61,12 +61,12 @@ bool			Router::IsPathResolved(std::string& path, int *status_code) {
 
 	if (res == NULL)
 	{
-		*status_code = NOT_FOUND;
+		*status_code = kNotFound;
 		return false;
 	}
 	if (stat(path.c_str(), &info) == -1)
 	{
-		*status_code = NOT_FOUND;
+		*status_code = kNotFound;
 		return false;
 	}	
 	return true;
@@ -186,12 +186,12 @@ void		Router::FillBody(std::string& body, std::string filepath, int* status_code
 	std::string	line;
 
 	if (!file.is_open())
-		*status_code = FORBIDDEN;
+		*status_code = kForbidden;
 	while (getline(file, line))
 		body.append(line);
 	file.close();
 	if (body.size() == 0)
-		*status_code = NO_CONTENT;
+		*status_code = kNoContent;
 
 }
 
@@ -212,7 +212,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 		return BuildErrorResponse(status_code);
 	
 	response.set_body(body);
-	response.set_status(OK);
+	response.set_status(kOk);
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
 
@@ -255,7 +255,7 @@ HttpResponse	Router::HandleDelete(HttpRequest& req) {
 	if (status_code != NO_ERROR)
 		return BuildErrorResponse(METHOD_NOT_ALLOWED);
 
-	response.set_status(OK);
+	response.set_status(kOk);
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
 	AddContentType(response, path);
@@ -309,9 +309,11 @@ void			Router::ParsePostBody(HttpRequest& req) {
 	while (delim[i] == body[i])
 		i++;
 	
-	size_t block_start = body.find(delim);
-	if (block_start != std::string::npos)
+	// size_t block_start = body.find(delim);
+	// if (block_start != std::string::npos)
+	// 	i = 
 		
+	std::cout << "///////AFTER DELIM" << body[i] << std::endl;
 
 }
 
@@ -356,38 +358,38 @@ HttpResponse	Router::HandlePost(HttpRequest& req) {
 
 // }
 
-std::vector<Token>	ConfigLexer::Tokenize() {
+// std::vector<Token>	ConfigLexer::Tokenize() {
 
-	std::vector<Token> tokens;
-	std::string		current_str;
-	size_t i = 0;
-	while (i < file_content_.size())
-	{
-		while (i < file_content_.size() 
-			&& !std::isspace(file_content_[i])
-			&& !isSpecial(file_content_[i]))
-			current_str += file_content_[i++];
-		if (!current_str.empty())
-		{
-			tokens.push_back(MakeToken(current_str));
-			current_str.clear();
-		}
-		if (isSpecial(file_content_[i]))
-		{
-			current_str += file_content_[i];
-			if (!current_str.empty())
-			{
-				tokens.push_back(MakeToken(current_str));
-				current_str.clear();
-			}
-		}
-		i++;
-	}
+// 	std::vector<Token> tokens;
+// 	std::string		current_str;
+// 	size_t i = 0;
+// 	while (i < file_content_.size())
+// 	{
+// 		while (i < file_content_.size() 
+// 			&& !std::isspace(file_content_[i])
+// 			&& !isSpecial(file_content_[i]))
+// 			current_str += file_content_[i++];
+// 		if (!current_str.empty())
+// 		{
+// 			tokens.push_back(MakeToken(current_str));
+// 			current_str.clear();
+// 		}
+// 		if (isSpecial(file_content_[i]))
+// 		{
+// 			current_str += file_content_[i];
+// 			if (!current_str.empty())
+// 			{
+// 				tokens.push_back(MakeToken(current_str));
+// 				current_str.clear();
+// 			}
+// 		}
+// 		i++;
+// 	}
 	
 	// for (size_t i = 0; i < tokens.size(); i++)
 	// {
 	// 	std::cout << "token type: " << tokens[i]._type << "token content: " << tokens[i]._content << std::endl;
 	// }
-	return (tokens);
-}
+// 	return (tokens);
+// }
 

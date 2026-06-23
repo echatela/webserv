@@ -6,15 +6,15 @@
 #include "http_parser.hpp"
 
 enum	HttpStatusCode {
-	OK = 200,
-	CREATED = 201,
-	NO_CONTENT = 204,
-	// BAD_REQUEST = 400,
-	FORBIDDEN = 403,
-	NOT_FOUND = 404,
-	// METHOD_NOT_ALLOWED = 405,
-	PAYLOAD_TOO_LARGE = 406,
-	INTERNAL_SERVER_ERROR = 500
+	kOk = 200,
+	kCreated = 201,
+	kNoContent = 204,
+	kBadRequest = 400,
+	kForbidden = 403,
+	kNotFound = 404,
+	kMethodNotAllowed = 405,
+	kPayloadTooLarge = 406,
+	kInternalServerError = 500
 };
 
 struct	Header {
@@ -26,6 +26,8 @@ class HttpResponse {
 
 public:
 	HttpResponse();
+	HttpResponse(const HttpResponse &src);
+	HttpResponse &operator=(const HttpResponse &rhs);
 	~HttpResponse();
 
 	void			set_version(std::string version);

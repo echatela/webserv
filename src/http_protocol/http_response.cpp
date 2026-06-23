@@ -2,7 +2,22 @@
 #include <sstream>
 #include <string>
 
-HttpResponse::HttpResponse() {}
+HttpResponse::HttpResponse() : status_code_(0), reason_phrase_("OK"), body_(""), version_("HTTP/1.1") {}
+
+HttpResponse::HttpResponse(const HttpResponse &src)
+	: status_code_(src.status_code_), reason_phrase_(src.reason_phrase_),
+	  body_(src.body_), headers_(src.headers_), version_(src.version_) {}
+
+HttpResponse &HttpResponse::operator=(const HttpResponse &rhs) {
+	if (this != &rhs) {
+		status_code_ = rhs.status_code_;
+		reason_phrase_ = rhs.reason_phrase_;
+		body_ = rhs.body_;
+		headers_ = rhs.headers_;
+		version_ = rhs.version_;
+	}
+	return *this;
+}
 
 HttpResponse::~HttpResponse() {}
 
@@ -22,31 +37,31 @@ void		HttpResponse::set_version(std::string version) {version_ = version;}
 
 void		HttpResponse::set_reason_phrase() {
 	switch (status_code_) {
-		case OK:
+		case kOk:
 			reason_phrase_ = "OK";
 			break;
-		case CREATED:
+		case kCreated:
 			reason_phrase_ = "Created";
 			break;
-		case NO_CONTENT:
+		case kNoContent:
 			reason_phrase_ = "No content found";
 			break;
-		// case BAD_REQUEST:
-		// 	reason_phrase_ = "Bad request";
+		case kBadRequest:
+			reason_phrase_ = "Bad request";
 			break;
-		case FORBIDDEN:
+		case kForbidden:
 			reason_phrase_ = "Forbidden";
 			break;
-		case NOT_FOUND:
+		case kNotFound:
 			reason_phrase_ = "Not Found";
 			break;
-		case METHOD_NOT_ALLOWED:
+		case kMethodNotAllowed:
 			reason_phrase_ = "Method not allowed";
 			break;
-		case PAYLOAD_TOO_LARGE:
+		case kPayloadTooLarge:
 			reason_phrase_ = "Payload too large";
 			break;
-		case INTERNAL_SERVER_ERROR:
+		case kInternalServerError:
 			reason_phrase_ = "Internal server error";
 			break;
 	}
@@ -58,23 +73,23 @@ std::string		HttpResponse::get_body() const {
 
 std::string		HttpResponse::get_reason_phrase(int status_code) {
 	switch (status_code) {
-		case OK:
+		case kOk:
 			return "OK";
-		case CREATED:
+		case kCreated:
 			return "Created";
-		case NO_CONTENT:
+		case kNoContent:
 			return "No content found";
-		// case BAD_REQUEST:
-		// 	return "Bad request";
-		case FORBIDDEN:
+		case kBadRequest:
+			return "Bad request";
+		case kForbidden:
 			return "Forbidden";
-		case NOT_FOUND:
+		case kNotFound:
 			return "Not Found";
-		// case METHOD_NOT_ALLOWED:
-		// 	return "Method not allowed";
-		case PAYLOAD_TOO_LARGE:
+		case kMethodNotAllowed:
+			return "Method not allowed";
+		case kPayloadTooLarge:
 			return "Payload too large";
-		case INTERNAL_SERVER_ERROR:
+		case kInternalServerError:
 			return "Internal server error";
 	}
 	return "CODE NOT VALID";

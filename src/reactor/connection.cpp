@@ -42,9 +42,12 @@ int	Connection::HandleEvent(uint32_t events)
 		switch(ret)
 		{
 			case false:
+				std::cout << "-> in CONNECTON handle event\n";
+
 				return kKeep;
 
 			case true:
+				std::cout << "grrrrrrrrrrrrrrr\n";
 				parser_.ParseRequest(request_);
 				std::cout << parser_.get_buf() << std::endl;
 				response_ = router_.HandleRequest(request_);
