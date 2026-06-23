@@ -14,7 +14,7 @@ class CgiHandler : public EventHandler
 {
 	pid_t		pid_;
 	int		stdout_fd_;
-	ConnHandler*	connection_;
+	ConnHandler*	conn_;
 	Epoll &		epoll_;
 	std::string	output_buf_;
 
@@ -23,12 +23,17 @@ class CgiHandler : public EventHandler
 
 	static const int	kReadBufferSize = 4096;
 
+	CgiHandler();
+	CgiHandler(const CgiHandler & src);
+	CgiHandler &	operator=(const CgiHandler & rhs);
+
 public:
 	CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 	    Epoll & reactor);
 
 	int	HandleEvent(uint32_t events);
 	int	CheckTimeout(time_t now);
+	void	Detach();
 
 	~CgiHandler();
 };

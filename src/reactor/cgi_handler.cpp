@@ -3,8 +3,10 @@
 #include "event_handler.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 #include <exception>
 #include <sys/epoll.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include "conn_handler.hpp"
 
@@ -12,7 +14,8 @@
 
 CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 		       Epoll& epoll)
-: pid_(pid), stdout_fd_(stdout_fd), connection_(&conn), epoll_(epoll)
+: pid_(pid), stdout_fd_(stdout_fd), conn_(&conn), epoll_(epoll),
+	start_time_(time(NULL))
 {
 	try {
 		epoll_.Add(stdout_fd_, EPOLLIN, this);
@@ -24,21 +27,24 @@ CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 
 int	CgiHandler::HandleEvent(uint32_t events)
 {
-	if (events & EPOLLERR | EPOLLHUP)
+	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
 
 	if (CheckTimeout(time(NULL)) == kClose)
 		return kClose;
 
 	char	read_buf[kReadBufferSize];
-	size_t	n = read(stdout_fd_, read_buf, kReadBufferSize - 1);
+	ssize_t	n = read(stdout_fd_, read_buf, kReadBufferSize);
 	if (n < 0) {
 		return kClose;
-	} else if (read_buf[n] == '\0') {
-		connection_->OnCgiDone(output_buf_);
+	} else if (n == 0) {
+		if (conn_)
+			conn_->OnCgiDone(output_buf_);
 		return kClose;
+	} else {
+		output_buf_.append(read_buf, n);
+		return kKeep;
 	}
-	return kKeep;
 }
 
 int	CgiHandler::CheckTimeout(time_t now)
@@ -48,9 +54,22 @@ int	CgiHandler::CheckTimeout(time_t now)
 	return kKeep;
 }
 
+void	CgiHandler::Detach()
+{
+	conn_ = NULL;
+}
+
 CgiHandler::~CgiHandler()
 {
-	connection_->Detach();
+	int	status;
+	pid_t	r = waitpid(pid_, &status, WNOHANG);
+	if (r == 0) {
+		kill(pid_, SIGKILL);
+		waitpid(pid_, &status, 0);
+	}
+
+	if (conn_)
+		conn_->Detach();
 	epoll_.Del(stdout_fd_);
 	close(stdout_fd_);
 }

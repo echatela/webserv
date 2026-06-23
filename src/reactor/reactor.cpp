@@ -13,7 +13,7 @@ Reactor::Reactor(std::vector<Config> const & configs)
 {
 	for (size_t i = 0; i < configs_.size(); ++i) {
 		const std::vector<ListenInfo> &cur_listens
-			= configs_[i].get_listens_info();
+			= configs_[i].listens_info();
 		for (size_t j = 0; j < cur_listens.size(); ++j) {
 			ListenHandler *listen = NULL;
 
@@ -47,7 +47,7 @@ void	Reactor::Dispatch(int n)
 		return;
 	}
 
-	const struct epoll_event	*ev = epoll_.get_events();
+	const struct epoll_event	*ev = epoll_.events();
 
 	for (int i = 0; i < n; i++) {
 		EventHandler	*handler

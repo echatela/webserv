@@ -45,7 +45,7 @@ int	ConnHandler::HandleEvent(uint32_t events)
 	if (state_ == kReading && events & EPOLLIN) {
 		char read_buf[kReadBufferSize];
 
-		size_t n = recv(fd_, read_buf, kReadBufferSize - 1, 0);
+		ssize_t n = recv(fd_, read_buf, kReadBufferSize - 1, 0);
 		if (n <= 0)
 			return kClose;
 		read_buf[n] = '\0';
@@ -136,11 +136,13 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 void	ConnHandler::StartCgi(const CgiPlan & plan)
 {
 	std::string			path;
+	std::string			script_dir;
 	std::vector<std::string>	argv_str;
 	std::vector<std::string>	envp_str;
 
 
 	path = plan.interpreter.empty() ? plan.script_path : plan.interpreter;
+	script_dir = webserv::utils::Basedir(plan.script_path);
 	argv_str.push_back(webserv::utils::Basename(path));
 	if (path == plan.interpreter)
 		argv_str.push_back(plan.script_path);
@@ -170,7 +172,7 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 		dup2(out_pipe[1], STDOUT_FILENO);
 		close(out_pipe[0]);
 		close(out_pipe[1]);
-		chdir(plan.script_path.c_str());
+		chdir(script_dir.c_str());
 		execve(path.c_str(), &argv[0], &envp[0]);
 		_exit(1);
 	}
@@ -200,6 +202,8 @@ int	ConnHandler::CheckTimeout(time_t now)
 
 ConnHandler::~ConnHandler()
 {
+	if (cgi_)
+		cgi_->Detach();
 	try {
 		epoll_.Del(fd_);
 	} catch (std::exception &) {}
