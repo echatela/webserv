@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <cstddef>
 #include <exception>
+#include <stdexcept>
 #include <sys/epoll.h>
 #include <vector>
 
@@ -14,12 +15,11 @@ Reactor::Reactor(std::vector<Config> const & configs)
 		const std::vector<ListenInfo> &cur_listens
 			= configs_[i].get_listens_info();
 		for (size_t j = 0; j < cur_listens.size(); ++j) {
-			Listen *listen = NULL;
+			ListenHandler *listen = NULL;
 
 			try {
-				listen = new Listen(
-					cur_listens[j].address, epoll_,
-					*this, configs_[i]);
+				listen = new ListenHandler(cur_listens[j],
+			epoll_, *this, configs_[i]);
 				handlers_.push_back(listen);
 			} catch (std::exception&) {
 				delete listen;
@@ -32,10 +32,9 @@ Reactor::Reactor(std::vector<Config> const & configs)
 void	Reactor::Run()
 {
 	while (true) {
-		int	n = epoll_.Wait();
-
+		int	n = epoll_.Wait(kEpollTimeoutMs);
 		Dispatch(n);
-
+		CheckTimeouts();
 		CloseHandlers();
 	}
 }
@@ -43,8 +42,9 @@ void	Reactor::Run()
 void	Reactor::Dispatch(int n)
 {
 	if (n < 0) {
-		if (errno == EINTR) {}
-		// ERROR handling
+		if (errno == EINTR)
+			throw std::runtime_error("epoll_wait() failed");
+		return;
 	}
 
 	const struct epoll_event	*ev = epoll_.get_events();
@@ -64,12 +64,12 @@ void	Reactor::CloseHandlers()
 	std::vector<EventHandler*>::iterator	ev_it;
 
 	for (cev_it = closed_.begin(); cev_it != closed_.end(); ++cev_it) {
-		// EventHandler *handler = *cev_it;
+		EventHandler *handler = *cev_it;
 		ev_it = std::find(handlers_.begin(),
 		    handlers_.end(), *cev_it);
 		if (ev_it != handlers_.end()) {
 			handlers_.erase(ev_it);
-			delete *ev_it;
+			delete handler;
 		}
 	}
 	closed_.clear();
@@ -82,6 +82,17 @@ void	Reactor::AddEventHandler(EventHandler * ev)
 	} catch (std::exception &) {
 		delete ev;
 		throw;
+	}
+}
+
+void	Reactor::CheckTimeouts()
+{
+	time_t	now = time(NULL);
+
+	for (size_t i = 0; i < handlers_.size(); ++i) {
+		if (closed_.find(handlers_[i]) == closed_.end())
+			if (handlers_[i]->CheckTimeout(now) == kClose)
+				closed_.insert(handlers_[i]);
 	}
 }
 

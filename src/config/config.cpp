@@ -1,6 +1,5 @@
 #include "config.hpp"
 #include <cstring>
-#include "config_parser.hpp"
 
 Config::Config()
 {
@@ -46,11 +45,11 @@ void				Config::set_max_body_size(int size) {
 	max_body_size_ = size;
 }
 
-// const std::vector<ServerConfig> & Config::get_servers_info() const {
+// const std::vector<ServerConfig> & Config::servers_info() const {
 	// 	return servers_info_;
 	// }
 	
-std::string				Config::get_root() {
+std::string				Config::root() {
 	return (root_);
 }
 
@@ -58,12 +57,12 @@ std::map<std::string, LocationConfig>	Config::get_locations() const {
 	return (locations_);
 }
 
-const std::vector<ListenInfo> &Config::get_listens_info() const
+const std::vector<ListenInfo> &Config::listens_info() const
 {
 	return listens_info_;
 }
 
-std::vector<ListenInfo> Config::get_listens_info(std::vector<Config> configs)
+std::vector<ListenInfo> Config::listens_info(std::vector<Config> configs)
 {
 	std::vector<ListenInfo> listens;
 	for (size_t i = 0; i < configs.size(); i++)
@@ -76,3 +75,5 @@ std::vector<ListenInfo> Config::get_listens_info(std::vector<Config> configs)
 	}
 	return listens;
 }
+
+const std::string &	Config::server_name() const { return server_name_; }

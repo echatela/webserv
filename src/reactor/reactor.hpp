@@ -6,7 +6,7 @@
 #include "event_handler.hpp"
 #include <set>
 #include <vector>
-#include "listen.hpp"
+#include "listen_handler.hpp"
 
 class Reactor
 {
@@ -20,6 +20,9 @@ private:
 
 	void	Dispatch(int n);
 	void	CloseHandlers();
+	void	CheckTimeouts();
+
+	static const int	kEpollTimeoutMs =  5000;
 
 	Reactor();
 	Reactor(const Reactor & src);

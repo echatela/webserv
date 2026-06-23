@@ -1,6 +1,7 @@
 #include "http_request.hpp"
 #include "router.hpp"
 #include "../webserv.hpp"
+#include "route_result.hpp"
 #include <fstream>
 #include <cerrno>
 #include <string.h>
@@ -89,13 +90,13 @@ void		Router::CheckAndSetPath(std::string& path, HttpRequest & req, int *status_
 	FindLocationRoot(loc_root, req);
 	if (loc_root != "none")
 	{
-		loc_root.replace(0, 1, config_.get_root());
+		loc_root.replace(0, 1, config_.root());
 		path = loc_root + Filename(request_path);
 		IsPathResolved(path, status_code);
 	}
 	else
 	{
-		path = config_.get_root() + request_path;
+		path = config_.root() + request_path;
 		IsPathResolved(path, status_code);
 	}
 
@@ -158,7 +159,7 @@ HttpResponse	Router::BuildErrorResponse(int status) {
 
 
 
-HttpResponse	Router::HandleRequest(HttpRequest& req) {
+RouteResult	Router::HandleRequest(HttpRequest& req) {
 	
 	std::cout << "in handlerequest\n";
 	if (req.get_method() == "GET")
@@ -176,7 +177,7 @@ HttpResponse	Router::HandleRequest(HttpRequest& req) {
 		return HandlePost(req);
 		// return (BuildErrorResponse(METHOD_NOT_ALLOWED));
 	}
-	return (BuildErrorResponse(METHOD_NOT_ALLOWED));
+	return RouteResult::Response(BuildErrorResponse(METHOD_NOT_ALLOWED));
 }
 
 
@@ -195,21 +196,20 @@ void		Router::FillBody(std::string& body, std::string filepath, int* status_code
 
 }
 
-HttpResponse	Router::HandleGet(HttpRequest& req) {
-	
-	int 		status_code = NO_ERROR;
+RouteResult	Router::HandleGet(HttpRequest& req) {
 	std::string	path;
+	int		status_code = 0;
 	std::string	body;
 	HttpResponse response;
 
 	std::cout << "request path = " << req.get_path() << '\n';
 	CheckAndSetPath(path, req, &status_code);
 	if (status_code != NO_ERROR)
-		return BuildErrorResponse(status_code);
+		return RouteResult::Response(BuildErrorResponse(status_code));
 
 	FillBody(body, path, &status_code);
 	if (status_code != NO_ERROR)
-		return BuildErrorResponse(status_code);
+		return RouteResult::Response(BuildErrorResponse(status_code));
 	
 	response.set_body(body);
 	response.set_status(kOk);
@@ -219,7 +219,7 @@ HttpResponse	Router::HandleGet(HttpRequest& req) {
 	AddContentType(response, path);
 	AddContentLength(response, body);
 
-	return response;
+	return RouteResult::Response(response);
 
 	// find path
 		// location root ?
@@ -241,7 +241,7 @@ std::string		Router::MakeFileDeletedBody(std::string path) {
 }
 
 
-HttpResponse	Router::HandleDelete(HttpRequest& req) {
+RouteResult	Router::HandleDelete(HttpRequest& req) {
 
 	int				status_code = NO_ERROR;
 	std::string		path;
@@ -249,11 +249,11 @@ HttpResponse	Router::HandleDelete(HttpRequest& req) {
 
 	CheckAndSetPath(path, req, &status_code);
 	if (status_code != NO_ERROR)
-		return BuildErrorResponse(status_code);
+		return RouteResult::Response(BuildErrorResponse(status_code));
 
 	status_code = std::remove(path.c_str());
 	if (status_code != NO_ERROR)
-		return BuildErrorResponse(METHOD_NOT_ALLOWED);
+		return RouteResult::Response(BuildErrorResponse(METHOD_NOT_ALLOWED));
 
 	response.set_status(kOk);
 	response.set_reason_phrase();
@@ -262,7 +262,7 @@ HttpResponse	Router::HandleDelete(HttpRequest& req) {
 	response.set_body(MakeFileDeletedBody(path));
 	AddContentLength(response, response.get_body());
 	
-	return response;
+	return RouteResult::Response(response);
 }
 
 std::string		PostType(std::string content_type) {
@@ -317,7 +317,7 @@ void			Router::ParsePostBody(HttpRequest& req) {
 
 }
 
-HttpResponse	Router::HandlePost(HttpRequest& req) {
+RouteResult	Router::HandlePost(HttpRequest& req) {
 	
 	// int 		status_code = NO_ERROR;
 	std::string	root;
@@ -330,7 +330,7 @@ HttpResponse	Router::HandlePost(HttpRequest& req) {
 	std::cout << "////////////////////in handle post \n";
 	FindLocationRoot(root, req);
 	if (root == "none")
-	return BuildErrorResponse(BAD_REQUEST);
+	return RouteResult::Response(BuildErrorResponse(BAD_REQUEST));
 	std::cout << "/////////" << req.get_header().at("Content-Type") << std::endl;
 	post_type = PostType(req.get_header().at("Content-Type"));
 	std::cout << "////////////////post_type ." << post_type << '\n';
@@ -339,7 +339,7 @@ HttpResponse	Router::HandlePost(HttpRequest& req) {
 	std::cout << "////////////////delim " << delim << '\n';
 	std::cout << "////////////////body is: " << req.get_body() << "/////////////////";
 
-	return response;
+	return RouteResult::Response(response);
 }
 
 // HttpResponse	Router::HandlePost(HttpRequest& req) {

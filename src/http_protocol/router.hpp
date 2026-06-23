@@ -5,10 +5,12 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <map>
+#include <iostream>
 
 #include "http_response.hpp"
 #include "http_request.hpp"
 #include "../config/config.hpp"
+#include "route_result.hpp"
 
 struct HeaderValue {
 	std::string							directive;
@@ -33,7 +35,7 @@ public:
 	Router();
 	~Router();
 
-	HttpResponse	HandleRequest(HttpRequest & req);
+	RouteResult	HandleRequest(HttpRequest & req);
 	void		set_config(const Config & config);
 
 private:
@@ -43,13 +45,13 @@ private:
 	void	AddContentLength(HttpResponse & current, std::string filepath);
 
 
-	HttpResponse	HandleGet(HttpRequest & req);
+	RouteResult	HandleGet(HttpRequest & req);
 	void			FillBody(std::string& body, std::string path, int *status_code);
 
-	HttpResponse	HandleDelete(HttpRequest & req);
+	RouteResult	HandleDelete(HttpRequest & req);
 	std::string		MakeFileDeletedBody(std::string path);
 
-	HttpResponse	HandlePost(HttpRequest & req);
+	RouteResult	HandlePost(HttpRequest & req);
 	void			ParsePostBody(HttpRequest & req);
 
 

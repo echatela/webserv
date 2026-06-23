@@ -1,5 +1,5 @@
-#include "listen.hpp"
-#include "connection.hpp"
+#include "listen_handler.hpp"
+#include "conn_handler.hpp"
 #include "event_handler.hpp"
 #include "../webserv.hpp"
 #include <stdint.h>
@@ -12,8 +12,9 @@
 #include <sys/epoll.h>
 #include "reactor.hpp"
 
-Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const Config & config)
-: epoll_(epoll), reactor_(reactor), config_(config)
+ListenHandler::ListenHandler(const ListenInfo & info, Epoll & epoll, Reactor & reactor,
+	       const Config & config)
+: epoll_(epoll), reactor_(reactor), config_(config), listen_info_(info)
 {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd_ < 0)
@@ -23,7 +24,8 @@ Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const Config 
 	if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 		throw std::runtime_error("Couldn't set adress to be reuseable...\n");
 		
-	if (bind(fd_, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (bind(fd_, (struct sockaddr *)&info.address, sizeof(info.address))
+		< 0) {
 		close(fd_);
 		throw std::runtime_error("Couldn't bind socket...\n");
 	}
@@ -47,12 +49,15 @@ Listen::Listen(sockaddr_in addr, Epoll & epoll, Reactor & reactor, const Config 
 	}
 }
 
-int	Listen::HandleEvent(uint32_t events)
+int	ListenHandler::HandleEvent(uint32_t events)
 {
 	if (events & (EPOLLERR | EPOLLHUP))
 		return kKeep;
 
-	int	client_fd = accept(fd_, NULL, NULL);
+	struct sockaddr_in	addr;
+	socklen_t		len = sizeof(addr);
+	int	client_fd = accept(fd_, reinterpret_cast<
+			struct sockaddr *>(&addr), &len);
 	if (client_fd < 0)
 		return kKeep;
 
@@ -62,19 +67,21 @@ int	Listen::HandleEvent(uint32_t events)
 		return kKeep;
 	}
 
-	Connection *	conn = NULL;
+	ConnHandler *	conn = NULL;
 	try {
-		conn = new Connection(client_fd, *this, epoll_);
+		conn = new ConnHandler(addr, client_fd, *this, epoll_, reactor_);
 		reactor_.AddEventHandler(conn);
 	} catch (std::exception &) {}
 	return kKeep;
 }
 
-int	Listen::get_fd() const { return fd_; }
+int	ListenHandler::fd() const { return fd_; }
 
-const Config &	Listen::get_config() const { return config_; }
+const Config &	ListenHandler::config() const { return config_; }
 
-Listen::~Listen()
+Reactor &	ListenHandler::reactor() const { return reactor_; }
+
+ListenHandler::~ListenHandler()
 {
 	try {
 		epoll_.Del(fd_);
