@@ -1,5 +1,6 @@
 #include "conn_handler.hpp"
 #include "cgi_handler.hpp"
+#include "cgi_in_handler.hpp"
 #include "event_handler.hpp"
 #include "epoll.hpp"
 #include "listen_handler.hpp"
@@ -63,7 +64,7 @@ int	ConnHandler::HandleEvent(uint32_t events)
 		
 	} else if (state_ == kWriting && events & EPOLLOUT) {
 		size_t	remaining = write_buf_.size() - write_off_;
-		size_t	n = send(
+		ssize_t	n = send(
 			fd_, write_buf_.data() + write_off_, remaining, 0);
 
 		if (n > 0) {
@@ -72,10 +73,9 @@ int	ConnHandler::HandleEvent(uint32_t events)
 			if (write_off_ == write_buf_.size())
 				return kClose;
 			return kKeep;
-		} else if (n <= 0)
-			return kClose;
+		}
 	}
-	return kKeep;
+	return kClose;
 }
 
 void	ConnHandler::HandleRequest()
@@ -142,7 +142,9 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 
 
 	path = plan.interpreter.empty() ? plan.script_path : plan.interpreter;
+
 	script_dir = webserv::utils::Basedir(plan.script_path);
+
 	argv_str.push_back(webserv::utils::Basename(path));
 	if (path == plan.interpreter)
 		argv_str.push_back(plan.script_path);
@@ -153,13 +155,15 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 	if (pipe(out_pipe) < 0)
 		throw std::runtime_error("pipe() failed");
 
-	if (webserv::fd::SetNonBlock(out_pipe[0]) < 0
-		|| webserv::fd::SetNonBlock(out_pipe[1]) < 0)
+	if (webserv::fd::SetNonBlock(out_pipe[0]) < 0)
 		throw std::runtime_error("SetNonBlock() failed");
 
-	if (webserv::fd::SetCloExec(out_pipe[0]) < 0
-		|| webserv::fd::SetCloExec(out_pipe[1]) < 0)
-		throw std::runtime_error("SetCloExec() failed");
+	int	in_pipe[2];
+	if (pipe(in_pipe) < 0)
+		throw std::runtime_error("pipe() failed");
+
+	if (webserv::fd::SetNonBlock(in_pipe[1]) < 0)
+		throw std::runtime_error("SetNonBlock() failed");
 
 	std::vector<char *>	argv = webserv::utils::ToCStrArray(argv_str);
 	std::vector<char *>	envp = webserv::utils::ToCStrArray(envp_str);
@@ -169,14 +173,23 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 		throw std::runtime_error("fork() failed");
 
 	if (pid == 0) {
+		dup2(in_pipe[0], STDIN_FILENO);
 		dup2(out_pipe[1], STDOUT_FILENO);
-		close(out_pipe[0]);
-		close(out_pipe[1]);
+		close(in_pipe[0]); close(in_pipe[1]);
+		close(out_pipe[0]); close(out_pipe[1]);
 		chdir(script_dir.c_str());
 		execve(path.c_str(), &argv[0], &envp[0]);
 		_exit(1);
 	}
 
+	close(in_pipe[0]);
+	if (request_.get_body().empty())
+		close(in_pipe[1]);
+	else {
+		CgiInHandler *cgi_in = new CgiInHandler(
+			in_pipe[1], epoll_, request_.get_body());
+		reactor_.AddEventHandler(cgi_in);
+	}
 	close(out_pipe[1]);
 	cgi_ = new CgiHandler(pid, out_pipe[0], *this, epoll_);
 	reactor_.AddEventHandler(cgi_);

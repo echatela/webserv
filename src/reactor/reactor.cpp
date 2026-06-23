@@ -2,6 +2,7 @@
 #include "event_handler.hpp"
 #include <algorithm>
 #include <cerrno>
+#include <csignal>
 #include <cstddef>
 #include <exception>
 #include <stdexcept>
@@ -31,6 +32,7 @@ Reactor::Reactor(std::vector<Config> const & configs)
 
 void	Reactor::Run()
 {
+	signal(SIGPIPE, SIG_IGN);
 	while (true) {
 		int	n = epoll_.Wait(kEpollTimeoutMs);
 		Dispatch(n);

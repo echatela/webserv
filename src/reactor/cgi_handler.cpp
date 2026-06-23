@@ -70,6 +70,8 @@ CgiHandler::~CgiHandler()
 
 	if (conn_)
 		conn_->Detach();
-	epoll_.Del(stdout_fd_);
+	try {
+		epoll_.Del(stdout_fd_);
+	} catch (std::exception&) {}
 	close(stdout_fd_);
 }
