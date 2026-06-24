@@ -27,7 +27,6 @@ CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 
 int	CgiHandler::HandleEvent(uint32_t events)
 {
-	std::cout << "in handle cgi event\n";
 
 	if (events & EPOLLHUP) {
 		if (conn_)

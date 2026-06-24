@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config_parser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alygalleze <alygalleze@student.42.fr>      +#+  +:+       +#+        */
+/*   By: willysex <willysex@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/23 18:12:09 by alygalleze       ###   ########.fr       */
+/*   Updated: 2026/06/24 18:01:57 by willysex         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,6 +122,7 @@ std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 	LocationConfig directives;
 	present("location");
 	base = current().content;
+	directives.base_location = base;
 	current_++;
 	present("{");
 	

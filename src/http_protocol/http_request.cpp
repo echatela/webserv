@@ -98,7 +98,6 @@ int HttpRequest::ParseRequestLine(std::string requestline)
 	this->path_ = path;
 	this->version_ = version;
 
-	std::cout << "method found is " << method << '\n';
 	int error[3] = {ParseMethod(this->method_), ParsePath(this->path_), ParseVersion(this->version_)};
 	for (int i = 0; i < 3; i++)
 	{
@@ -119,10 +118,8 @@ int HttpRequest::ParseHeader(std::string header)
 		if (pos == std::string::npos)
 			return BAD_HEADER;
 		std::string index = line.substr(0, pos);
-		std::cout << "///////key: ." << index << '.' <<  std::endl;
 		std::string value = line.substr(pos + 1);
 		// retirer les espaces en prefixes
-		std::cout << "\n///////value: ." << value << '.' << std::endl;
 		this->header_[index] = value;
 	}
 	if (this->header_["Host"].empty())

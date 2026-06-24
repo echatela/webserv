@@ -1,0 +1,15 @@
+.Router -> determine si Cgi, static 
+
+
+
+
+handle request: si cgi -> cgi plan -> cgi handler -> cgi response
+				si non -> statc response -> renvoie une httpResponse
+
+
+class router 
+
+class route_resolve -> rempli juste la struct d'infos
+
+class static handler ou une classe par type de requete -> construit la reponse en fonction de route ResolveRoute
+	-> le tout est repasse a router pour terminer la liaison
