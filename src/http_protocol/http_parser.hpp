@@ -20,7 +20,7 @@ public:
 	HttpParser();
 	~HttpParser();
 
-	int	Add(const std::string buf, size_t n);
+	int	Add(const char* buf, size_t n);
 
 	int		get_flag() const;
 	std::string	get_buf() const;

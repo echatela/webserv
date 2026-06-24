@@ -6,27 +6,22 @@
 // int main()
 // {
 // 	HttpParser parser;
-// 	try {
-// 		ConfigLexer Lexer("Configuration.conf");
-// 		ConfigParser config_parser(Lexer.Tokenize());
-// 		Config	config(config_parser);
-// 		ServerConfig serv = config.get_servers_info()[0];
-		
-// 		std::string request = "GET ../prout/test.css HTTP/1.1\r\nHost: localhost\nUser-Agent: Mo";
-// 	std::string request2 = "zilla/5.0";
+// 	const char* request = "GET ../prout/test.css HTTP/1.1\r\nHost: localhost\nUser-Agent: Mo";
+// 	const char* request2 = "zilla/5.0 0x00 0xFF 0xA3 ";
 	
-// 	parser.add(request, request.size());
-// 	parser.add(request2, request2.size());
+// 	parser.Add(request, strlen(request));
+// 	parser.Add(request2, strlen(request2));
 	
 // 	std::cout << "BUF => " << std::endl
 // 	<< "- - - - - - - - - - - -" << std::endl
-// 	<< parser.getBuf() << std::endl << std::endl;
+// 	<< parser.get_buf() << std::endl << std::endl;
 	
 // 	std::cout << "_________________________________________" << std::endl;
 // 	HttpRequest req;
 // 	std::cout << "CODE PARSING => " << std::endl
 // 	<< "- - - - - - - - - - - -" << std::endl
-// 	<< parser.parseRequest(req) << std::endl << std::endl;
+// 	<< parser.ParseRequest(req) << std::endl << std::endl;
+// }
 	
 // 	std::cout << "_________________________________________" << std::endl;
 // 	std::cout << "RESULT" << std::endl
