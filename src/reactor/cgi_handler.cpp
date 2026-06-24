@@ -28,13 +28,7 @@ CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 int	CgiHandler::HandleEvent(uint32_t events)
 {
 
-	if (events & EPOLLHUP) {
-		if (conn_)
-			conn_->OnCgiDone(output_buf_);
-		return kClose;
-	}
-
-	if (events & (EPOLLERR | EPOLLHUP))
+	if (events & EPOLLERR)
 		return kClose;
 
 	if (CheckTimeout(time(NULL)) == kClose)
@@ -77,6 +71,8 @@ CgiHandler::~CgiHandler()
 
 	if (conn_)
 		conn_->Detach();
-	epoll_.Del(stdout_fd_);
+	try {
+		epoll_.Del(stdout_fd_);
+	} catch (std::exception&) {}
 	close(stdout_fd_);
 }
