@@ -2,7 +2,7 @@
 #include "epoll.hpp"
 #include "event_handler.hpp"
 #include <cstddef>
-#include <cstdint>
+// #include <cstdint>
 #include <ctime>
 #include <exception>
 #include <sys/epoll.h>
@@ -27,6 +27,14 @@ CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 
 int	CgiHandler::HandleEvent(uint32_t events)
 {
+	std::cout << "in handle cgi event\n";
+
+	if (events & EPOLLHUP) {
+		if (conn_)
+			conn_->OnCgiDone(output_buf_);
+		return kClose;
+	}
+
 	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
 

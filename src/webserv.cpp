@@ -2,6 +2,9 @@
 #include <cstddef>
 #include <fcntl.h>
 #include <sstream>
+#include <limits.h>
+#include <stdlib.h>
+#include <cerrno>
 #include <vector>
 
 int	webserv::fd::SetNonBlock(int fd)
@@ -20,7 +23,7 @@ int	webserv::fd::SetCloExec(int fd)
 	return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
 }
 
-std::string	webserv::utils::IntToStr(int value)
+std::string		webserv::utils::IntToStr(int value)
 {
 	std::ostringstream s;
 	s << value;
@@ -64,4 +67,15 @@ std::string	webserv::utils::Basedir(const std::string & path)
 	if (pos == std::string::npos)
 		return "./";
 	return path.substr(0, pos);
+}
+
+unsigned int	webserv::utils::ParseUInt(std::string value)
+{
+	char*	end;
+	long	val = std::strtol(value.c_str(), &end, 10);
+
+	if (errno == ERANGE || val < 0 || val > INT_MAX)
+		throw std::logic_error("Int value overflows: " + value);
+		
+	return (static_cast<unsigned int>(val));
 }

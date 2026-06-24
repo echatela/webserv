@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <vector>
+#include <iostream>
 
 Reactor::Reactor(std::vector<Config> const & configs)
 : configs_(configs) //configs_ -> vecteur de serveur config

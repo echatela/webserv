@@ -22,8 +22,8 @@
 
 ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
 			 Epoll & epoll, Reactor & reactor)
-: addr_(addr), fd_(fd), state_(kReading), write_off_(0), reactor_(reactor),
-	last_activity_(time(NULL)), epoll_(epoll), listen_(listen), cgi_(NULL)
+: fd_(fd), state_(kReading), addr_(addr), write_off_(0),
+	last_activity_(time(NULL)), epoll_(epoll), reactor_(reactor), listen_(listen), cgi_(NULL)
 {
 	try {
 		router_.set_config(listen_.config());
@@ -95,7 +95,9 @@ void	ConnHandler::HandleRequest()
 			break;
 		}
 		case kRouteCgi:
+			std::cout << "starting route cgi\n";
 			StartCgi(result.get_plan());
+			std::cout << "ended route cgi\n";
 			break;
 		default:
 			break;
@@ -198,7 +200,7 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 void	ConnHandler::OnCgiDone(const std::string & output)
 {
 	cgi_ = NULL;
-	HttpResponse	response = CgiResponse(output);
+	HttpResponse	response = router_.CgiResponse(output);
 	write_buf_ = response.ToCharVector();
 	state_ = kWriting;
 	epoll_.Mod(fd_, EPOLLOUT, this);

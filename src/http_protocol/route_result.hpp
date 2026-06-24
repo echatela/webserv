@@ -22,9 +22,9 @@ private:
 	RouteResult(const CgiPlan & plan);
 	RouteResult(const HttpResponse & response);
 
-	int			type_;
+	int		type_;
 	const CgiPlan		plan_;
-	const HttpResponse	response_;
+	HttpResponse	response_;
 
 public:
 	RouteResult(RouteResult const & src);

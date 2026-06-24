@@ -1,15 +1,19 @@
 #include "http_parser.hpp"
 #include "http_request.hpp"
 #include <stdlib.h>
+#include <iostream>
 
 HttpParser::HttpParser()
 : buf_(), buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0),
-	flag_(0), content_length_(0) { }
+	flag_(0), content_length_(0), has_body_(false) { }
 
 HttpParser::~HttpParser() { }
 
+// ici return false sur post, peux pas tester
+// les requetes contenant un body se terminent par un simple crlf et non un double
 int HttpParser::Add(const std::string buf, size_t n)
 {
+	std::cout << "//////in add func n is " << n << '\n';
 	if (n == 0)
 		return flag_;
 	buf_size_ += n;
@@ -17,7 +21,8 @@ int HttpParser::Add(const std::string buf, size_t n)
 		buf_ += buf;
 	else
 		buf_ = buf;
-	if (n >= 4 && buf.compare(n - 4, 4, "\r\n\r\n") == 0)
+	std::cout << "///////////Terminated request ?\n" << static_cast<int>(buf_[n-3]) << std::endl;
+	if (n >= 4 && buf.compare(n - 4, 4, "\r\n\r\n") == 0) // check si la ligne se termine par \r\n\r\n (fin  de requete) ?
 	{
 		size_t startCL = buf.find("Content-Length");
 		if (startCL == std::string::npos)
@@ -33,9 +38,10 @@ int HttpParser::Add(const std::string buf, size_t n)
 				flag_ = false;
 		}
 	}
-	else if (content_length_ != 0)
+	else if (content_length_ != 0 || has_body_)
 	{
 		buf_size_with_body_ = this->buf_.find("\r\n\r\n");
+		std::cout << "//////////buffer size w/ body -> " << buf_size_with_body_ << '\n';
 		buf_size_without_body_ = buf_size_with_body_ + 4 + content_length_;
 		if (buf_size_ >= buf_size_without_body_)
 			flag_ = true;
@@ -43,7 +49,10 @@ int HttpParser::Add(const std::string buf, size_t n)
 			flag_ = false;
 	}
 	else
+	{
+		has_body_ = true;
 		flag_ = false;
+	}
 	return flag_;
 }
 
