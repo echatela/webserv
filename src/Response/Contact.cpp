@@ -116,7 +116,7 @@ std::string Contact::HandlePostResponse(HttpResponse &response)
 	response_body += "\t<link rel=\"stylesheet\" href=\"style.css\">\n";
 	response_body += "</head>\n";
 	response_body += "<body>\n";
-	response_body += "\t<div class=\"menu contact-page\">\n";
+	response_body += "\t<div class=\"menu\">\n";
 	response_body += "\t	<h1>";
 	response_body += name_;
 	response_body += "</h1>\n\n";
