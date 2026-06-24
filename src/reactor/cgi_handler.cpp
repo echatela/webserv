@@ -29,13 +29,7 @@ int	CgiHandler::HandleEvent(uint32_t events)
 {
 	std::cout << "in handle cgi event\n";
 
-	if (events & EPOLLHUP) {
-		if (conn_)
-			conn_->OnCgiDone(output_buf_);
-		return kClose;
-	}
-
-	if (events & (EPOLLERR | EPOLLHUP))
+	if (events & EPOLLERR)
 		return kClose;
 
 	if (CheckTimeout(time(NULL)) == kClose)

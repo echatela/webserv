@@ -65,7 +65,7 @@ int	ConnHandler::HandleEvent(uint32_t events)
 	} else if (state_ == kWriting && events & EPOLLOUT) {
 		size_t	remaining = write_buf_.size() - write_off_;
 		ssize_t	n = send(
-			fd_, write_buf_.data() + write_off_, remaining, 0);
+			fd_, &write_buf_[0] + write_off_, remaining, 0);
 
 		if (n > 0) {
 			write_off_ += n;
