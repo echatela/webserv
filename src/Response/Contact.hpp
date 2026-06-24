@@ -1,25 +1,25 @@
 #pragma once
 
 #include <string>
-#include "http_response.hpp"
+#include "../http_protocol/http_response.hpp"
 
 class HttpResponse;
 
 class Contact
 {
 	public:
-		Contact(std::string name, std::string phone, void *img);
+		Contact(std::string name, std::string phone, std::string img);
 		std::string	get_name() const;
 		std::string	get_phone() const;
-		void *		get_img() const;
+		std::string	get_img() const;
 		~Contact();
 
-		static std::string HandlePostResponse(HttpResponse &response);
+		std::string HandlePostResponse(HttpResponse &response);
 
 	private:
 		std::string	name_;
 		std::string	phone_;
-		void *img_;
+		std::string	img_;
 
 		Contact();
 		Contact(const Contact &);

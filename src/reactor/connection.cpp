@@ -29,10 +29,9 @@ int	Connection::HandleEvent(uint32_t events)
 	if (state_ == kReading && events & EPOLLIN) {
 		char read_buf[kReadBufferSize];
 
-		size_t n = recv(fd_, read_buf, kReadBufferSize - 1, 0);
+		size_t n = recv(fd_, read_buf, kReadBufferSize, 0);
 		if (n <= 0)
 			return kClose;
-		read_buf[n] = '\0';
 
 		int ret = parser_.Add(read_buf, n);
 		switch(ret)
