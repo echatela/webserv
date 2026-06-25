@@ -12,6 +12,7 @@ SRCS =	$(wildcard src/*.cpp) \
 		$(wildcard src/config/*.cpp) \
 		$(wildcard src/http_protocol/*.cpp) \
 		$(wildcard src/reactor/*.cpp)
+# 		$(wildcard src/Response/*.cpp) \
 
 
 # Dossier pour Object files

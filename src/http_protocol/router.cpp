@@ -13,7 +13,7 @@ void			Router::set_config(Config & config) { config_ = config; }
 RouteResult		Router::ProcessRequest(HttpRequest & req) {
 	RouteInfo info = RouteResolve::ResolveRoute(req, config_);
 
-	if (info.status_code != kOk)
+	if (info.status_code != 200)
 		return RouteResult::Response(ErrorResponse(info.status_code));
 	if (info.is_cgi == true)
 		return RouteResult::Cgi(MakeCgiPlan(req));

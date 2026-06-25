@@ -14,10 +14,12 @@
 
 struct RouteInfo {
 	LocationConfig	location;
+	bool 			loc_found;
 	
 	std::string 	uri;
 	std::string		file_path;
 	std::string		filename;
+	std::string 	root;
 
 	bool		exists;
 	bool		is_directory;

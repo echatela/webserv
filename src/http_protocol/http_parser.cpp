@@ -9,46 +9,45 @@ HttpParser::HttpParser()
 
 HttpParser::~HttpParser() { }
 
-// ici return false sur post, peux pas tester
-// les requetes contenant un body se terminent par un simple crlf et non un double
-int HttpParser::Add(const std::string buf, size_t n)
+int HttpParser::Add(const char* buf, size_t n)
 {
 	if (n == 0)
 		return flag_;
 	buf_size_ += n;
-	if (!buf_.empty())
-		buf_ += buf;
-	else
-		buf_ = buf;
-	if (n >= 4 && buf.compare(n - 4, 4, "\r\n\r\n") == 0) // check si la ligne se termine par \r\n\r\n (fin  de requete) ?
+	buf_.append(buf, n);
+
+	size_t header_end = buf_.find("\r\n\r\n");
+	if (header_end == std::string::npos)
 	{
-		size_t startCL = buf.find("Content-Length");
+		flag_ = false;
+		return flag_;
+	}
+
+	if (content_length_ == 0)
+	{
+		size_t startCL = this->buf_.find("Content-Length:");
 		if (startCL == std::string::npos)
 			flag_ = true;
 		else
 		{
-			size_t endCL = this->buf_.find("\r\n");
-			std::string content_length_str = this->buf_.substr(startCL + 15, endCL - startCL - 15);
+			size_t value_start = startCL + 15;
+			while (value_start < this->buf_.size() && (this->buf_[value_start] == ' ' || this->buf_[value_start] == '\t'))
+				++value_start;
+			size_t endCL = this->buf_.find("\r\n", value_start);
+			std::string content_length_str = this->buf_.substr(value_start, endCL - value_start);
 			content_length_ = atoi(content_length_str.c_str());
-			if (content_length_ == 0)
-				flag_ = true;
-			else
-				flag_ = false;
 		}
 	}
-	else if (content_length_ != 0 || has_body_)
+	if (content_length_ == 0)
+		flag_ = true;
+	else
 	{
-		buf_size_with_body_ = this->buf_.find("\r\n\r\n");
+		buf_size_with_body_ = header_end;
 		buf_size_without_body_ = buf_size_with_body_ + 4 + content_length_;
 		if (buf_size_ >= buf_size_without_body_)
 			flag_ = true;
 		else
 			flag_ = false;
-	}
-	else
-	{
-		has_body_ = true;
-		flag_ = false;
 	}
 	return flag_;
 }

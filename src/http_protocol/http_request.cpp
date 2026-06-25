@@ -118,7 +118,7 @@ int HttpRequest::ParseHeader(std::string header)
 		if (pos == std::string::npos)
 			return BAD_HEADER;
 		std::string index = line.substr(0, pos);
-		std::string value = line.substr(pos + 1);
+		std::string value = line.substr(pos + 2);
 		// retirer les espaces en prefixes
 		this->header_[index] = value;
 	}

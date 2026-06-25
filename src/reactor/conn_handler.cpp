@@ -81,13 +81,13 @@ int	ConnHandler::HandleEvent(uint32_t events)
 void	ConnHandler::HandleRequest()
 {
 	parser_.ParseRequest(request_);
-	std::cout << parser_.get_buf() << std::endl;
+	std::cout << parser_.get_buf() << std::endl << std::endl;
 
 	RouteResult result = router_.ProcessRequest(request_);
 	switch (result.get_type()) {
 		case kRouteResponse: {
 			HttpResponse response = result.get_response();
-			std::cout << response.ToString() << std::endl;
+			std::cout << response.ToString() << std::endl << std::endl;
 
 			write_buf_ = response.ToCharVector();
 			state_ = kWriting;

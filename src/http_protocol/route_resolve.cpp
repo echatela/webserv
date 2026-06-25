@@ -104,11 +104,12 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 	if (PathResolved(info.file_path) == false || stat(info.file_path.c_str(), &stat_info) == -1)
 		info.status_code = kNotFound;
 
-	if (EndsWith('/', req.get_path()))
+	if (S_ISDIR(stat_info.st_mode))
 		info.is_directory = true;
-	
+
 	if (info.location.base_location == "/cgi")
 		info.is_cgi = true;
-	
+	info.loc_found = location_found;
+	info.root = config.root();
 	return info;
 }
