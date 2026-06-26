@@ -71,6 +71,7 @@ void		AddContentLength(HttpResponse & current, std::string body) {
 
 HttpResponse 	StaticHandler::BuildGet(HttpRequest & req, RouteInfo & info) {
 
+	// std::cout << req.get_header("CONNECTION") << req.get_header("USer-agent") << std::endl;
 	HttpResponse	response;
 	std::string 	body;
 	(void)req;
@@ -134,40 +135,25 @@ HttpResponse 	StaticHandler::BuildDelete(HttpRequest & req, RouteInfo & info) {
 	return response;
 }
 
-struct FormPart {
+void TokenizeForm(const std::string& body, FormData& data)
+{
+    size_t start = 0;
+    size_t pos;
 
-	std::map<std::string, std::string>	headers;
-	std::string 						body;
+    while ((pos = body.find("\r\n", start)) != std::string::npos)
+    {
+        std::string token = body.substr(start, pos - start);
+        data.tokens.push_back(token);
 
-};
+        start = pos + 2;
+    }
 
-struct FormData {
+    if (start < body.size())
+    {
+        std::string token = body.substr(start);
+        data.tokens.push_back(token);
+    }
 
-	std::vector<FormPart>		form_parts;
-	std::string 				boundary;
-	std::vector<std::string>	tokens;
-
-};
-
-// TODO modifier en utlisant CRLF COMME IL SE DOIT !!!!!
-void	 	TokenizeForm(std::string body, FormData & data) {
-
-	std::string cur;
-	size_t i = 0;
-	
-	while (i < body.length())
-	{
-		while (body[i] != '\r')
-			cur += body[i++];
-		i++;
-		if (body[i] == '\n')
-		{
-			std::cout << "current token: " << cur << '\n';
-			data.tokens.push_back(cur);
-			cur.clear();
-		}
-		i++;
-	}
 }
 
 void 		InsertHeader(std::string token, FormPart & form_part) {
@@ -177,69 +163,59 @@ void 		InsertHeader(std::string token, FormPart & form_part) {
 	if (sep != std::string::npos)
 	{
 		std::string key = token.substr(0, sep);
-		// std::cout << "////////////KEY ." << key << ".\n";
 		std::string value = token.substr(sep + 2);
-		// std::cout << "////////////value ." << value << ".\n";
 		std::pair<std::string, std::string> header(key, value);
 		form_part.headers.insert(header);
 	}
 }
 
-FormPart 	AddFormPart(FormData & data, size_t *i) {
-
-	std::cout << "in add form part\n";
-	FormPart part;
-
-	while (*i < data.tokens.size() && data.tokens[*i] != "\n")
-		InsertHeader(data.tokens[*i++], part);
-	std::cout << *i << std::endl;
-	if (*i < data.tokens.size() && data.tokens[*i] == "\n")
-		i++;
-	std::cout << *i << std::endl;
-	while (*i < data.tokens.size() && data.tokens[*i] != "\n")
-		part.body += data.tokens[*i++];
-	std::cout << *i << std::endl;
-
-	return part;
-} 
-
 FormData	ParseMultipart(std::string body, std::string content_type, RouteInfo & info) {
-	(void)body;
 	FormData	data;
-	size_t 		sep = content_type.find("boundary");
+	size_t 		sep = content_type.find("boundary=");
 
 	if ( sep != std::string::npos)
-		data.boundary = content_type.substr(sep + 9);
+	{
+		std::string raw = content_type.substr(sep + strlen("boundary="));
+		
+		if (raw[raw.size() - 1] == 13)
+			raw = raw.substr(0, raw.size() - 1);
+
+		if (!raw.empty() && raw[0] == '"')
+			raw = raw.substr(1, raw.size() - 2);
+
+		data.start_bound = "--" + raw;
+		data.end_bound = "--" + raw + "--";
+	}
 	else
 		info.status_code = kBadRequest;
+
 	TokenizeForm(body, data);
 
 	size_t i = 0;
-	std::cout << "start parse multipart loop \n";
+
 	while (i < data.tokens.size() && data.tokens[i] != data.boundary + "--")
 	{
-		if (data.tokens[i] == data.boundary)
+		if (data.tokens[i] == data.start_bound)
 		{
 			i++;
 		}
-		// data.form_parts.push_back(AddFormPart(data, &i));
 		FormPart part;
 
-		std::cout << i << std::endl;
-		while (i < data.tokens.size() && data.tokens[i] != "\r\n")
+		while (i < data.tokens.size() && data.tokens[i] != "")
 			InsertHeader(data.tokens[i++], part);
-		std::cout << i << std::endl;
-		if (i < data.tokens.size() && data.tokens[i] == "\n")
+		if (i < data.tokens.size() && data.tokens[i] == "")
 			i++;
-		std::cout << i << std::endl;
-		while (i < data.tokens.size() && data.tokens[i] != "\n")
-			part.body += data.tokens[i++];		
+		while (i < data.tokens.size())
+		{
+			if (data.tokens[i] == data.end_bound)
+				break;
+			part.body += data.tokens[i];
+			i++;	
+		}
 		data.form_parts.push_back(part);
-			std::cout << i << std::endl;
 		i++;
 	}
 
-	std::cout << "/////FOUND BOUNDARY -> " << data.boundary << std::endl;
 	return data; 
 }
 
@@ -247,14 +223,9 @@ std::string 	GetFilename(FormPart part) {
 
 	std::map<std::string, std::string> headers = part.headers;
 	
-	// std::cout << "HEADERS\n";
-	// for (size_t = 0; i < headers.)
-	
 	std::string content_disp;
 	try {
-		// content_disp = headers.at("Content-Disposition");
 		content_disp = headers["Content-Disposition"];
-		std::cout << "//////content disp " << content_disp << "\n";
 	}
 	catch (std::exception & e)
 	{
@@ -270,7 +241,6 @@ std::string 	GetFilename(FormPart part) {
 }
 
 void			HandleMultipart(FormData data, RouteInfo & info) {
-	std::cout << "IN HANDLE SIZE " << data.form_parts.size() << "\n";
 
 	for (size_t i = 0; i < data.form_parts.size(); i++)
 	{
@@ -280,15 +250,12 @@ void			HandleMultipart(FormData data, RouteInfo & info) {
 		if (filename != "none")
 		{
 			filename = info.file_path + "/" + filename;
-			std::cout << "/////////FILENAME -> " << filename << "\n";
-			std::cout << "/////////body -> " << data.form_parts[i].body << "\n";
 			new_file.open(filename.c_str());
 			new_file << data.form_parts[i].body;
 		}
 		else
 			info.status_code = kBadRequest;
 	}
-	std::cout << "IN HANDLE MULTIPART, " << info.status_code << "\n";
 }
 
 std::string		MultiPartSuccessfullBody() {
@@ -300,11 +267,9 @@ std::string		MultiPartSuccessfullBody() {
 }
 
 HttpResponse 	StaticHandler::BuildPost(HttpRequest & req, RouteInfo & info) {
-	(void)req;
-	// (void)info;
 
-	std::map<std::string, std::string>	req_headers = req.get_header();
-	std::string content_type;
+	std::map<std::string, std::string>	req_headers = req.get_headers();
+	std::string 						content_type;
 
 	try {
 		content_type = req_headers.at("Content-Type");
@@ -312,10 +277,11 @@ HttpResponse 	StaticHandler::BuildPost(HttpRequest & req, RouteInfo & info) {
 	catch (std::exception& e) {
 		return Router::ErrorResponse(kBadRequest);
 	}
-	std::cout << "/////CONTENT TYPE -> ." << content_type << std::endl;
 	if (content_type.compare(0, 19,"multipart/form-data") == 0)
 	{
-		HandleMultipart(ParseMultipart(req.get_body(), content_type, info), info);
+		FormData data = ParseMultipart(req.get_body(), content_type, info);
+
+		HandleMultipart(data, info);
 		if (info.status_code != kOk)
 			return Router::ErrorResponse(info.status_code); 
 		HttpResponse response;
@@ -328,10 +294,8 @@ HttpResponse 	StaticHandler::BuildPost(HttpRequest & req, RouteInfo & info) {
 		AddContentLength(response, response.get_body());
 
 		return response;
-		
 	}
-	return Router::ErrorResponse(kBadRequest);
-
+	return Router::ErrorResponse(kMethodNotAllowed);
 }
 
 
