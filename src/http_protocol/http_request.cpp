@@ -55,7 +55,7 @@ int HttpRequest::get_error() const
 	return error_;
 }
 
-const std::string HttpRequest::get_header(std::string key) 
+const std::string HttpRequest::get_header(std::string key) const
 {
 	size_t	i = 0;
 	
@@ -71,8 +71,16 @@ const std::string HttpRequest::get_header(std::string key)
 		i++;
 	}
 	key[0] = std::toupper(key[0]);
-	// std::cout << "key " << key << "\n";
-	return header_.at(key);
+	// std::cout << "key ." << key << ".\n";
+	std::string value;
+	try {
+		std::string value = header_.at(key);
+	}
+	catch (std::exception& e) {
+		std::cerr << "Value for " << key << " not found\n"; // print a garder ou retirer, des fois le content-type par exemple n'est pas dans la requete
+		return value;
+	}
+	return value;
 }
 
 void HttpRequest::set_error(int error)

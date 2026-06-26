@@ -82,7 +82,8 @@ int	ConnHandler::HandleEvent(uint32_t events)
 void	ConnHandler::HandleRequest()
 {
 	parser_.ParseRequest(request_);
-
+	std::cout << parser_.get_buf() << std::endl;
+	
 	RouteResult result = router_.ProcessRequest(request_);
 	switch (result.get_type()) {
 		case kRouteResponse: {
@@ -213,7 +214,7 @@ void	ConnHandler::OnCgiDone(const std::string & output)
 void	ConnHandler::OnCgiError(int status)
 {
 	cgi_ = NULL;
-	HttpResponse	response = router_.BuildErrorResponse(status);
+	HttpResponse	response = router_.ErrorResponse(status);
 	write_buf_ = response.ToCharVector();
 	state_ = kWriting;
 	epoll_.Mod(fd_, EPOLLOUT, this);
