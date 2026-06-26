@@ -1,7 +1,6 @@
 #include "http_parser.hpp"
 #include "http_request.hpp"
 #include <stdlib.h>
-#include <iostream>
 
 HttpParser::HttpParser()
 : buf_(), buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0),

@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include "http_parser.hpp"
 
 enum	HttpStatusCode {
 	kOk = 200,
@@ -37,9 +36,9 @@ public:
 	void			set_reason_phrase();
 
 	std::string		get_body() const;
-	int				get_status_code() const;
+	int			get_status_code() const;
 
-	std::string			ToString();
+	std::string		ToString();
 	std::vector<char>	ToCharVector();
 
 	static std::string get_reason_phrase(int status_code);
