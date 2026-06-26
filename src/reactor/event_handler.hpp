@@ -1,6 +1,7 @@
 #ifndef EVENT_HANDLER_HPP
 #define EVENT_HANDLER_HPP
 
+#include <ctime>
 #include <stdint.h>
 
 enum	HandleReturn { kKeep, kClose };
@@ -15,6 +16,7 @@ public:
 	EventHandler();
 
 	virtual int	HandleEvent(uint32_t events) = 0;
+	virtual int	CheckTimeout(time_t now);
 
 	virtual ~EventHandler();
 };

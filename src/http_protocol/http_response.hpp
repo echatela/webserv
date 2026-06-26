@@ -3,17 +3,18 @@
 
 #include <string>
 #include <vector>
+#include "http_parser.hpp"
 
 enum	HttpStatusCode {
-	OK = 200,
-	CREATED = 201,
-	NO_CONTENT = 204,
-	// BAD_REQUEST = 400,
-	FORBIDDEN = 403,
-	NOT_FOUND = 404,
-	// METHOD_NOT_ALLOWED = 405,
-	PAYLOAD_TOO_LARGE = 406,
-	INTERNAL_SERVER_ERROR = 500
+	kOk = 200,
+	kCreated = 201,
+	kNoContent = 204,
+	kBadRequest = 400,
+	kForbidden = 403,
+	kNotFound = 404,
+	kMethodNotAllowed = 405,
+	kPayloadTooLarge = 406,
+	kInternalServerError = 500
 };
 
 struct	Header {
@@ -25,6 +26,8 @@ class HttpResponse {
 
 public:
 	HttpResponse();
+	HttpResponse(const HttpResponse &src);
+	HttpResponse &operator=(const HttpResponse &rhs);
 	~HttpResponse();
 
 	void			set_version(std::string version);
@@ -33,6 +36,7 @@ public:
 	void			set_body(std::string body_content);
 	void			set_reason_phrase();
 
+	std::string		get_body() const;
 
 	std::string			ToString();
 	std::vector<char>	ToCharVector();
@@ -41,12 +45,11 @@ public:
 
 private:
 // type
-	int									status_code_;
-	std::string							reason_phrase_;
-	std::string							body_;
-	std::vector<Header>					headers_;
-	std::string							version_;
-
+	int			status_code_;
+	std::string		reason_phrase_;
+	std::string		body_;
+	std::vector<Header>	headers_;
+	std::string		version_;
 
 };
 

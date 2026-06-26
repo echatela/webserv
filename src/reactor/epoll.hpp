@@ -21,9 +21,9 @@ public:
 	void	Mod(int fd, int events, void *data);
 	void	Del(int fd);
 
-	int	Wait();
+	int	Wait(int timeout_ms);
 
-	const struct epoll_event *	get_events() const;
+	const struct epoll_event *	events() const;
 
 	~Epoll();
 };

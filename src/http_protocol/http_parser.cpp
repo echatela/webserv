@@ -1,15 +1,17 @@
 #include "http_parser.hpp"
 #include "http_request.hpp"
 #include <stdlib.h>
+#include <iostream>
 
 HttpParser::HttpParser()
 : buf_(), buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0),
-	flag_(0), content_length_(0) { }
+	flag_(0), content_length_(0), has_body_(false) { }
 
 HttpParser::~HttpParser() { }
 
 int HttpParser::Add(const char* buf, size_t n)
 {
+	std::cout << "//////in add func n is " << n << '\n';
 	if (n == 0)
 		return flag_;
 	buf_size_ += n;
