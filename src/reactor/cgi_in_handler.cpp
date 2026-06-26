@@ -22,7 +22,7 @@ CgiInHandler::CgiInHandler(int stdin_fd, Epoll & epoll,
 
 int	CgiInHandler::HandleEvent(uint32_t events)
 {
-	if (events & (EPOLLERR | EPOLLHUP))
+	if (events & (EPOLLERR | EPOLLHUP)) {}
 		return kClose;
 
 	if (events & EPOLLOUT) {

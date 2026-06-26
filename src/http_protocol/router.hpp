@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <map>
-#include <iostream>
 
 #include "http_response.hpp"
 #include "http_request.hpp"
@@ -38,6 +37,7 @@ public:
 
 	RouteResult	HandleRequest(HttpRequest & req);
 	HttpResponse	CgiResponse(const std::string output);
+	HttpResponse	BuildErrorResponse(int status_code);
 	void		set_config(const Config & config);
 
 private:
@@ -60,7 +60,6 @@ private:
 	void			ParsePostBody(HttpRequest & req);
 
 
-	HttpResponse	BuildErrorResponse(int status_code);
 
 	void			FindLocationRoot(std::string & root, HttpRequest & req);
 	std::string		AddRoot(HttpRequest & req, int *status_code);

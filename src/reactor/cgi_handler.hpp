@@ -12,6 +12,7 @@ class Epoll;
 
 class CgiHandler : public EventHandler
 {
+private:
 	pid_t		pid_;
 	int		stdout_fd_;
 	ConnHandler*	conn_;

@@ -11,6 +11,7 @@
 #include <ctime>
 #include <iostream>
 #include <netinet/in.h>
+#include <sstream>
 #include <stdexcept>
 #include <stdint.h>
 #include <exception>
@@ -81,13 +82,11 @@ int	ConnHandler::HandleEvent(uint32_t events)
 void	ConnHandler::HandleRequest()
 {
 	parser_.ParseRequest(request_);
-	std::cout << parser_.get_buf() << std::endl;
 
 	RouteResult result = router_.HandleRequest(request_);
 	switch (result.get_type()) {
 		case kRouteResponse: {
 			HttpResponse response = result.get_response();
-			std::cout << response.ToString() << std::endl;
 
 			write_buf_ = response.ToCharVector();
 			state_ = kWriting;
@@ -95,9 +94,7 @@ void	ConnHandler::HandleRequest()
 			break;
 		}
 		case kRouteCgi:
-			std::cout << "starting route cgi\n";
 			StartCgi(result.get_plan());
-			std::cout << "ended route cgi\n";
 			break;
 		default:
 			break;
@@ -111,7 +108,11 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	std::vector<std::string>	env;
 	env.push_back("AUTH_TYPE="); /* AUTH_TYPE don't need to be defined
 	because we don't do authentification */
-	env.push_back("CONTENT_LENGTH=");
+	std::stringstream content_length;
+	content_length << "CONTENT_LENGTH=" << request_.get_body().size();
+	env.push_back(content_length.str());
+	std::stringstream content_type;
+	content_type << "CONTENT_TYPE=" << request_.get_header("content-type");
 	env.push_back("CONTENT_TYPE=");
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	env.push_back("PATH_INFO=" + plan.path_info);
@@ -121,7 +122,7 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	env.push_back("REMOTE_HOST=" + webserv::utils::AddrToString(addr_));
 	env.push_back("REMOTE_IDENT="); // authentification, no need to include
 	env.push_back("REMOTE_USER="); // authentification, no need to include
-	env.push_back("REQUEST_METHOD=GET"); // a changer selon la methode
+	env.push_back("REQUEST_METHOD=" + request_.get_method()); // a changer selon la methode
 	env.push_back("SCRIPT_NAME=" + plan.script_name);
 	std::string	server_name = listen_.config().server_name();
 	// Value "Host" in the request
@@ -175,11 +176,14 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 		throw std::runtime_error("fork() failed");
 
 	if (pid == 0) {
-		dup2(in_pipe[0], STDIN_FILENO);
-		dup2(out_pipe[1], STDOUT_FILENO);
+		if (dup2(in_pipe[0], STDIN_FILENO) < 0)
+			_exit(1);
+		if (dup2(out_pipe[1], STDOUT_FILENO) < 0)
+			_exit(1);
 		close(in_pipe[0]); close(in_pipe[1]);
 		close(out_pipe[0]); close(out_pipe[1]);
-		chdir(script_dir.c_str());
+		if (chdir(script_dir.c_str()) < 0)
+			_exit(1);
 		execve(path.c_str(), &argv[0], &envp[0]);
 		_exit(1);
 	}
@@ -201,6 +205,15 @@ void	ConnHandler::OnCgiDone(const std::string & output)
 {
 	cgi_ = NULL;
 	HttpResponse	response = router_.CgiResponse(output);
+	write_buf_ = response.ToCharVector();
+	state_ = kWriting;
+	epoll_.Mod(fd_, EPOLLOUT, this);
+}
+
+void	ConnHandler::OnCgiError(int status)
+{
+	cgi_ = NULL;
+	HttpResponse	response = router_.BuildErrorResponse(status);
 	write_buf_ = response.ToCharVector();
 	state_ = kWriting;
 	epoll_.Mod(fd_, EPOLLOUT, this);
