@@ -18,7 +18,7 @@ struct ListenInfo {
 struct LocationConfig {
 	std::string	base_location;
 	std::vector<std::string>	root;
-	std::vector<std::string> cgi;
+	std::vector<std::string>	cgi;
 };
 
 struct	ServerConfig {
@@ -32,7 +32,7 @@ private:
 	std::string				root_;
 	std::map<std::string, LocationConfig>	locations_;
 	std::string				server_name_;
-	unsigned int							max_body_size_;
+	size_t					max_body_size_;
 	
 	// std::vector<ServerConfig>	servers_info_;
 
@@ -46,9 +46,10 @@ public:
 	void								add_listen_info(ListenInfo listen);
 	void								set_root(std::string root);
 	void								add_location(std::pair<std::string, LocationConfig> location);
-	void								set_max_body_size(int size);
+	void								set_max_body_size(size_t size);
 
 	std::string			root();	
+	size_t					max_body_size();	
 
 	const std::vector<ListenInfo> &					listens_info() const;
 	std::map<std::string, LocationConfig>				get_locations() const;	

@@ -41,7 +41,7 @@ void				Config::add_location(std::pair<std::string, LocationConfig> location) {
 	locations_.insert(location);
 }
 
-void				Config::set_max_body_size(int size) {
+void				Config::set_max_body_size(size_t size) {
 	max_body_size_ = size;
 }
 
@@ -51,6 +51,10 @@ void				Config::set_max_body_size(int size) {
 	
 std::string				Config::root() {
 	return (root_);
+}
+
+size_t					Config::max_body_size() {
+	return max_body_size_;
 }
 
 std::map<std::string, LocationConfig>	Config::get_locations() const {
