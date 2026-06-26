@@ -1,32 +1,31 @@
 #ifndef ROUTER_HPP
 #define ROUTER_HPP
 
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <map>
 
 #include "http_response.hpp"
 #include "http_request.hpp"
 #include "../config/config.hpp"
 #include "route_result.hpp"
-#include "route_result.hpp"
+#include "route_resolve.hpp"
+#include "../webserv.hpp"
+#include "static_handler.hpp"
 
-struct HeaderValue {
-	std::string							directive;
-	std::map <std::string, std::string> parameters;
-};
 
-struct FormParts {
+struct RouteInfo {
+	LocationConfig	location;
+	bool 			loc_found;
 	
-	std::map< std::string, HeaderValue > 	headers;
-	std::string								body;
+	std::string 	uri;
+	std::string		file_path;
+	std::string		filename;
+	std::string 	root;
+
+	bool		exists;
+	bool		is_directory;
+	bool		is_cgi;
+
+	int 		status_code;
 };
-
-
-class RouteResult;
-
-class HttpRequest;
 
 class Router {
 
@@ -35,43 +34,25 @@ public:
 	Router();
 	~Router();
 
-	RouteResult	HandleRequest(HttpRequest & req);
+
+	// bool	IsCgi(HttpRequest & req);
+
+	// void	FillRouteInfo(HttpRequest & req);
+
+	CgiPlan		MakeCgiPlan(HttpRequest & req);
+
+	RouteResult 	ProcessRequest(HttpRequest & req);
+	
 	HttpResponse	CgiResponse(const std::string output);
-	HttpResponse	BuildErrorResponse(int status_code);
-	void		set_config(const Config & config);
+	HttpResponse 	StaticResponse(HttpRequest & req, RouteInfo & info);
+	static HttpResponse 	ErrorResponse(int status_code);
+
+	void			set_config(Config & config);
 
 private:
 	Config	config_;
-
-	bool	IsCgi(HttpRequest& req);
-	CgiPlan	MakeCgiPlan(HttpRequest& req);
-
-	void	AddContentType(HttpResponse & current, std::string filepath, int *status_code);
-	void	AddContentLength(HttpResponse & current, std::string filepath);
-
-
-	RouteResult	HandleGet(HttpRequest & req);
-	void			FillBody(std::string& body, std::string path, int *status_code);
-
-	RouteResult	HandleDelete(HttpRequest & req);
-	std::string		MakeFileDeletedBody(std::string path);
-
-	RouteResult	HandlePost(HttpRequest & req);
-	void			ParsePostBody(HttpRequest & req);
-
-
-
-	void			FindLocationRoot(std::string & root, HttpRequest & req);
-	std::string		AddRoot(HttpRequest & req, int *status_code);
-	void			CheckAndSetPath(std::string& path, HttpRequest & req, int *status_code);
-	bool			IsPathResolved(std::string& path, int *status_code);
-	std::string		Filename(std::string path);
-	// 
+	// RouteInfo		route_info_;
 };
 
 
 #endif
-
-// TODO renforcer les verifications pour la requete GET et cleaner tout le bazar
-	// voir pour l'imbrication des classes qui peut etre amelioree
-	// letsgo pour la suite ! 

@@ -27,7 +27,7 @@ ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
 	last_activity_(time(NULL)), epoll_(epoll), reactor_(reactor), listen_(listen), cgi_(NULL)
 {
 	try {
-		router_.set_config(listen_.config());
+		router_.set_config(const_cast<Config &>(listen_.config())); // a remodifier dans la classe pour eviter le cast degueu
 		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
 		close(fd_);
@@ -83,7 +83,7 @@ void	ConnHandler::HandleRequest()
 {
 	parser_.ParseRequest(request_);
 
-	RouteResult result = router_.HandleRequest(request_);
+	RouteResult result = router_.ProcessRequest(request_);
 	switch (result.get_type()) {
 		case kRouteResponse: {
 			HttpResponse response = result.get_response();

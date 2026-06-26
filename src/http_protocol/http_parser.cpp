@@ -11,7 +11,6 @@ HttpParser::~HttpParser() { }
 
 int HttpParser::Add(const char* buf, size_t n)
 {
-	std::cout << "//////in add func n is " << n << '\n';
 	if (n == 0)
 		return flag_;
 	buf_size_ += n;

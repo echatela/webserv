@@ -40,7 +40,7 @@ const std::string HttpRequest::get_version() const
 	return version_;
 }
 
-const std::map<std::string, std::string> HttpRequest::get_header() const
+const std::map<std::string, std::string> HttpRequest::get_headers() const
 {
 	return header_;
 }
@@ -53,6 +53,26 @@ const std::string HttpRequest::get_body() const
 int HttpRequest::get_error() const
 {
 	return error_;
+}
+
+const std::string HttpRequest::get_header(std::string key) 
+{
+	size_t	i = 0;
+	
+	while (i < key.size())
+	{
+		if (key[i] == '-')
+		{
+			i++;
+			key[i] = std::toupper(key[i]);
+		}
+		else
+		key[i] = std::tolower(key[i]);
+		i++;
+	}
+	key[0] = std::toupper(key[0]);
+	// std::cout << "key " << key << "\n";
+	return header_.at(key);
 }
 
 void HttpRequest::set_error(int error)
@@ -98,7 +118,6 @@ int HttpRequest::ParseRequestLine(std::string requestline)
 	this->path_ = path;
 	this->version_ = version;
 
-	std::cout << "method found is " << method << '\n';
 	int error[3] = {ParseMethod(this->method_), ParsePath(this->path_), ParseVersion(this->version_)};
 	for (int i = 0; i < 3; i++)
 	{
@@ -119,10 +138,16 @@ int HttpRequest::ParseHeader(std::string header)
 		if (pos == std::string::npos)
 			return BAD_HEADER;
 		std::string index = line.substr(0, pos);
-		std::cout << "///////key: ." << index << '.' <<  std::endl;
-		std::string value = line.substr(pos + 1);
-		// retirer les espaces en prefixes
-		std::cout << "\n///////value: ." << value << '.' << std::endl;
+		std::string value = line.substr(pos + 2);
+		size_t start = value.find_first_not_of("\t");
+		size_t end = value.find_last_not_of("\t\r\n");
+		if (start == std::string::npos || end == std::string::npos)
+			value.clear();
+		else
+			value = value.substr(start, end - start + 1);
+		// std::cout << "key ." << index << ".\n";
+		// std::cout << "value ." << value << ".\n";
+		// retirer les espaces en prefixes & les retours chariots !!!!
 		this->header_[index] = value;
 	}
 	if (this->header_["Host"].empty())

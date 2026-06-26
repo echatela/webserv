@@ -71,6 +71,10 @@ std::string		HttpResponse::get_body() const {
 	return body_;
 }
 
+int 			HttpResponse::get_status_code() const {
+	return status_code_;
+}
+
 std::string		HttpResponse::get_reason_phrase(int status_code) {
 	switch (status_code) {
 		case kOk:
