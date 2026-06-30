@@ -57,7 +57,7 @@ def print_page_start(title):
     print("<head>")
     print('\t<meta charset="utf-8">')
     print(f"\t<title>{title}</title>")
-    print('\t<link rel="stylesheet" href="style.css">')
+    print('\t<link rel="stylesheet" href="../style.css">')
     print("</head>")
     print("<body>")
 

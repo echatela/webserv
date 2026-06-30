@@ -1,0 +1,10 @@
+#include "Zombies.hpp"
+
+int main(void)
+{
+	int	nb_zombie = 7;
+	Zombie* new_zombie = zombieHorde(nb_zombie, "Karl");
+	for (int i = 0; i < nb_zombie; ++i)
+		new_zombie[i].announce();
+	delete[] new_zombie;
+}
