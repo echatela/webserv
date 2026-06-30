@@ -6,7 +6,7 @@
 /*   By: willysex <willysex@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/24 18:01:57 by willysex         ###   ########.fr       */
+/*   Updated: 2026/06/26 19:05:15 by willysex         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,10 @@ std::vector<std::string>			ConfigParser::ParseStr(std::string directive) {
 	std::vector<std::string> result;
 	while (current().content != ";")
 	{
-		result.push_back(current().content);
+		if (directive == "root" && current().content[0] == '.')
+			result.push_back(current().content.substr(1));
+		else
+			result.push_back(current().content);
 		current_++;
 	}
 	present(";");
@@ -109,7 +112,7 @@ std::vector<std::string>			ConfigParser::ParseStr(std::string directive) {
 int					ConfigParser::ParseMaxBodySize() {
 	
 	present("client_max_body_size");
-	unsigned int max_size = webserv::utils::ParseUInt(current().content);
+	size_t max_size = webserv::utils::ParseUInt(current().content);
 
 	current_++;
 	present(";");
