@@ -21,6 +21,10 @@
 #include <string>
 #include <vector>
 
+#define RESET   "\033[0m"
+#define YELLOW  "\033[33m"      /* Yellow */
+#define CYAN    "\033[36m"      /* Cyan */
+
 ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
 			 Epoll & epoll, Reactor & reactor)
 : fd_(fd), state_(kReading), addr_(addr), write_off_(0),
@@ -82,7 +86,7 @@ int	ConnHandler::HandleEvent(uint32_t events)
 void	ConnHandler::HandleRequest()
 {
 	parser_.ParseRequest(request_);
-	std::cout << parser_.get_buf() << std::endl;
+	std::cout << CYAN << parser_.get_buf() << RESET << std::endl;
 	
 	RouteResult result = router_.ProcessRequest(request_);
 	switch (result.get_type()) {
@@ -90,6 +94,7 @@ void	ConnHandler::HandleRequest()
 			HttpResponse response = result.get_response();
 
 			write_buf_ = response.ToCharVector();
+			std::cout << YELLOW << response.ToString() << RESET << std::endl;
 			state_ = kWriting;
 			epoll_.Mod(fd_, EPOLLOUT, this);
 			break;

@@ -2,6 +2,7 @@
 #include <cstring>
 
 Config::Config()
+: max_body_size_(0)
 {
 	// servers_info_ = parser.Parse();
 }
@@ -22,6 +23,8 @@ const Config &	Config::operator=(const Config & rhs)
 		listens_info_ = rhs.listens_info_;
 		root_ = rhs.root_;
 		locations_ = rhs.locations_;
+		server_name_ = rhs.server_name_;
+		max_body_size_ = rhs.max_body_size_;
 	}
 	return (*this);
 }
