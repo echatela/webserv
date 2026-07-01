@@ -58,6 +58,14 @@ def print_page_start(title):
     print('\t<meta charset="utf-8">')
     print(f"\t<title>{title}</title>")
     print('\t<link rel="stylesheet" href="../style.css">')
+    print("\t<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>")
+    print("\t<script>")
+    print("\t\tfunction deleteContact(id) {")
+    print("\t\t\tfetch('/cgi-bin/delete_contact.py?id=' + id, { method: 'DELETE' })")
+    print("\t\t\t\t.then(response => response.json())")
+    print("\t\t\t\t.then(() => location.reload())")
+    print("\t\t}")
+    print("\t</script>")
     print("</head>")
     print("<body>")
 
@@ -71,7 +79,7 @@ def print_page_end():
 # Response pour aucun contact.
 def print_empty_state():
     print_page_start("View Contact")
-    print('\t<div class="menu">')
+    print('\t<div class="phonebook">')
     print("\t\t<h1>No contact yet</h1>")
     print("\t\t<p>There are no contacts saved at the moment.</p>")
     print('\t\t\t<a href="index.html"><button class="links">Back</button></a>')
@@ -85,13 +93,13 @@ def print_contacts(contacts):
     print_page_start("View Contacts")
 
     # On ouvre le conteneur principal.
-    print('\t<div class="menu contact-page">')
+    print('\t<div class="phonebook contact-page">')
 
     # On affiche un titre general.
     print("\t\t<h1>Contacts</h1>")
 
     # On parcourt chaque contact de la liste.
-    for contact in contacts:
+    for i, contact in enumerate(contacts):
         # On recupere le nom et on le securise pour le HTML.
         name = html.escape(str(contact.get("name", "")))
 
@@ -99,25 +107,28 @@ def print_contacts(contacts):
         phone = html.escape(str(contact.get("phone", "")))
 
         # On ouvre une carte pour un contact.
-        print("\t\t<div class=\"contact-card\">")
+        print('\t\t<div class="contact-card">')
+
+        # On affiche la photo.
+        print(f'\t\t\t<div class="contact-photo"><img src="images/default.png" alt="profile"></div>')
 
         # On affiche le nom.
-        print(f"\t\t\t<p class=\"contact-name\">{name}</p>")
+        print(f'\t\t\t<div class="contact-info"><h2>{name}</h2>')
 
         # On affiche le telephone.
-        print(f"\t\t\t<p class=\"contact-phone\">{phone}</p>")
+        print(f"\t\t\t<p>{phone}</p>")
 
+        # On ferme le bloc d'informations avant les actions.
+        print("\t\t\t</div>")
+
+        # Bouton delete
+        # print('\t\t <form action="#" method ="delete"> <button class="delete-btn"><i class="bx bx-trash"></i></button><br></form>')
+        print(f'\t\t <button class="delete-btn" onclick="deleteContact({i})" type="button"><i class="bx bx-trash"></i></button>')
         # On ferme la carte du contact.
         print("\t\t</div>")
 
-    # On ajoute la zone des actions.
-    print('\t\t<div class="contact-actions" style="margin-top: 50px;">')
-
     # On affiche le bouton de retour.
     print('\t\t\t<a href="/index.html"><button class="links">Back</button></a>')
-
-    # On ferme la zone des actions.
-    print("\t\t</div>")
 
     # On ferme le conteneur principal.
     print("\t</div>")

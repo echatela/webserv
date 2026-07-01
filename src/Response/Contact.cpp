@@ -43,7 +43,7 @@
 // 		body.append("\t<meta charset=\"utf-8\">\n");
 // 		body.append("\t<title>Contact</title>\n");
 // 		body.append("\t<link rel=\"stylesheet\" href=\"style.css\">\n");
-// 		body.append("</head>\n<body>\n<div class=\"menu contact-page\">\n");
+// 		body.append("</head>\n<body>\n<div class=\"phonebook contact-page\">\n");
 	
 // 		body.append("\t<div class=\"contact-card\">\n");
 // 		body.append("\t\t<img class=\"contact-photo\" src=\"");
@@ -69,7 +69,7 @@
 // 		body.append("\t<meta charset=\"utf-8\">\n");
 // 		body.append("\t<title>Add Contact</title>\n");
 // 		body.append("\t<link rel=\"stylesheet\" href=\"style.css\">\n");
-// 		body.append("</head>\n<body>\n<div class=\"menu\">\n");
+// 		body.append("</head>\n<body>\n<div class=\"phonebook\">\n");
 // 		body.append("\t<h1>Add Contact</h1>\n");
 // 		body.append("\t<form action=\"/contact\" method=\"post\">\n");
 // 		body.append("\t\t<input type=\"text\" name=\"name\" placeholder=\"Name\"><br>\n");
@@ -116,7 +116,7 @@ std::string Contact::HandlePostResponse(HttpResponse &response)
 	response_body += "\t<link rel=\"stylesheet\" href=\"style.css\">\n";
 	response_body += "</head>\n";
 	response_body += "<body>\n";
-	response_body += "\t<div class=\"menu\">\n";
+	response_body += "\t<div class=\"phonebook\">\n";
 	response_body += "\t	<h1>";
 	response_body += name_;
 	response_body += "</h1>\n\n";
