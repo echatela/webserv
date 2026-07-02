@@ -59,6 +59,7 @@ def print_page_start(title):
     print(f"\t<title>{title}</title>")
     print('\t<link rel="stylesheet" href="../style.css">')
     print("\t<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>")
+    # Suppression du contact
     print("\t<script>")
     print("\t\tfunction deleteContact(id) {")
     print("\t\t\tfetch('/cgi-bin/delete_contact.py?id=' + id, { method: 'DELETE' })")
