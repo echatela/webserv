@@ -12,6 +12,7 @@
 
 
 struct RouteInfo {
+
 	LocationConfig	location;
 	bool 			loc_found;
 	

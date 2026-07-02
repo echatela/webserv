@@ -233,11 +233,22 @@ std::string 	GetFilename(FormPart part) {
 		return "none";
 	}
 	std::string filename;
-	size_t 		filename_sep = content_disp.find("filename");
+	size_t 		filename_sep = content_disp.find("filename=");
 	
-	if (filename_sep != std::string::npos)
-		return content_disp.substr(filename_sep + 10, content_disp.length() - 2);
-	return "none";
+	if (filename_sep == std::string::npos)
+		return "none";
+
+	size_t start = filename_sep + strlen("filename=");
+	if (start < content_disp.size() && content_disp[start] == '"')
+		start++;
+
+	size_t end = content_disp.find('"', start);	
+	if (end == std::string::npos)
+		end = content_disp.find(';', start);
+	if (end == std::string::npos)
+		end = content_disp.length();
+	
+	return content_disp.substr(start, end - start);
 }
 
 void			HandleMultipart(FormData data, RouteInfo & info) {

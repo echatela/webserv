@@ -8,7 +8,10 @@
 int	main(int argc, char **argv)
 {
 	if (argc != 2)
+	{
+		std::cout << "Please enter configuration file.\n";
 		return 1;	
+	}
 	try
 	{
 		ConfigLexer 		Lexer(argv[1]);
