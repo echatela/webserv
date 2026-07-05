@@ -74,11 +74,12 @@ int	ConnHandler::HandleEvent(uint32_t events)
 
 		if (n > 0) {
 			write_off_ += n;
-			// if HTTP 1.1 need to keep alive and turn to EPOLLIN
-			if (write_off_ == write_buf_.size())
-				return kClose;
-			return kKeep;
+			if (write_off_ == write_buf_.size()) {
+				state_ = kWriting;
+				epoll_.Mod(fd_, EPOLLIN, this);
+			}
 		}
+		return kKeep;
 	}
 	return kClose;
 }

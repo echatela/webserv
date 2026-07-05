@@ -66,15 +66,16 @@ const std::string HttpRequest::get_header(std::string key) const
 			i++;
 			key[i] = std::toupper(key[i]);
 		}
-		else
-		key[i] = std::tolower(key[i]);
+		else {
+			key[i] = std::tolower(key[i]);
+		}
 		i++;
 	}
 	key[0] = std::toupper(key[0]);
 	// std::cout << "key ." << key << ".\n";
 	std::string value;
 	try {
-		std::string value = header_.at(key);
+		value = header_.at(key);
 	}
 	catch (std::exception& e) {
 		std::cerr << "Value for " << key << " not found\n"; // print a garder ou retirer, des fois le content-type par exemple n'est pas dans la requete

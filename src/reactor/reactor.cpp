@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <vector>
-#include <iostream>
 
 Reactor::Reactor(std::vector<Config> const & configs)
 : configs_(configs) //configs_ -> vecteur de serveur config
@@ -46,8 +45,8 @@ void	Reactor::Dispatch(int n)
 {
 	if (n < 0) {
 		if (errno == EINTR)
-			throw std::runtime_error("epoll_wait() failed");
-		return;
+			return;
+		throw std::runtime_error("epoll_wait() failed");
 	}
 
 	const struct epoll_event	*ev = epoll_.events();

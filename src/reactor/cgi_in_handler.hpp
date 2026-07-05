@@ -3,6 +3,7 @@
 
 #include "event_handler.hpp"
 #include <cstddef>
+#include <ctime>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,9 @@ class CgiInHandler : public EventHandler
 	std::vector<char>	write_buf_;
 	size_t			write_off_;
 
+	static const int	kTimeoutSecs = 10;
+	time_t			start_time_;
+
 	CgiInHandler();
 	CgiInHandler(const CgiInHandler & src);
 	CgiInHandler &	operator=(const CgiInHandler & rhs);
@@ -23,7 +27,8 @@ public:
 	CgiInHandler(int stdin_fd, Epoll & epoll,
 	      const std::string & body);
 
-	int HandleEvent(uint32_t events);
+	int	HandleEvent(uint32_t events);
+	int	CheckTimeout(time_t now);
 
 	~CgiInHandler();
 };

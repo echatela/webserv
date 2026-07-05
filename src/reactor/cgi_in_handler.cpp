@@ -2,6 +2,7 @@
 #include "epoll.hpp"
 
 #include <cstddef>
+#include <ctime>
 #include <exception>
 #include <string>
 #include <sys/types.h>
@@ -9,8 +10,8 @@
 
 CgiInHandler::CgiInHandler(int stdin_fd, Epoll & epoll,
 			   const std::string & body)
-: stdin_fd_(stdin_fd), epoll_(epoll),
-	write_buf_(body.begin(), body.end()), write_off_(0)
+: stdin_fd_(stdin_fd), epoll_(epoll), write_buf_(body.begin(), body.end()),
+	write_off_(0), start_time_(time(NULL))
 {
 	try {
 		epoll_.Add(stdin_fd_, EPOLLOUT, this);
@@ -22,7 +23,7 @@ CgiInHandler::CgiInHandler(int stdin_fd, Epoll & epoll,
 
 int	CgiInHandler::HandleEvent(uint32_t events)
 {
-	if (events & (EPOLLERR | EPOLLHUP)) {}
+	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
 
 	if (events & EPOLLOUT) {
@@ -37,6 +38,13 @@ int	CgiInHandler::HandleEvent(uint32_t events)
 		}
 	}
 	return kClose;
+}
+
+int	CgiInHandler::CheckTimeout(time_t now)
+{
+	if (difftime(now, start_time_) >= kTimeoutSecs)
+		return kClose;
+	return kKeep;
 }
 
 CgiInHandler::~CgiInHandler()
