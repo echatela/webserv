@@ -30,12 +30,12 @@ int	CgiInHandler::HandleEvent(uint32_t events)
 		size_t remaining = write_buf_.size() - write_off_;
 		ssize_t n = write(
 			stdin_fd_, &write_buf_[0] + write_off_, remaining);
-		if (n > 0) {
+
+		if (n > 0)
 			write_off_ += n;
-			if (write_off_ == write_buf_.size())
-				return kClose;
-			return kKeep;
-		}
+		if (write_off_ == write_buf_.size())
+			return kClose;
+		return kKeep;
 	}
 	return kClose;
 }

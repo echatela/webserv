@@ -72,12 +72,13 @@ int	ConnHandler::HandleEvent(uint32_t events)
 		ssize_t	n = send(
 			fd_, &write_buf_[0] + write_off_, remaining, 0);
 
-		if (n > 0) {
+		if (n > 0)
 			write_off_ += n;
-			if (write_off_ == write_buf_.size()) {
-				state_ = kWriting;
-				epoll_.Mod(fd_, EPOLLIN, this);
-			}
+		if (write_off_ == write_buf_.size()) {
+			state_ = kReading;
+			epoll_.Mod(fd_, EPOLLIN, this);
+			write_buf_.clear();
+			write_off_ = 0;
 		}
 		return kKeep;
 	}
