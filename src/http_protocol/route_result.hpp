@@ -23,7 +23,7 @@ private:
 	RouteResult(const HttpResponse & response);
 
 	int		type_;
-	const CgiPlan		plan_;
+	const CgiPlan	plan_;
 	HttpResponse	response_;
 
 public:
@@ -33,11 +33,11 @@ public:
 	static RouteResult	Cgi(const CgiPlan & plan);
 	static RouteResult	Response(const HttpResponse & response);
 
-	int		get_type() const;
-	HttpResponse	get_response() const;
-	CgiPlan		get_plan() const;
+	int			type() const;
+	HttpResponse		response() const;
+	CgiPlan			plan() const;
 
-	RouteResult &	operator=(RouteResult const & rhs);
+	RouteResult &		operator=(RouteResult const & rhs);
 };
 
 #endif

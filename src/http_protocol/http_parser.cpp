@@ -51,12 +51,12 @@ int HttpParser::Add(const char* buf, size_t n)
 	return flag_;
 }
 
-int HttpParser::get_flag() const
+int HttpParser::flag() const
 {
 	return flag_;
 }
 
-std::string HttpParser::get_buf() const
+std::string HttpParser::buf() const
 {
 	return buf_;
 }

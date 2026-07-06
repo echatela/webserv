@@ -12,14 +12,15 @@ class HttpRequest
 		HttpRequest();	
 		~HttpRequest();
 		
-		HttpRequest& operator=(const HttpRequest& other);
-		const std::string get_method() const;
-		const std::string get_path() const;
-		const std::string get_version() const;
-		const std::string get_header(std::string key) const; 
-		const std::map<std::string, std::string> get_headers() const;
-		const std::string get_body() const;
-		int get_error() const;
+		HttpRequest&		operator=(const HttpRequest& other);
+
+		const std::string &	method() const;
+		const std::string &	path() const;
+		const std::string &	version() const;
+		std::string		header(std::string key) const; 
+		const std::map<std::string, std::string> &	headers() const;
+		const std::string &	body() const;
+		int			error() const;
 		
 		void set_error(int error);
 

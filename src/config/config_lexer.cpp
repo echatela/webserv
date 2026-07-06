@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include "config_lexer.hpp"
+#include <fstream>
+#include <stdexcept>
 
 ConfigLexer::ConfigLexer(std::string filename) {
 
@@ -19,8 +21,8 @@ ConfigLexer::ConfigLexer(std::string filename) {
 
 	// std::cout << "filename ." << filename.c_str() << std::endl;
 	std::ifstream 	file(filename.c_str());
-	std::string		line;
-	std::string		eof = "EOF";
+	std::string	line;
+	std::string	eof = "EOF";
 
 
 	if (!file.is_open())
@@ -46,7 +48,7 @@ const ConfigLexer&	ConfigLexer::operator=(const ConfigLexer& other) {
 	return *this;
 }
 
-TokenType			ConfigLexer::get_token_type(std::string current) {
+TokenType			ConfigLexer::type(std::string current) {
 	std::string		characters = "{;}";
 		size_t type = characters.find(current[0]);
 		switch (type)
@@ -68,7 +70,7 @@ Token				ConfigLexer::MakeToken(std::string str) {
 	Token current;
 
 	current.content = str;
-	current.type = get_token_type(str);
+	current.type = type(str);
 	return (current);
 }
 

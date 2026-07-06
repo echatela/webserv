@@ -16,9 +16,9 @@ StaticHandler::~StaticHandler() {}
 
 HttpResponse 	StaticHandler::BuildStatic(HttpRequest & req, RouteInfo & info) {
 
-	if (req.get_method() == "GET")
+	if (req.method() == "GET")
 		return BuildGet(req, info);
-	else if (req.get_method() == "DELETE")
+	else if (req.method() == "DELETE")
 		return BuildDelete(req, info);
 	else
 		return BuildPost(req, info);
@@ -74,7 +74,7 @@ void		AddContentLength(HttpResponse & current, std::string body) {
 
 HttpResponse 	StaticHandler::BuildGet(HttpRequest & req, RouteInfo & info) {
 
-	// std::cout << req.get_header("CONNECTION") << req.get_header("USer-agent") << std::endl;
+	// std::cout << req.header("CONNECTION") << req.header("USer-agent") << std::endl;
 	HttpResponse	response;
 	std::string 	body;
 	(void)req;
@@ -147,7 +147,7 @@ HttpResponse 	StaticHandler::BuildDelete(HttpRequest & req, RouteInfo & info) {
 		return Router::ErrorResponse(info.status_code);
 
 	response.set_body(FileDeletedBody(info));
-	AddContentLength(response, response.get_body());
+	AddContentLength(response, response.body());
 
 	(void)req;
 	return response;
@@ -297,7 +297,7 @@ std::string		MultiPartSuccessfullBody() {
 
 HttpResponse 	StaticHandler::BuildPost(HttpRequest & req, RouteInfo & info) {
 
-	std::map<std::string, std::string>	req_headers = req.get_headers();
+	std::map<std::string, std::string>	req_headers = req.headers();
 	std::string 						content_type;
 
 	try {
@@ -308,7 +308,7 @@ HttpResponse 	StaticHandler::BuildPost(HttpRequest & req, RouteInfo & info) {
 	}
 	if (content_type.compare(0, 19,"multipart/form-data") == 0)
 	{
-		FormData data = ParseMultipart(req.get_body(), content_type, info);
+		FormData data = ParseMultipart(req.body(), content_type, info);
 
 		HandleMultipart(data, info);
 		if (info.status_code != kOk)
@@ -320,7 +320,7 @@ HttpResponse 	StaticHandler::BuildPost(HttpRequest & req, RouteInfo & info) {
 		response.set_version("HTTP/1.1");
 		response.set_header("Content-Type", "text/html");
 		response.set_body(MultiPartSuccessfullBody());		
-		AddContentLength(response, response.get_body());
+		AddContentLength(response, response.body());
 
 		return response;
 	}

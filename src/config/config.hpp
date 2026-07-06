@@ -57,7 +57,6 @@ public:
 	std::map<std::string, LocationConfig>	locations() const;	
 	static std::vector<ListenInfo>		listens_info(std::vector<Config> configs);
 	const std::string &			server_name() const;
-	// const std::vector<ServerConfig> & 	get_servers_info() const;
 };
 
 #endif

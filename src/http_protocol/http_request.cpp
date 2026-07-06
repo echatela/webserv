@@ -25,37 +25,37 @@ HttpRequest& HttpRequest::operator=(const HttpRequest& other)
 	return *this;
 }
 
-const std::string HttpRequest::get_method() const
+const std::string &	HttpRequest::method() const
 {
 	return method_;
 }
 
-const std::string HttpRequest::get_path() const
+const std::string &	HttpRequest::path() const
 {
 	return path_;
 }
 
-const std::string HttpRequest::get_version() const
+const std::string &	HttpRequest::version() const
 {
 	return version_;
 }
 
-const std::map<std::string, std::string> HttpRequest::get_headers() const
+const std::map<std::string, std::string> &	HttpRequest::headers() const
 {
 	return header_;
 }
 
-const std::string HttpRequest::get_body() const
+const std::string &	HttpRequest::body() const
 {
 	return body_;
 }
 
-int HttpRequest::get_error() const
+int HttpRequest::error() const
 {
 	return error_;
 }
 
-const std::string HttpRequest::get_header(std::string key) const
+std::string	HttpRequest::header(std::string key) const
 {
 	size_t	i = 0;
 	

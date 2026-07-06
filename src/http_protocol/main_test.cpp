@@ -14,7 +14,7 @@
 	
 // 	std::cout << "BUF => " << std::endl
 // 	<< "- - - - - - - - - - - -" << std::endl
-// 	<< parser.get_buf() << std::endl << std::endl;
+// 	<< parser.buf() << std::endl << std::endl;
 	
 // 	std::cout << "_________________________________________" << std::endl;
 // 	HttpRequest req;

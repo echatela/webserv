@@ -60,7 +60,7 @@ size_t					Config::max_body_size() {
 	return max_body_size_;
 }
 
-std::map<std::string, LocationConfig>	Config::get_locations() const {
+std::map<std::string, LocationConfig>	Config::locations() const {
 	return (locations_);
 }
 

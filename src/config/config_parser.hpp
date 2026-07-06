@@ -18,8 +18,6 @@
 #include <cstring>
 #include <stdlib.h>
 
-class ServerConfig;
-
 class ConfigParser {
 
 	public:
@@ -28,28 +26,26 @@ class ConfigParser {
 		ConfigParser();
 		~ConfigParser();
 
-		const ConfigParser& 					operator=(const ConfigParser& other);
+		const ConfigParser&	operator=(const ConfigParser& other);
 		
-		std::vector<Config>						Parse();
+		std::vector<Config>	Parse();
 
-		Config		 							ParseServer();
+		Config		 	ParseServer();
 		std::pair<std::string, LocationConfig>	ParseLocation();
 
-		ListenInfo								ParseListen();
-		std::string								ParseRoot();
-		int										ParseMaxBodySize();
-		std::string								ParseCgi();
-		std::vector<std::string>				ParseStr(std::string directive);
+		ListenInfo		ParseListen();
+		std::string		ParseRoot();
+		int			ParseMaxBodySize();
+		std::string		ParseCgi();
+		std::vector<std::string>	ParseStr(std::string directive);
 
-		void						next();
-		Token						current();
-		void						present(std::string expected);
-
-		// std::vector<ListenInfo>		get_listens_infos();
+		void			next();
+		Token			current();
+		void			present(std::string expected);
 
 	private:
 		std::vector<Token>	tokens_;
-		size_t 				current_;
+		size_t 			current_;
 };
 
 #endif

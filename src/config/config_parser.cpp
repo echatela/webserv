@@ -12,6 +12,8 @@
 
 #include "config_parser.hpp"
 #include "../webserv.hpp"
+#include <cerrno>
+#include <stdexcept>
 
 ConfigParser::ConfigParser(std::vector<Token> tokens) : tokens_(tokens), current_(0) {}
 

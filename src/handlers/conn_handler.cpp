@@ -86,12 +86,12 @@ int	ConnHandler::HandleEvent(uint32_t events)
 void	ConnHandler::HandleRequest()
 {
 	parser_.ParseRequest(request_);
-	std::cout << CYAN << parser_.get_buf() << RESET << std::endl;
+	std::cout << CYAN << parser_.buf() << RESET << std::endl;
 	
 	RouteResult result = router_.ProcessRequest(request_);
-	switch (result.get_type()) {
+	switch (result.type()) {
 		case kRouteResponse: {
-			HttpResponse response = result.get_response();
+			HttpResponse response = result.response();
 
 			write_buf_ = response.ToCharVector();
 			std::cout << YELLOW << response.ToString() << RESET << std::endl;
@@ -100,7 +100,7 @@ void	ConnHandler::HandleRequest()
 			break;
 		}
 		case kRouteCgi:
-			StartCgi(result.get_plan());
+			StartCgi(result.plan());
 			break;
 		default:
 			break;
@@ -115,10 +115,10 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	env.push_back("AUTH_TYPE="); /* AUTH_TYPE don't need to be defined
 	because we don't do authentification */
 	std::stringstream content_length;
-	content_length << "CONTENT_LENGTH=" << request_.get_body().size();
+	content_length << "CONTENT_LENGTH=" << request_.body().size();
 	env.push_back(content_length.str());
 	std::stringstream content_type;
-	content_type << "CONTENT_TYPE=" << request_.get_header("content-type");
+	content_type << "CONTENT_TYPE=" << request_.header("content-type");
 	env.push_back(content_type.str());
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	env.push_back("PATH_INFO=" + plan.path_info);
@@ -128,7 +128,7 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	env.push_back("REMOTE_HOST=" + webserv::utils::AddrToString(addr_));
 	env.push_back("REMOTE_IDENT="); // authentification, no need to include
 	env.push_back("REMOTE_USER="); // authentification, no need to include
-	env.push_back("REQUEST_METHOD=" + request_.get_method()); // a changer selon la methode
+	env.push_back("REQUEST_METHOD=" + request_.method()); // a changer selon la methode
 	env.push_back("SCRIPT_NAME=" + plan.script_name);
 	std::string	server_name = listen_.config().server_name();
 	// Value "Host" in the request
@@ -195,11 +195,11 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 	}
 
 	close(in_pipe[0]);
-	if (request_.get_body().empty())
+	if (request_.body().empty())
 		close(in_pipe[1]);
 	else {
 		CgiInHandler *cgi_in = new CgiInHandler(
-			in_pipe[1], epoll_, request_.get_body());
+			in_pipe[1], epoll_, request_.body());
 		reactor_.AddEventHandler(cgi_in);
 	}
 	close(out_pipe[1]);

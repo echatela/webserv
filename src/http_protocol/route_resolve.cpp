@@ -115,17 +115,17 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 	InitRouteInfo(info);
 
 	std::cout << "=================================max_body_size is :" << config.max_body_size();
-	if (req.get_body().size() > config.max_body_size())
+	if (req.body().size() > config.max_body_size())
 	{
 		info.status_code = kPayloadTooLarge;
 		return info;
 	}
-	FindLocation(req.get_path(), config, info.location, location_found);
+	FindLocation(req.path(), config, info.location, location_found);
 
-	info.uri = req.get_path();
+	info.uri = req.path();
 	info.file_path = BuildFilesystemPath(info.uri, config, info.location, location_found);
 
-	if (MethodNotAllowed(req.get_method(), info.location.methods)) {
+	if (MethodNotAllowed(req.method(), info.location.methods)) {
 		info.status_code = kMethodNotAllowed;
 		return info;
 	}

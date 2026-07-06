@@ -22,8 +22,8 @@ public:
 
 	int	Add(const char* buf, size_t n);
 
-	int		get_flag() const;
-	std::string	get_buf() const;
+	int		flag() const;
+	std::string	buf() const;
 
 	int	ParseRequest(HttpRequest& req) const;
 

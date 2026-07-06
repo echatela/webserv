@@ -67,15 +67,15 @@ void		HttpResponse::set_reason_phrase() {
 	}
 }
 
-std::string		HttpResponse::get_body() const {
+std::string		HttpResponse::body() const {
 	return body_;
 }
 
-int 			HttpResponse::get_status_code() const {
+int 			HttpResponse::status_code() const {
 	return status_code_;
 }
 
-std::string		HttpResponse::get_reason_phrase(int status_code) {
+std::string		HttpResponse::reason_phrase(int status_code) {
 	switch (status_code) {
 		case kOk:
 			return "OK";

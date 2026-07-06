@@ -62,7 +62,7 @@ HttpResponse 	Router::CgiResponse(const std::string output)
 	cgi_result.substr(i, cgi_result.length());
 	response.set_body(cgi_result);
 	response.set_header("Content-Length",
-		webserv::utils::IntToStr(response.get_body().size()));
+		webserv::utils::IntToStr(response.body().size()));
 	return response;
 }
 
@@ -82,7 +82,7 @@ HttpResponse 	Router::ErrorResponse(int status_code) {
 	resp.set_version("HTTP/1.1");
 	body.append("<html>\r\n<body>\r\n");
 	body.append("<h1>");
-	body.append(webserv::utils::IntToStr(status_code) + " " + resp.get_reason_phrase(status_code));
+	body.append(webserv::utils::IntToStr(status_code) + " " + resp.reason_phrase(status_code));
 	body.append("</h1>\r\n");
 	body.append("</html>\r\n</body>");
 	resp.set_body(body);
@@ -95,7 +95,7 @@ HttpResponse 	Router::ErrorResponse(int status_code) {
 CgiPlan		Router::MakeCgiPlan(HttpRequest & req) {
 
 	CgiPlan cgi;
-	std::string path = req.get_path();
+	std::string path = req.path();
 	size_t sep;
 
 	cgi.interpreter = config_.locations().at("/cgi").cgi[1];

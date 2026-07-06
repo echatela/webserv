@@ -35,13 +35,13 @@ public:
 	void			set_body(std::string body_content);
 	void			set_reason_phrase();
 
-	std::string		get_body() const;
-	int			get_status_code() const;
+	std::string		body() const;
+	int			status_code() const;
 
 	std::string		ToString();
 	std::vector<char>	ToCharVector();
 
-	static std::string get_reason_phrase(int status_code);
+	static std::string	reason_phrase(int status_code);
 
 private:
 // type

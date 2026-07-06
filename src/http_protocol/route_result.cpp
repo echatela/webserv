@@ -18,11 +18,11 @@ RouteResult RouteResult::Cgi(const CgiPlan & plan) {
     return RouteResult(plan);
 } 
 
-int		RouteResult::get_type() const { return type_; }
+int		RouteResult::type() const { return type_; }
 
-HttpResponse	RouteResult::get_response() const { return response_; }
+HttpResponse	RouteResult::response() const { return response_; }
 
-CgiPlan		RouteResult::get_plan() const { return plan_; }
+CgiPlan		RouteResult::plan() const { return plan_; }
 
 RouteResult::~RouteResult()
 { }

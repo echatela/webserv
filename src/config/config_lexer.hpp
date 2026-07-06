@@ -13,14 +13,11 @@
 #ifndef CONFIG_LEXER_HPP
 #define CONFIG_LEXER_HPP
 
-#include <iostream>
-#include <fstream>
 #include <vector>
 #include <string>
 
 
 enum TokenType {
-
 	WORD,
 	OPEN_BRACKET,
 	CLOSE_BRACKET,
@@ -46,7 +43,7 @@ class ConfigLexer {
 
 		std::vector<Token>	Tokenize();
 		static Token		MakeToken(std::string current);
-		static TokenType	get_token_type(std::string current);
+		static TokenType	type(std::string current);
 
 	private:
 		std::string			file_content_;
