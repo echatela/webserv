@@ -12,7 +12,7 @@ enum	HttpStatusCode {
 	kForbidden = 403,
 	kNotFound = 404,
 	kMethodNotAllowed = 405,
-	kPayloadTooLarge = 406,
+	kPayloadTooLarge = 413,
 	kInternalServerError = 500
 };
 

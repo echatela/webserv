@@ -44,10 +44,10 @@ void		HttpResponse::set_reason_phrase() {
 			reason_phrase_ = "Created";
 			break;
 		case kNoContent:
-			reason_phrase_ = "No content found";
+			reason_phrase_ = "No Content";
 			break;
 		case kBadRequest:
-			reason_phrase_ = "Bad request";
+			reason_phrase_ = "Bad Request";
 			break;
 		case kForbidden:
 			reason_phrase_ = "Forbidden";
@@ -56,13 +56,13 @@ void		HttpResponse::set_reason_phrase() {
 			reason_phrase_ = "Not Found";
 			break;
 		case kMethodNotAllowed:
-			reason_phrase_ = "Method not allowed";
+			reason_phrase_ = "Method Not Allowed";
 			break;
 		case kPayloadTooLarge:
-			reason_phrase_ = "Payload too large";
+			reason_phrase_ = "Payload Too Large";
 			break;
 		case kInternalServerError:
-			reason_phrase_ = "Internal server error";
+			reason_phrase_ = "Internal Server Error";
 			break;
 	}
 }
@@ -82,19 +82,19 @@ std::string		HttpResponse::get_reason_phrase(int status_code) {
 		case kCreated:
 			return "Created";
 		case kNoContent:
-			return "No content found";
+			return "No Content";
 		case kBadRequest:
-			return "Bad request";
+			return "Bad Request";
 		case kForbidden:
 			return "Forbidden";
 		case kNotFound:
 			return "Not Found";
 		case kMethodNotAllowed:
-			return "Method not allowed";
+			return "Method Not Allowed";
 		case kPayloadTooLarge:
-			return "Payload too large";
+			return "Payload Too Large";
 		case kInternalServerError:
-			return "Internal server error";
+			return "Internal Server Error";
 	}
 	return "CODE NOT VALID";
 }

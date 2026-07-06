@@ -23,7 +23,7 @@ class ConnHandler : public EventHandler
 
 	std::vector<char>	write_buf_;
 	size_t			write_off_;
-	time_t			last_activity_;
+	time_t			start_time_;
 
 	Epoll &			epoll_;
 	Reactor &		reactor_;

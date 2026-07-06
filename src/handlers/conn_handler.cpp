@@ -3,6 +3,7 @@
 #include "cgi_in_handler.hpp"
 #include "event_handler.hpp"
 #include "epoll.hpp"
+#include "http_response.hpp"
 #include "listen_handler.hpp"
 #include "reactor.hpp"
 #include "../webserv.hpp"
@@ -28,7 +29,7 @@
 ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
 			 Epoll & epoll, Reactor & reactor)
 : fd_(fd), state_(kReading), addr_(addr), write_off_(0),
-	last_activity_(time(NULL)), epoll_(epoll), reactor_(reactor), listen_(listen), cgi_(NULL)
+	start_time_(time(NULL)), epoll_(epoll), reactor_(reactor), listen_(listen), cgi_(NULL)
 {
 	try {
 		router_.set_config(const_cast<Config &>(listen_.config())); // a remodifier dans la classe pour eviter le cast degueu
@@ -46,7 +47,6 @@ int	ConnHandler::HandleEvent(uint32_t events)
 
 	if (CheckTimeout(time(NULL)) == kClose)
 		return kClose;
-	last_activity_ = time(NULL);
 
 	if (state_ == kReading && events & EPOLLIN) {
 		char read_buf[kReadBufferSize];
@@ -209,27 +209,29 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 
 void	ConnHandler::OnCgiDone(const std::string & output)
 {
-	cgi_ = NULL;
 	HttpResponse	response = router_.CgiResponse(output);
+
+	cgi_ = NULL;
 	write_buf_ = response.ToCharVector();
-	state_ = kWriting;
 	epoll_.Mod(fd_, EPOLLOUT, this);
+	state_ = kWriting;
 }
 
 void	ConnHandler::OnCgiError(int status)
 {
+	HttpResponse	response(router_.ErrorResponse(status));
+
 	cgi_ = NULL;
-	HttpResponse	response = router_.ErrorResponse(status);
 	write_buf_ = response.ToCharVector();
-	state_ = kWriting;
 	epoll_.Mod(fd_, EPOLLOUT, this);
+	state_ = kWriting;
 }
 
 void	ConnHandler::Detach() { cgi_ = NULL; }
 
 int	ConnHandler::CheckTimeout(time_t now)
 {
-	if (difftime(now, last_activity_) >= kTimeoutSecs)
+	if (difftime(now, start_time_) >= kTimeoutSecs)
 		return kClose;
 	return kKeep;
 }

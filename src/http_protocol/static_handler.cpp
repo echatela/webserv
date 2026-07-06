@@ -2,7 +2,9 @@
 
 #include "webserv.hpp"
 
+#include <cstring>
 #include <fstream>
+#include <iostream>
 
 StaticHandler::StaticHandler() {}
 
