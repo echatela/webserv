@@ -1,0 +1,24 @@
+[
+  {
+    "file": "src/http_protocol/router.cpp",
+    "arguments": [
+      "/usr/bin/g++",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-g",
+      "-std=c++98",
+      "-c",
+      "src/http_protocol/router.cpp",
+      "-o",
+      ".build/src/http_protocol/router.o",
+      "-Isrc",
+      "-Isrc/reactor",
+      "-Isrc/handlers",
+      "-Isrc/http_protocol",
+      "-Isrc/config"
+    ],
+    "directory": "/home/echatela/dev/webserv",
+    "output": ".build/src/http_protocol/router.o"
+  }
+]

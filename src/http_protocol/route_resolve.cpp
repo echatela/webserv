@@ -1,5 +1,7 @@
 #include "route_resolve.hpp"
 
+#include <iostream>
+
 RouteResolve::RouteResolve() {}
 
 RouteResolve::~RouteResolve() {}
@@ -69,7 +71,7 @@ bool			StatCheck(std::string path) {
 bool 			EndsWith(char c, std::string str) {
 	
 	if (str[str.length() - 1] == c)
-	return true;
+		return true;
 	return false;
 	
 }

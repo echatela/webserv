@@ -1,4 +1,7 @@
 #include "static_handler.hpp"
+
+#include "webserv.hpp"
+
 #include <fstream>
 
 StaticHandler::StaticHandler() {}

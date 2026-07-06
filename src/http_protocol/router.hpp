@@ -1,24 +1,20 @@
 #ifndef ROUTER_HPP
 #define ROUTER_HPP
 
-
 #include "http_response.hpp"
 #include "http_request.hpp"
 #include "../config/config.hpp"
 #include "route_result.hpp"
-#include "route_resolve.hpp"
-#include "../webserv.hpp"
-#include "static_handler.hpp"
 
 
 struct RouteInfo {
 
 	LocationConfig	location;
-	bool 			loc_found;
+	bool 		loc_found;
 	
 	std::string 	uri;
-	std::string		file_path;
-	std::string		filename;
+	std::string	file_path;
+	std::string	filename;
 	std::string 	root;
 
 	bool		exists;
@@ -40,12 +36,13 @@ public:
 
 	// void	FillRouteInfo(HttpRequest & req);
 
-	CgiPlan		MakeCgiPlan(HttpRequest & req);
+	CgiPlan			MakeCgiPlan(HttpRequest & req);
 
-	RouteResult 	ProcessRequest(HttpRequest & req);
+	RouteResult 		ProcessRequest(HttpRequest & req);
 	
-	HttpResponse	CgiResponse(const std::string output);
-	HttpResponse 	StaticResponse(HttpRequest & req, RouteInfo & info);
+	HttpResponse		CgiResponse(const std::string output);
+	HttpResponse 		StaticResponse(HttpRequest & req, RouteInfo & info);
+
 	static HttpResponse 	ErrorResponse(int status_code);
 
 	void			set_config(Config & config);

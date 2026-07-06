@@ -1,5 +1,11 @@
 #include "router.hpp"
 
+#include "webserv.hpp"
+#include "route_resolve.hpp"
+#include "static_handler.hpp"
+
+#include <iostream>
+
 Router::Router(Config config) : config_(config) {}
 
 Router::Router() {}
@@ -26,7 +32,7 @@ RouteResult		Router::ProcessRequest(HttpRequest & req) {
 // construction objet http_reponse cgi
 HttpResponse 	Router::CgiResponse(const std::string output) {
 	HttpResponse	response;
-	std::string		cgi_result = output;
+	std::string	cgi_result = output;
 
 	response.set_version("HTTP/1.1");
 	response.set_status(kOk);
@@ -54,6 +60,8 @@ HttpResponse 	Router::CgiResponse(const std::string output) {
 		i++;
 	cgi_result.substr(i, cgi_result.length());
 	response.set_body(cgi_result);
+	response.set_header("Content-Length",
+		webserv::utils::IntToStr(response.get_body().size()));
 	return response;
 }
 
