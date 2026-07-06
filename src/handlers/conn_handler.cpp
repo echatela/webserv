@@ -119,7 +119,7 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	env.push_back(content_length.str());
 	std::stringstream content_type;
 	content_type << "CONTENT_TYPE=" << request_.get_header("content-type");
-	env.push_back("CONTENT_TYPE=");
+	env.push_back(content_type.str());
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	env.push_back("PATH_INFO=" + plan.path_info);
 	env.push_back("PATH_TRANSLATED=");
