@@ -7,6 +7,8 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 
 StaticHandler::StaticHandler() {}
 
@@ -35,13 +37,11 @@ void		FillBody(std::string & body, RouteInfo & info) {
 	file.close();
 	if (body.size() == 0)
 		info.status_code = kNoContent;
-
 }
 
 std::string	value_from_extension(std::string extension) {
 
 	std::map<std::string, std::string> types;
-
 	types[".html"] = "text/html";
 	types[".css"] = "text/css";	
 	types[".js"] = "application/javascript";	
@@ -49,25 +49,21 @@ std::string	value_from_extension(std::string extension) {
 	types[".jpg"] = "image/jpeg";	
 	types[".gif"] = "image/gif";
 
-	return (types.at(extension));
+	std::map<std::string, std::string>::const_iterator it
+		= types.find(extension);
+	if (it == types.end())
+		return "application/octet-stream";
+	return it->second;
 }
 
-void			AddContentType(HttpResponse & current, 	RouteInfo info) {
-
+void			AddContentType(HttpResponse & current, 	RouteInfo info)
+{
 	size_t		dot = info.file_path.find_last_of('.');
 	std::string	extension;
-	std::string content_type;
 	
 	if (dot != std::string::npos)
 		extension = info.file_path.substr(dot, info.file_path.size());
-	try {
-		current.set_header("Content-Type", value_from_extension(extension));
-	}
-	catch (std::exception& e)
-	{
-		info.status_code = kMethodNotAllowed;
-	}
-
+	current.set_header("Content-Type", value_from_extension(extension));
 }
 
 void		AddContentLength(HttpResponse & current, std::string body) {
@@ -98,6 +94,8 @@ HttpResponse 	StaticHandler::BuildGet(HttpRequest & req, RouteInfo & info) {
 				return Router::ErrorResponse(kNotFound);
 		} else {
 			info.file_path.append("index.html");
+			if (!webserv::utils::StatCheck(info.file_path))
+				return Router::ErrorResponse(kNotFound);
 		}
 	}
 	FillBody(body, info);
