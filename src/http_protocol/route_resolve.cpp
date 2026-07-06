@@ -1,6 +1,10 @@
 #include "route_resolve.hpp"
+#include "http_response.hpp"
 
+#include <algorithm>
 #include <iostream>
+#include <string>
+#include <vector>
 
 RouteResolve::RouteResolve() {}
 
@@ -88,6 +92,20 @@ void 		InitRouteInfo(RouteInfo & info) {
 
 }
 
+static bool	MethodNotAllowed(const std::string & method,
+	const std::vector<std::string> & methods)
+{
+	if (methods.empty())
+		return false;
+
+	std::vector<std::string>::const_iterator	it
+		= std::find(methods.begin(), methods.end(), method);
+
+	if (it == methods.end())
+		return true;
+	return false;
+}
+
 RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 
 	RouteInfo info;
@@ -107,7 +125,13 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 	info.uri = req.get_path();
 	info.file_path = BuildFilesystemPath(info.uri, config, info.location, location_found);
 
-	if (PathResolved(info.file_path) == false || stat(info.file_path.c_str(), &stat_info) == -1)
+	if (MethodNotAllowed(req.get_method(), info.location.methods)) {
+		info.status_code = kMethodNotAllowed;
+		return info;
+	}
+
+	if (PathResolved(info.file_path) == false
+		|| stat(info.file_path.c_str(), &stat_info) == -1)
 		info.status_code = kNotFound;
 
 	if (S_ISDIR(stat_info.st_mode))

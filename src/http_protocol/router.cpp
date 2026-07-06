@@ -16,7 +16,8 @@ void			Router::set_config(Config & config) { config_ = config; }
 
 // si pas d'erreur au moment de la resolution de route,
 // envoie la requete soit dans le process cgi soit dans le process classique/statique
-RouteResult		Router::ProcessRequest(HttpRequest & req) {
+RouteResult		Router::ProcessRequest(HttpRequest & req)
+{
 	RouteInfo info = RouteResolve::ResolveRoute(req, config_);
 
 	std::cout << "==================================" << info.status_code << std::endl;
@@ -24,13 +25,13 @@ RouteResult		Router::ProcessRequest(HttpRequest & req) {
 		return RouteResult::Response(ErrorResponse(info.status_code));
 	if (info.is_cgi == true)
 		return RouteResult::Cgi(MakeCgiPlan(req));
-	else
-		return RouteResult::Response(StaticResponse(req, info));
+	return RouteResult::Response(StaticResponse(req, info));
 
 }
 
 // construction objet http_reponse cgi
-HttpResponse 	Router::CgiResponse(const std::string output) {
+HttpResponse 	Router::CgiResponse(const std::string output)
+{
 	HttpResponse	response;
 	std::string	cgi_result = output;
 

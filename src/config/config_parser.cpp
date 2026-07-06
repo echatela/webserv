@@ -135,6 +135,8 @@ std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 			directives.root = ParseStr("root");
 		else if (current().content == "cgi")
 			directives.cgi = ParseStr("cgi");
+		else if (current().content == "methods")
+			directives.methods = ParseStr("methods");
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
 	}

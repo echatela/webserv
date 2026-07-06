@@ -20,9 +20,12 @@ public:
 	RouteResolve();
 	~RouteResolve();
 	
-	static RouteInfo 		ResolveRoute(HttpRequest & req, Config & config);
-	static void				FindLocation(std::string req_path, Config & config, LocationConfig & location, bool & found);
-	static std::string 	BuildFilesystemPath(std::string uri, Config & config, LocationConfig location, bool found);
+	static RouteInfo 	ResolveRoute(HttpRequest & req,
+		Config & config);
+	static void		FindLocation(std::string req_path,
+		Config & config, LocationConfig & location, bool & found);
+	static std::string 	BuildFilesystemPath(std::string uri,
+		Config & config, LocationConfig location, bool found);
 };
 
 #endif
