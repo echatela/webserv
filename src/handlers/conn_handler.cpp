@@ -74,12 +74,10 @@ int	ConnHandler::HandleEvent(uint32_t events)
 
 		if (n > 0)
 			write_off_ += n;
-		if (write_off_ == write_buf_.size()) {
-			state_ = kReading;
-			epoll_.Mod(fd_, EPOLLIN, this);
-			write_buf_.clear();
-			write_off_ = 0;
-		}
+		// decide to respect http/1.0 protocol here for simplicity
+		// and security
+		if (write_off_ == write_buf_.size())
+			return kClose;
 		return kKeep;
 	}
 	return kClose;
