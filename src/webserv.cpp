@@ -5,6 +5,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <cerrno>
+#include <sys/stat.h>
 #include <vector>
 
 int	webserv::fd::SetNonBlock(int fd)
@@ -78,4 +79,13 @@ unsigned int	webserv::utils::ParseUInt(std::string value)
 		throw std::logic_error("Int value overflows: " + value);
 		
 	return (static_cast<unsigned int>(val));
+}
+
+
+bool	webserv::utils::StatCheck(std::string path) {
+	struct stat info;
+
+	if (stat(path.c_str(), &info) == -1)
+		return false;
+	return true;
 }

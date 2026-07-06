@@ -20,6 +20,7 @@ struct LocationConfig {
 	std::vector<std::string>	root;
 	std::vector<std::string>	cgi;
 	std::vector<std::string>	methods;
+	std::vector<std::string>	index;
 };
 
 struct	ServerConfig {
@@ -44,18 +45,18 @@ public:
 
 	const Config &	operator=(const Config & rhs);
 
-	void								add_listen_info(ListenInfo listen);
-	void								set_root(std::string root);
-	void								add_location(std::pair<std::string, LocationConfig> location);
-	void								set_max_body_size(size_t size);
+	void	add_listen_info(ListenInfo listen);
+	void	set_root(std::string root);
+	void	add_location(std::pair<std::string, LocationConfig> location);
+	void	set_max_body_size(size_t size);
 
-	std::string			root();	
-	size_t					max_body_size();	
+	std::string	root();	
+	size_t		max_body_size();	
 
-	const std::vector<ListenInfo> &					listens_info() const;
-	std::map<std::string, LocationConfig>				get_locations() const;	
-	static std::vector<ListenInfo>	listens_info(std::vector<Config> configs);
-	const std::string &		server_name() const;
+	const std::vector<ListenInfo> &		listens_info() const;
+	std::map<std::string, LocationConfig>	locations() const;	
+	static std::vector<ListenInfo>		listens_info(std::vector<Config> configs);
+	const std::string &			server_name() const;
 	// const std::vector<ServerConfig> & 	get_servers_info() const;
 };
 

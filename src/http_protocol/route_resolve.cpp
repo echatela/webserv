@@ -23,7 +23,7 @@ void 	RouteResolve::FindLocation(std::string req_path, Config & config, Location
 		base_dir = req_path;
 
 	try {
-		location = config.get_locations().at(base_dir);
+		location = config.locations().at(base_dir);
 		found = true;
 	}
 	catch (std::exception & e) {
@@ -64,7 +64,7 @@ bool 			PathResolved(std::string filepath) {
 	return true;
 }
 
-bool			StatCheck(std::string path) {
+bool	StatCheck(std::string path) {
 	struct stat info;
 
 	if (stat(path.c_str(), &info) == -1)

@@ -1,7 +1,9 @@
 #include "static_handler.hpp"
 
+#include "http_response.hpp"
 #include "webserv.hpp"
 
+#include <cstddef>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -81,13 +83,26 @@ HttpResponse 	StaticHandler::BuildGet(HttpRequest & req, RouteInfo & info) {
 	std::string 	body;
 	(void)req;
 
-	if (info.is_directory == true)
-	{
-		info.file_path.append("index.html");
+	if (info.is_directory == true) {
+		if (!info.location.index.empty()) {
+			size_t	i;
+			for (i = 0; i < info.location.index.size(); ++i) {
+				std::string path(info.file_path);
+				path.append(info.location.index[i]);
+				if (webserv::utils::StatCheck(path)) {
+					info.file_path = path;
+					break;
+				}
+			}
+			if (i == info.location.index.size())
+				return Router::ErrorResponse(kNotFound);
+		} else {
+			info.file_path.append("index.html");
+		}
 	}
 	FillBody(body, info);
 	if (info.status_code != kOk)
-		return 	Router::ErrorResponse(info.status_code);
+		return Router::ErrorResponse(info.status_code);
 	AddContentLength(response, body);
 
 	response.set_body(body);

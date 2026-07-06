@@ -98,7 +98,7 @@ CgiPlan		Router::MakeCgiPlan(HttpRequest & req) {
 	std::string path = req.get_path();
 	size_t sep;
 
-	cgi.interpreter = config_.get_locations().at("/cgi").cgi[1];
+	cgi.interpreter = config_.locations().at("/cgi").cgi[1];
 	sep = path.find(".py");
 	if (sep != std::string::npos)
 	{
