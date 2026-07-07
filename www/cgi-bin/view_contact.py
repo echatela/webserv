@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Exécuteur: utiliser Python 3 pour lancer ce script
 
 import html
 import json
@@ -7,7 +8,7 @@ import os
 
 
 # Recherche du json
-def findContactsFile():
+def find_contacts_file():
     # Chemin du script courant
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Chemin du fichier JSON.
@@ -15,9 +16,9 @@ def findContactsFile():
 
 
 # Chercher les contacts
-def loadContacts():
+def load_contacts():
     # Recherche du json
-    contactsFile = findContactsFile()
+    contactsFile = find_contacts_file()
 
     # Si pas de fhcier, liste vide
     if contactsFile is None:
@@ -59,14 +60,6 @@ def print_page_start(title):
     print(f"\t<title>{title}</title>")
     print('\t<link rel="stylesheet" href="../style.css">')
     print("\t<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>")
-    # Suppression du contact
-    print("\t<script>")
-    print("\t\tfunction deleteContact(id) {")
-    print("\t\t\tfetch('/cgi-bin/delete_contact.py?id=' + id, { method: 'DELETE' })")
-    print("\t\t\t\t.then(response => response.json())")
-    print("\t\t\t\t.then(() => location.reload())")
-    print("\t\t}")
-    print("\t</script>")
     print("</head>")
     print("<body>")
 
@@ -83,7 +76,7 @@ def print_empty_state():
     print('\t<div class="phonebook">')
     print("\t\t<h1>No contact yet</h1>")
     print("\t\t<p>There are no contacts saved at the moment.</p>")
-    print('\t\t\t<a href="index.html"><button class="links">Back</button></a>')
+    print('\t\t\t<a href="/index.html"><button class="links">Back</button></a>')
     print("\t\t</div>")
     print_page_end()
 
@@ -100,18 +93,23 @@ def print_contacts(contacts):
     print("\t\t<h1>Contacts</h1>")
 
     # On parcourt chaque contact de la liste.
-    for i, contact in enumerate(contacts):
+    for contact in contacts:
         # On recupere le nom et on le securise pour le HTML.
         name = html.escape(str(contact.get("name", "")))
 
         # On recupere le numero de telephone et on le securise pour le HTML.
         phone = html.escape(str(contact.get("phone", "")))
+        image = html.escape(str(contact.get("image", "")))
+        contact_id = contact.get("id", -1)
 
         # On ouvre une carte pour un contact.
         print('\t\t<div class="contact-card">')
 
         # On affiche la photo.
-        print(f'\t\t\t<div class="contact-photo"><img src="images/default.png" alt="profile"></div>')
+        if image:
+            print(f'\t\t\t<div class="contact-photo"><img src="{image}" alt="profile"></div>')
+        else:
+            print('\t\t\t<div class="contact-photo contact-photo-placeholder"><i class="bx bx-user"></i></div>')
 
         # On affiche le nom.
         print(f'\t\t\t<div class="contact-info"><h2>{name}</h2>')
@@ -122,9 +120,8 @@ def print_contacts(contacts):
         # On ferme le bloc d'informations avant les actions.
         print("\t\t\t</div>")
 
-        # Bouton delete
-        # print('\t\t <form action="#" method ="delete"> <button class="delete-btn"><i class="bx bx-trash"></i></button><br></form>')
-        print(f'\t\t <button class="delete-btn" onclick="deleteContact({i})" type="button"><i class="bx bx-trash"></i></button>')
+        # Bouton de suppression avec fetch (sans formulaire, sans confirmation)
+        print(f'\t\t<button class="delete-btn" onclick="deleteContact({contact_id})" title="Delete contact"><i class="bx bx-trash"></i></button>')
         # On ferme la carte du contact.
         print("\t\t</div>")
 
@@ -136,6 +133,34 @@ def print_contacts(contacts):
 
     # On ferme la page HTML.
     print_page_end()
+
+def add_delete_script():
+    # Ajoute le script JavaScript pour la suppression via fetch
+    script = """
+\t<script>
+\t\tfunction deleteContact(contactId) {
+\t\t\t// Appelle le CGI de suppression via fetch, sans confirmation
+\t\t\tfetch(`/cgi/delete_contact.py?id=${contactId}`, {
+\t\t\t\tmethod: 'POST'
+\t\t\t})
+\t\t\t.then(response => response.json())
+\t\t\t.then(data => {
+\t\t\t\tif (data.ok) {
+\t\t\t\t\t// Suppression réussie, recharge la page
+\t\t\t\t\talert(data.message);
+\t\t\t\t\tlocation.reload();
+\t\t\t\t} else {
+\t\t\t\t\t// Erreur de suppression
+\t\t\t\t\talert('Error: ' + data.message);
+\t\t\t\t}
+\t\t\t})
+\t\t\t.catch(error => {
+\t\t\t\talert('Network error: ' + error);
+\t\t\t});
+\t\t}
+\t</script>
+    """
+    print(script)
 	
 
 # Affichage de la response
@@ -144,9 +169,10 @@ print("Content-Type: text/html")
 
 print()
 
-contacts = loadContacts()
+contacts = load_contacts()
 
 if len(contacts) == 0:
     print_empty_state()
 else:
     print_contacts(contacts)
+    add_delete_script()
