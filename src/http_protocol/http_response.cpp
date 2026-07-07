@@ -46,6 +46,9 @@ void		HttpResponse::set_reason_phrase() {
 		case kNoContent:
 			reason_phrase_ = "No Content";
 			break;
+		case kMovedPermanently:
+			reason_phrase_ = "Moved Permanently";
+			break;
 		case kBadRequest:
 			reason_phrase_ = "Bad Request";
 			break;
@@ -83,6 +86,8 @@ std::string		HttpResponse::reason_phrase(int status_code) {
 			return "Created";
 		case kNoContent:
 			return "No Content";
+		case kMovedPermanently:
+			return "Moved Permanently";
 		case kBadRequest:
 			return "Bad Request";
 		case kForbidden:

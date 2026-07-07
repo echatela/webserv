@@ -29,7 +29,6 @@ class 	StaticHandler {
 private:
 
 public:
-
 	StaticHandler();
 	~StaticHandler();
 
@@ -43,7 +42,7 @@ public:
 	static HttpResponse	BuildPost(
 		const HttpRequest & req, RouteInfo & info);
 
-
+	static HttpResponse	BuildAutoindex(RouteInfo & info);
 };
 
 

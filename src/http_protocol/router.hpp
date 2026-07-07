@@ -43,7 +43,8 @@ public:
 	HttpResponse		CgiResponse(const std::string output);
 	HttpResponse 		StaticResponse(HttpRequest & req, RouteInfo & info);
 
-	static HttpResponse 	ErrorResponse(int status_code);
+	static HttpResponse	RedirectResponse(int code, std::string target);
+	static HttpResponse	ErrorResponse(int status_code);
 
 	void			set_config(Config & config);
 

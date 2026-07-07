@@ -2,54 +2,58 @@
 
 ## Contexte
 
-Roadmap confrontée à l'état réel du code (relecture ligne à ligne le 2026-07-06).
-Le **Tier 0** (3 bugs bloquants) et le **Tier 2** (robustesse : EAGAIN, fermeture
-HTTP/1.0, timeout stdin CGI) sont **corrigés et vérifiés**. Le multipart lit
-désormais le boundary correctement (upload OK) et le code 413 est juste. Ce
-document ne liste donc **que ce qui reste** pour un mandatory propre.
+Roadmap confrontée à l'état réel du code (dernière relecture + build le 2026-07-07).
+Le **Tier 0** (3 bugs bloquants), le **Tier 2** (robustesse) et **4 des 6 features
+Tier 1** sont **faits et vérifiés** ; `make re` compile proprement avec
+`-Wall -Wextra -Werror -std=c++98`. Ce document ne liste que **ce qui reste**.
 
 Répartition : moi = reactor/CGI/connexion ; binôme = HTTP/router + config.
 
 ---
 
-## TIER 1 — Features mandatory de config manquantes (priorité) — *binôme HTTP/config*
+## TIER 1 — Features mandatory de config
 
-`LocationConfig` (`src/config/config.hpp:18-22`) ne contient encore que
-`base_location`, `root`, `cgi`. Le pattern reste : **1) parser la directive,
-2) champ dans `LocationConfig`, 3) consommer dans le routeur/handler.**
+Pattern commun : **1) champ dans `LocationConfig`, 2) parser la directive
+(`ParseLocation`), 3) consommer dans le routeur/handler.**
 
-| Feature (sujet)             | Directive           | À faire |
-|-----------------------------|---------------------|---------|
-| Méthodes autorisées / route | `methods`/`allow`   | parser → champ → check dans `Router::ProcessRequest` (`router.cpp:19`), sinon **405** |
-| Redirection HTTP            | `return 301 <url>`  | parser → champ → réponse 301 + header `Location:` avant résolution fichier ; ajouter `kMovedPermanently=301` à l'enum (`http_response.hpp:7`) |
-| Directory listing           | `autoindex on/off`  | brancher dans `StaticHandler::BuildGet` (`static_handler.cpp:84`) : générer le listing si dossier + pas d'index |
-| Fichier index par défaut    | `index`             | aujourd'hui **hardcodé** `index.html` (`static_handler.cpp:86`) → rendre configurable |
-| Pages d'erreur custom       | `error_page <c> <p>`| map code→path dans `Config` → utilisée par `Router::ErrorResponse` (`router.cpp:74`) avant le fallback générique (fallback OK et à garder) |
-| Dossier d'upload            | `upload`/storage    | l'upload marche via `root` ; ajouter un chemin de stockage séparé si le sujet/eval l'exige |
+| Feature (sujet)             | Directive           | État | Détail |
+|-----------------------------|---------------------|------|--------|
+| Méthodes autorisées / route | `methods`           | ✅   | `MethodNotAllowed` dans `route_resolve.cpp`, 405 via la porte de sortie erreur |
+| Redirection HTTP            | `return 301 <url>`  | ✅   | `redirect` parsé (taille validée), `RedirectResponse` + header `Location`, court-circuit dans `ProcessRequest` |
+| Directory listing           | `autoindex on/off`  | ✅   | `BuildAutoindex` (`opendir`/`readdir`), défaut `off`, argument validé |
+| Fichier index par défaut    | `index`             | ✅   | liste de candidats testés via `StatCheck`, fallback `index.html` |
+| **Pages d'erreur custom**   | `error_page <c> <p>`| ⬜   | map code→path dans `Config` (niveau **serveur**) → utilisée par `Router::ErrorResponse` (`router.cpp:99`) avant le fallback générique (garder le fallback) |
+| **Dossier d'upload**        | `upload`/storage    | ⬜   | l'upload marche via `root` ; ajouter un chemin de stockage séparé si l'eval l'exige (consommé dans `StaticHandler::BuildPost`) |
+
+Points à vérifier au passage (pas des bugs bloquants) :
+- **Jointure de chemin** dans `BuildGet`/`BuildAutoindex` : `path.append(candidate)`
+  suppose que `info.file_path` finit par `/`. Confirmer via `BuildFilesystemPath`
+  pour une URI de dossier ; ajouter le `/` si besoin.
+- Harmoniser la branche « pas de directive `index` » avec l'autoindex (aujourd'hui
+  gérée par le fallback `index.html`, cohérent mais à garder en tête).
 
 ---
 
 ## TIER 3 — Cleanup avant soutenance
 
-- **Prints de debug à retirer** (confirmés actifs) :
-  - `src/http_protocol/router.cpp:22` (`====...` + status)
-  - `src/http_protocol/route_resolve.cpp:99` (`====...max_body_size`)
+- **Prints de debug à retirer** (confirmés actifs le 2026-07-07) :
+  - `src/http_protocol/router.cpp:23` (`====...` + status)
+  - `src/http_protocol/route_resolve.cpp` (`====...max_body_size`)
   - `src/http_protocol/http_request.cpp:81` (`std::cerr Value for ... not found`)
-  - `src/http_protocol/static_handler.cpp:237` (`e.what()`)
+  - `src/http_protocol/static_handler.cpp` (`e.what()` dans `GetFilename`)
   - `src/handlers/conn_handler.cpp:89` (buffer requête, CYAN) et `:97` (réponse, YELLOW)
-  - *(garder `main.cpp:12/26` : usage + erreur légitimes)*
+  - *(garder `main.cpp` : usage + erreur légitimes)*
 - **Code mort** : supprimer `src/http_protocol/main_test.cpp` (déjà hors du Makefile).
 - **`RouteResult::operator=`** (`route_result.cpp`) : `plan_` et `response_` sont
   **commentés** → copie partielle. Compléter (ou confirmer qu'il n'est pas utilisé).
-- **`CgiResponse` fragile** (`router.cpp:41-64`) — *ma partie CGI* :
-  - `cgi_result.substr(i, ...)` ligne 61 : résultat **jeté**, les `\n` de tête
-    restent potentiellement dans le body.
+- **`CgiResponse` fragile** (`router.cpp`, ~l.38-66) — *ma partie CGI* :
+  - le `substr` de fin : résultat **jeté**, les `\n` de tête restent dans le body.
   - parsing d'en-têtes qui suppose exactement `": "` et `erase` manuel → fiabiliser
-    (couper proprement sur `\n\n` / `\r\n\r\n`, séparer clé/valeur au premier `:`).
-- **DELETE en échec** renvoie **405** (`static_handler.cpp:127`) → devrait être
-  404 (absent) ou 500 (échec `remove`), pas 405.
+    (couper sur `\n\n` / `\r\n\r\n`, séparer clé/valeur au premier `:`).
+- **DELETE en échec** renvoie **405** (`static_handler.cpp`, `BuildDelete`) → devrait
+  être 404 (absent) ou 500 (échec `remove`), pas 405.
 - **Config d'éval** : `Configuration.conf` référence `./database` (dossier absent) ;
-  vérifier le fichier parasite `www/assets/main.cpp"` (guillemet dans le nom).
+  fichier parasite `www/assets/main.cpp"` (guillemet dans le nom).
 - **`.gitignore`** : exclure `vgcore.*`, le binaire `webserv`, `__pycache__/`.
 - **README** (sujet chap. V) : 1re ligne en italique *"This project has been created
   as part of the 42 curriculum by <login1>, ..."* + sections Description /
@@ -57,26 +61,32 @@ Répartition : moi = reactor/CGI/connexion ; binôme = HTTP/router + config.
 
 ---
 
-## Vérification end-to-end
+## Vérification end-to-end (à faire une fois error_page + upload finis)
 
-1. **Build** : `make re` clean avec `-Wall -Wextra -Werror -std=c++98`.
+1. **Build** : `make re` clean (✅ au 2026-07-07).
 2. **Static** : `localhost:6770` → index, CSS, images (bons Content-Type/Length).
 3. **CGI GET/POST** : `view_contact.py` répond vite et se ferme ;
    `add_contact.py` reçoit le body sur stdin et écrit le JSON. Comparer `curl -v` à NGINX.
-4. **Upload** : formulaire multipart → fichier écrit dans le dossier cible.
-5. **DELETE** : suppression → bon code retour (une fois le 405 corrigé).
-6. **Erreurs config** : 404, **405** (méthode interdite par route), **413**
-   (body > `client_max_body_size`), **301** (route de redirection), autoindex on/off.
-7. **Résilience** : stress `siege`/`ab` → pas de crash ; `kill -INT` ne casse pas la boucle.
-8. **Non-bloquant** : tout read/write passe par epoll, aucun fd bloquant.
+4. **Méthodes** : `methods GET;` sur une route → un POST renvoie **405**.
+5. **Redirection** : `return 301 /new;` → 301 + header `Location`, le navigateur suit.
+6. **Autoindex** : `autoindex on;` sur un dossier sans index → listing cliquable ;
+   `off` → **403**.
+7. **Index** : `index home.html;` → sert bien `home.html` sur le dossier.
+8. **Upload** : formulaire multipart → fichier écrit dans le dossier cible.
+9. **DELETE** : suppression → bon code retour (une fois le 405 corrigé).
+10. **Erreurs** : 404, 413 (body > `client_max_body_size`), error_page custom.
+11. **Résilience** : stress `siege`/`ab` → pas de crash ; `kill -INT` ne casse pas la boucle.
+12. **Non-bloquant** : tout read/write passe par epoll, aucun fd bloquant.
 
 ---
 
 ## Historique — déjà réglé (ne plus toucher)
 
-- **Tier 0** : `cgi_in_handler` fermait toujours (EPOLLERR/HUP mal placé) ✅ ;
-  `get_header` renvoyait vide (shadowing) ✅ ; `reactor` crashait sur EINTR ✅.
-- **Tier 2** : `send`/`write` ne ferment plus sur `n<0` (EAGAIN) ✅ ; connexion
-  fermée après réponse complète (HTTP/1.0, `conn_handler.cpp:79`) ✅ ; timeout
-  stdin CGI (`CgiInHandler::CheckTimeout`) ✅.
-- **Tier 3** : `kPayloadTooLarge` = **413** ✅ ; parsing multipart/boundary OK ✅.
+- **Tier 0** : `cgi_in_handler` (EPOLLERR/HUP) ✅ ; `get_header` (shadowing) ✅ ;
+  `reactor` EINTR ✅.
+- **Tier 2** : `send`/`write` ne ferment plus sur `n<0` (EAGAIN) ✅ ; fermeture
+  après réponse (HTTP/1.0) ✅ ; timeout stdin CGI ✅.
+- **Tier 1 (4/6)** : `methods`/405 ✅ ; `index` configurable ✅ ; `autoindex` ✅ ;
+  `return`/redirection ✅.
+- **Tier 3 (partiel)** : `kPayloadTooLarge` = 413 ✅ ; multipart/boundary ✅ ;
+  extension inconnue → `application/octet-stream` (plus de 405 fantôme) ✅.

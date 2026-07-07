@@ -20,7 +20,12 @@ RouteResult		Router::ProcessRequest(HttpRequest & req)
 {
 	RouteInfo info = RouteResolve::ResolveRoute(req, config_);
 
-	std::cout << "==================================" << info.status_code << std::endl;
+	std::cout << "=================================="
+		<< info.status_code << std::endl;
+	if (!info.location.redirect.empty())
+		return RouteResult::Response(RedirectResponse(
+			webserv::utils::ParseUInt(info.location.redirect[0]),
+			info.location.redirect[1]));
 	if (info.status_code != 200)
 		return RouteResult::Response(ErrorResponse(info.status_code));
 	if (info.is_cgi == true)
@@ -69,6 +74,25 @@ HttpResponse 	Router::CgiResponse(const std::string output)
 // construction objet http_reponse statique
 HttpResponse 	Router::StaticResponse(HttpRequest& req, RouteInfo & info) {
 	return StaticHandler::BuildStatic(req, info);
+}
+
+HttpResponse  Router::RedirectResponse(int code, std::string target)
+{
+      HttpResponse    resp;
+      std::string     body;
+
+      resp.set_status(code);
+      resp.set_reason_phrase();
+      resp.set_version("HTTP/1.1");
+      resp.set_header("Location", target);
+      body.append("<html>\r\n<body>\r\n<h1>");
+      body.append(webserv::utils::IntToStr(code) + " Redirect");
+      body.append("</h1>\r\n<a href=\"" + target + "\">" + target + "</a>\r\n");
+      body.append("</body>\r\n</html>\r\n");
+      resp.set_body(body);
+      resp.set_header("Content-Type", "text/html");
+      resp.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
+      return resp;
 }
 
 // construction objet http_reponse erreur

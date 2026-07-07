@@ -123,15 +123,17 @@ int					ConfigParser::ParseMaxBodySize() {
 	return (max_size);
 }
 
-std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
+std::pair<std::string, LocationConfig>	ConfigParser::ParseLocation() {
 
-	std::string		base;
-	LocationConfig directives;
+	std::string	base;
+	LocationConfig	directives;
+
 	present("location");
 	base = current().content;
 	directives.base_location = base;
 	current_++;
 	present("{");
+	directives.autoindex = false;
 	
 	while (current_ < tokens_.size() && current().content != "}")
 	{
@@ -146,10 +148,15 @@ std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 		else if (current().content == "autoindex") {
 			std::vector<std::string> tmp = ParseStr("autoindex");
 			if (tmp.size() != 1
-				|| (tmp[0] != "on" && tmp[1] != "off"))
+				|| (tmp[0] != "on" && tmp[0] != "off"))
 				throw std::runtime_error(
-					"Invalid argument of autoindex");
+					"Invalid argument: autoindex");
 			directives.autoindex = (tmp[0] == "on");
+		} else if (current().content == "return") {
+			directives.redirect = ParseStr("return");
+			if (directives.redirect.size() != 2)
+				throw std::runtime_error(
+					"Invalid argument: return");
 		}
 		else
 			throw std::logic_error("Unknown directive: "

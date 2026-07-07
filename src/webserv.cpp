@@ -76,7 +76,7 @@ unsigned int	webserv::utils::ParseUInt(std::string value)
 	long	val = std::strtol(value.c_str(), &end, 10);
 
 	if (errno == ERANGE || val < 0 || val > INT_MAX)
-		throw std::logic_error("Int value overflows: " + value);
+		throw std::logic_error("UInt value overflows: " + value);
 		
 	return (static_cast<unsigned int>(val));
 }

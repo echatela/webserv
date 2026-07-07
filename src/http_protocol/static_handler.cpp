@@ -74,7 +74,7 @@ static void	AddContentLength(HttpResponse & current, std::string body)
 	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 }
 
-static HttpResponse	BuildAutoindex(RouteInfo & info)
+HttpResponse	StaticHandler::BuildAutoindex(RouteInfo & info)
 {
 	HttpResponse	response;
 

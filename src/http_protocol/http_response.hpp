@@ -8,6 +8,7 @@ enum	HttpStatusCode {
 	kOk = 200,
 	kCreated = 201,
 	kNoContent = 204,
+	kMovedPermanently = 301,
 	kBadRequest = 400,
 	kForbidden = 403,
 	kNotFound = 404,
