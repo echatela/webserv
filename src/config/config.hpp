@@ -21,6 +21,7 @@ struct LocationConfig {
 	std::vector<std::string>	cgi;
 	std::vector<std::string>	methods;
 	std::vector<std::string>	index;
+	bool				autoindex;
 };
 
 struct	ServerConfig {

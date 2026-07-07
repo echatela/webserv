@@ -33,11 +33,15 @@ public:
 	StaticHandler();
 	~StaticHandler();
 
-	static HttpResponse	BuildStatic(const HttpRequest & req, RouteInfo & info);
+	static HttpResponse	BuildStatic(
+		const HttpRequest & req, RouteInfo & info);
 
-	static HttpResponse	BuildGet(const HttpRequest & req, RouteInfo & info);
-	static HttpResponse	BuildDelete(const HttpRequest & req, RouteInfo & info);
-	static HttpResponse	BuildPost(const HttpRequest & req, RouteInfo & info);
+	static HttpResponse	BuildGet(
+		const HttpRequest & req, RouteInfo & info);
+	static HttpResponse	BuildDelete(
+		const HttpRequest & req, RouteInfo & info);
+	static HttpResponse	BuildPost(
+		const HttpRequest & req, RouteInfo & info);
 
 
 };

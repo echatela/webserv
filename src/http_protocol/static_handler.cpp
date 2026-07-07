@@ -1,6 +1,7 @@
 #include "static_handler.hpp"
 
 #include "http_response.hpp"
+#include "router.hpp"
 #include "webserv.hpp"
 
 #include <cstddef>
@@ -9,6 +10,8 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <dirent.h>
+#include <vector>
 
 StaticHandler::StaticHandler() {}
 
@@ -71,30 +74,69 @@ static void	AddContentLength(HttpResponse & current, std::string body)
 	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 }
 
+static HttpResponse	BuildAutoindex(RouteInfo & info)
+{
+	HttpResponse	response;
+
+	DIR	*dir = opendir(info.file_path.c_str());
+	if (dir == NULL)
+		return Router::ErrorResponse(kForbidden);
+
+	std::string uri = info.uri;
+	if (uri.empty() || uri[uri.size() - 1] != '/')
+		uri.append("/");
+
+	std::string	body;
+	body += "<html>\r\n<head><title>Index of " + uri + "</title></head>\r\n";
+	body += "<body>\r\n<h1>Index of " + uri + "</h1>\r\n<ul>\r\n";
+
+	struct dirent	*entry;
+	while ((entry = readdir(dir)) != NULL) {
+		std::string	name = entry->d_name;
+		if (name == ".")
+			continue;
+		body += "<li><a href=\"" + uri + name + "\">" + name
+			+ "</a></li>\r\n";
+	}
+	closedir(dir);
+
+	body += "</ul>\r\n</body>\r\n</html>\r\n";
+
+	response.set_status(kOk);
+	response.set_reason_phrase();
+	response.set_version("HTTP/1.1");
+	response.set_header("Content-Type", "text/html");
+	AddContentLength(response, body);
+	response.set_body(body);
+	return response;
+}
+
 HttpResponse 	StaticHandler::BuildGet(const HttpRequest & req, RouteInfo & info)
 {
-	// std::cout << req.header("CONNECTION") << req.header("USer-agent") << std::endl;
 	HttpResponse	response;
 	std::string 	body;
 	(void)req;
 
 	if (info.is_directory == true) {
-		if (!info.location.index.empty()) {
-			size_t	i;
-			for (i = 0; i < info.location.index.size(); ++i) {
-				std::string path(info.file_path);
-				path.append(info.location.index[i]);
-				if (webserv::utils::StatCheck(path)) {
-					info.file_path = path;
-					break;
-				}
+		std::vector<std::string> candidates = info.location.index;
+		if (candidates.empty())
+			candidates.push_back("index.html");
+
+		bool	found = false;
+		for (size_t i = 0; i < candidates.size(); ++i) {
+			std::string	path(info.file_path);
+			path.append(candidates[i]);
+			if (webserv::utils::StatCheck(path)) {
+				info.file_path = path;
+				found = true;
+				break;
 			}
-			if (i == info.location.index.size())
-				return Router::ErrorResponse(kNotFound);
-		} else {
-			info.file_path.append("index.html");
-			if (!webserv::utils::StatCheck(info.file_path))
-				return Router::ErrorResponse(kNotFound);
+		} 
+
+		if (!found) {
+			if (info.location.autoindex)
+				return BuildAutoindex(info);
+			return Router::ErrorResponse(kForbidden);
 		}
 	}
 	FillBody(body, info);

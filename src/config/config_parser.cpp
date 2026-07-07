@@ -14,6 +14,8 @@
 #include "../webserv.hpp"
 #include <cerrno>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 ConfigParser::ConfigParser(std::vector<Token> tokens) : tokens_(tokens), current_(0) {}
 
@@ -141,8 +143,17 @@ std::pair<std::string, LocationConfig> 				ConfigParser::ParseLocation() {
 			directives.methods = ParseStr("methods");
 		else if (current().content == "index")
 			directives.index = ParseStr("index");
+		else if (current().content == "autoindex") {
+			std::vector<std::string> tmp = ParseStr("autoindex");
+			if (tmp.size() != 1
+				|| (tmp[0] != "on" && tmp[1] != "off"))
+				throw std::runtime_error(
+					"Invalid argument of autoindex");
+			directives.autoindex = (tmp[0] == "on");
+		}
 		else
-			throw std::logic_error("Unknown directive: " + current().content);
+			throw std::logic_error("Unknown directive: "
+				+ current().content);
 	}
 	present("}");
 	std::pair<std::string, LocationConfig> location(base, directives);
