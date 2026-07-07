@@ -25,7 +25,7 @@ HttpResponse 	StaticHandler::BuildStatic(HttpRequest & req, RouteInfo & info) {
 	return Router::ErrorResponse(kMethodNotAllowed);	
 }
 
-void		FillBody(std::string & body, RouteInfo & info) {
+static void	FillBody(std::string & body, RouteInfo & info) {
 
 	std::ifstream	file(info.file_path.c_str());
 	std::string	line;
@@ -39,7 +39,7 @@ void		FillBody(std::string & body, RouteInfo & info) {
 		info.status_code = kNoContent;
 }
 
-std::string	value_from_extension(std::string extension) {
+static std::string	ValueFromExtension(const std::string & extension) {
 
 	std::map<std::string, std::string> types;
 	types[".html"] = "text/html";
@@ -56,20 +56,19 @@ std::string	value_from_extension(std::string extension) {
 	return it->second;
 }
 
-void			AddContentType(HttpResponse & current, 	RouteInfo info)
+static void	AddContentType(HttpResponse & current, const RouteInfo &info)
 {
 	size_t		dot = info.file_path.find_last_of('.');
 	std::string	extension;
 	
 	if (dot != std::string::npos)
 		extension = info.file_path.substr(dot, info.file_path.size());
-	current.set_header("Content-Type", value_from_extension(extension));
+	current.set_header("Content-Type", ValueFromExtension(extension));
 }
 
-void		AddContentLength(HttpResponse & current, std::string body) {
-
+static void	AddContentLength(HttpResponse & current, std::string body)
+{
 	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
-
 }
 
 HttpResponse 	StaticHandler::BuildGet(HttpRequest & req, RouteInfo & info) {
