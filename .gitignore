@@ -1,6 +1,7 @@
 *.o
 webserv
 .vscode
+__pycache__/
 TODO_perso.txt
 todo_httpresponse.txt
 TODO.txt
