@@ -42,5 +42,16 @@
     "name": "qewr",
     "phone": "324",
     "image": "/upload/contact_7_wall.jpg"
+  },
+  {
+    "id": 8,
+    "name": "dsf",
+    "phone": "0283"
+  },
+  {
+    "id": 9,
+    "name": "asdfj",
+    "phone": "2093",
+    "image": "/upload/contact_9_wall.jpg"
   }
 ]

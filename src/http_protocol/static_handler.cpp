@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <dirent.h>
 #include <vector>
@@ -30,15 +31,20 @@ HttpResponse 	StaticHandler::BuildStatic(const HttpRequest & req, RouteInfo & in
 
 static void	FillBody(std::string & body, RouteInfo & info)
 {
-	std::ifstream	file(info.file_path.c_str());
-	std::string	line;
+	std::ifstream	file(info.file_path.c_str(),
+		std::ios::in | std::ios::binary);
 
-	if (!file.is_open())
+	if (!file.is_open()) {
 		info.status_code = kForbidden;
-	while (getline(file, line))
-		body.append(line);
+		return;
+	}
+
+	std::ostringstream	ss;
+	ss << file.rdbuf();
+	body = ss.str();
 	file.close();
-	if (body.size() == 0)
+
+	if (body.empty())
 		info.status_code = kNoContent;
 }
 
@@ -195,38 +201,21 @@ HttpResponse 	StaticHandler::BuildDelete(const HttpRequest & req, RouteInfo & in
 	return response;
 }
 
-void TokenizeForm(const std::string& body, FormData& data)
-{
-    size_t start = 0;
-    size_t pos;
-
-    while ((pos = body.find("\r\n", start)) != std::string::npos)
-    {
-        std::string token = body.substr(start, pos - start);
-        data.tokens.push_back(token);
-
-        start = pos + 2;
-    }
-
-    if (start < body.size())
-    {
-        std::string token = body.substr(start);
-        data.tokens.push_back(token);
-    }
-
-}
-
 static void	InsertHeader(std::string token, FormPart & form_part)
 {
 	size_t sep = token.find(':');
 
-	if (sep != std::string::npos)
-	{
-		std::string key = token.substr(0, sep);
-		std::string value = token.substr(sep + 2);
-		std::pair<std::string, std::string> header(key, value);
-		form_part.headers.insert(header);
-	}
+	if (sep == std::string::npos)
+		return;
+
+	std::string	key = token.substr(0, sep);
+	size_t		vstart = sep + 1;
+
+	while (vstart < token.size()
+		&& (token[vstart] == ' ' || token[vstart] == '\t'))
+		vstart++;
+
+	form_part.headers[key] = token.substr(vstart);
 }
 
 static FormData	ParseMultipart(const std::string & body,
@@ -235,68 +224,87 @@ static FormData	ParseMultipart(const std::string & body,
 	FormData	data;
 	size_t 		sep = content_type.find("boundary=");
 
-	if ( sep != std::string::npos)
-	{
-		std::string raw = content_type.substr(sep + strlen("boundary="));
-		
-		if (raw[raw.size() - 1] == 13)
-			raw = raw.substr(0, raw.size() - 1);
-
-		if (!raw.empty() && raw[0] == '"')
-			raw = raw.substr(1, raw.size() - 2);
-
-		data.start_bound = "--" + raw;
-		data.end_bound = "--" + raw + "--";
-	}
-	else
+	if (sep == std::string::npos) {
 		info.status_code = kBadRequest;
+		return data;
+	}
+	
+	std::string	raw = content_type.substr(sep + strlen("boundary="));
+	size_t		semi = raw.find(';');
 
-	TokenizeForm(body, data);
-
-	size_t i = 0;
-
-	while (i < data.tokens.size() && data.tokens[i] != data.boundary + "--")
-	{
-		if (data.tokens[i] == data.start_bound)
-		{
-			i++;
-		}
-		FormPart part;
-
-		while (i < data.tokens.size() && data.tokens[i] != "")
-			InsertHeader(data.tokens[i++], part);
-		if (i < data.tokens.size() && data.tokens[i] == "")
-			i++;
-		while (i < data.tokens.size())
-		{
-			if (data.tokens[i] == data.end_bound)
-				break;
-			part.body += data.tokens[i];
-			i++;	
-		}
-		data.form_parts.push_back(part);
-		i++;
+	if (semi != std::string::npos)
+		raw = raw.substr(0, semi);
+	while (!raw.empty() && (raw[raw.size() - 1] == '\r'
+		|| raw[raw.size() - 1] == '\n' || raw[raw.size() - 1] == ' '))
+		raw.erase(raw.size() - 1);
+	if (raw.size() >= 2 && raw[0] == '"' && raw[raw.size() - 1] == '"')
+		raw = raw.substr(1, raw.size() - 2);
+	if (raw.empty()) {
+		info.status_code = kBadRequest;
+		return data;
 	}
 
-	return data; 
+	data.boundary = raw;
+	data.start_bound = "--" + raw;
+	data.end_bound = "--" + raw + "--";
+
+	size_t	pos = body.find(data.start_bound);
+	if (pos == std::string::npos) {
+		info.status_code = kBadRequest;
+		return data;
+	}
+	pos += data.start_bound.size();
+
+	while (pos + 2 <= body.size())
+	{
+		if (body.compare(pos, 2, "--") == 0) // final delim
+			return data;
+		if (body.compare(pos, 2, "\r\n") != 0)
+			break;
+		pos += 2;
+
+		size_t	headers_end = body.find("\r\n\r\n", pos);
+		if (headers_end == std::string::npos)
+			break;
+
+		FormPart	part;
+		size_t		line = pos;
+
+		while (line < headers_end)
+		{
+			size_t	eol = body.find("\r\n", line);
+			if (eol == std::string::npos || eol > headers_end)
+				eol = headers_end;
+			InsertHeader(body.substr(line, eol - line), part);
+			line = eol + 2;
+		}
+		
+		size_t	body_start = headers_end + 4;
+		size_t	next = body.find("\r\n" + data.start_bound, body_start);
+		if (next == std::string::npos)
+			break;
+
+		part.body = body.substr(body_start, next - body_start);
+		data.form_parts.push_back(part);
+
+		pos = next + 2 + data.start_bound.size();
+	}
+
+	info.status_code = kBadRequest;	// ended with break, wrong body
+	return data;
 }
 
 static std::string 	GetFilename(const FormPart & part) {
 
-	std::map<std::string, std::string> headers = part.headers;
-	
-	std::string content_disp;
-	try {
-		content_disp = headers["Content-Disposition"];
-	}
-	catch (std::exception & e)
-	{
-		std::cout << e.what() << std::endl;
+	std::map<std::string, std::string>::const_iterator it
+		= part.headers.find("Content-Disposition");
+
+	if (it == part.headers.end())
 		return "none";
-	}
-	std::string filename;
-	size_t 		filename_sep = content_disp.find("filename=");
 	
+	const std::string&	content_disp = it->second;
+	size_t			filename_sep = content_disp.find("filename=");
+
 	if (filename_sep == std::string::npos)
 		return "none";
 
@@ -313,22 +321,50 @@ static std::string 	GetFilename(const FormPart & part) {
 	return content_disp.substr(start, end - start);
 }
 
+static std::string	SanitizeFilename(const std::string& name)
+{
+	size_t		slash = name.find_last_of("/\\");
+	std::string	base = (slash == std::string::npos)
+		? name : name.substr(slash + 1);
+
+	if (base.empty() || base == "." || base == "..")
+		return "";
+	return base;
+}
+
 static void	HandleMultipart(const FormData & data, RouteInfo & info)
 {
+	bool	wrote = false;
+
 	for (size_t i = 0; i < data.form_parts.size(); i++)
 	{
-		std::ofstream	new_file;
-		std::string filename = GetFilename(data.form_parts[i]);
+		std::string	filename = GetFilename(data.form_parts[i]);
 
-		if (filename != "none")
-		{
-			filename = info.file_path + "/" + filename;
-			new_file.open(filename.c_str());
-			new_file << data.form_parts[i].body;
-		}
-		else
+		if (filename == "none")
+			continue;
+
+		filename = SanitizeFilename(filename);
+		if (filename.empty()) {
 			info.status_code = kBadRequest;
+			return ;
+		}
+
+		std::string	path = info.file_path + "/" + filename;
+		std::ofstream	new_file(path.c_str(),
+			 std::ios::out | std::ios::binary | std::ios::trunc);
+		if (!new_file.is_open()) {
+			info.status_code = kForbidden;
+			return;
+		}
+		if (!data.form_parts[i].body.empty())
+			new_file.write(data.form_parts[i].body.data(),
+				data.form_parts[i].body.size());
+		new_file.close();
+		wrote = true;
 	}
+
+	if (!wrote)
+		info.status_code = kBadRequest;
 }
 
 static std::string		MultiPartSuccessfullBody()
@@ -343,7 +379,7 @@ static std::string		MultiPartSuccessfullBody()
 HttpResponse 	StaticHandler::BuildPost(const HttpRequest & req, RouteInfo & info)
 {
 	std::map<std::string, std::string>	req_headers = req.headers();
-	std::string 						content_type;
+	std::string 				content_type;
 
 	try {
 		content_type = req_headers.at("Content-Type");
@@ -354,6 +390,8 @@ HttpResponse 	StaticHandler::BuildPost(const HttpRequest & req, RouteInfo & info
 	if (content_type.compare(0, 19,"multipart/form-data") == 0)
 	{
 		FormData data = ParseMultipart(req.body(), content_type, info);
+		if (info.status_code != kOk)
+			return Router::ErrorResponse(info.status_code);
 
 		HandleMultipart(data, info);
 		if (info.status_code != kOk)
