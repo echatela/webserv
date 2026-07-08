@@ -164,14 +164,16 @@ void	ConnHandler::StartCgi(const CgiPlan & plan)
 	if (pipe(out_pipe) < 0)
 		throw std::runtime_error("pipe() failed");
 
-	if (webserv::fd::SetNonBlock(out_pipe[0]) < 0)
+	if (webserv::fd::SetNonBlock(out_pipe[0]) < 0
+		|| webserv::fd::SetCloExec(out_pipe[0]) < 0)
 		throw std::runtime_error("SetNonBlock() failed");
 
 	int	in_pipe[2];
 	if (pipe(in_pipe) < 0)
 		throw std::runtime_error("pipe() failed");
 
-	if (webserv::fd::SetNonBlock(in_pipe[1]) < 0)
+	if (webserv::fd::SetNonBlock(in_pipe[1]) < 0
+		|| webserv::fd::SetCloExec(in_pipe[1]) < 0)
 		throw std::runtime_error("SetNonBlock() failed");
 
 	std::vector<char *>	argv = webserv::utils::ToCStrArray(argv_str);

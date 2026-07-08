@@ -136,7 +136,6 @@ std::vector<char> 	HttpResponse::ToCharVector() {
 	{
 		vector.push_back(response[i]);
 	}
-	vector.push_back('\0');
 	return (vector);
 }
 
