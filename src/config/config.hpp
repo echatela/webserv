@@ -35,6 +35,7 @@ private:
 	std::vector<ListenInfo>			listens_info_;
 	std::string				root_;
 	std::map<std::string, LocationConfig>	locations_;
+	std::map<int, std::string>		error_pages_;
 	std::string				server_name_;
 	size_t					max_body_size_;
 	
@@ -45,11 +46,12 @@ public:
 	Config(const Config & src);
 	~Config();
 
-	const Config &	operator=(const Config & rhs);
+	Config &	operator=(const Config & rhs);
 
 	void	add_listen_info(ListenInfo listen);
 	void	set_root(std::string root);
 	void	add_location(std::pair<std::string, LocationConfig> location);
+	void	add_error_page(int code, std::string path);
 	void	set_max_body_size(size_t size);
 
 	std::string	root();	

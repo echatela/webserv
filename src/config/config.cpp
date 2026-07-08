@@ -16,7 +16,7 @@ Config::~Config()
 {
 }
 
-const Config &	Config::operator=(const Config & rhs)
+Config &	Config::operator=(const Config & rhs)
 {
 	if (this != &rhs)
 	{
@@ -29,22 +29,19 @@ const Config &	Config::operator=(const Config & rhs)
 	return (*this);
 }
 
-
-
-void				Config::add_listen_info(ListenInfo listen) {
+void	Config::add_listen_info(ListenInfo listen) {
 	listens_info_.push_back(listen);
 }
 
-void				Config::set_root(std::string root) {
+void	Config::set_root(std::string root) {
 	root_ = root;
 }
 
-
-void				Config::add_location(std::pair<std::string, LocationConfig> location) {
+void	Config::add_location(std::pair<std::string, LocationConfig> location) {
 	locations_.insert(location);
 }
 
-void				Config::set_max_body_size(size_t size) {
+void	Config::set_max_body_size(size_t size) {
 	max_body_size_ = size;
 }
 
@@ -52,11 +49,11 @@ void				Config::set_max_body_size(size_t size) {
 	// 	return servers_info_;
 	// }
 	
-std::string				Config::root() {
+std::string	Config::root() {
 	return (root_);
 }
 
-size_t					Config::max_body_size() {
+size_t	Config::max_body_size() {
 	return max_body_size_;
 }
 
