@@ -1,0 +1,11 @@
+[
+	{
+		"name": "Alice",
+		"phone": "245636464"
+		"image": "images" -> location image/ + filename
+	},
+	{
+		"name": "prout",
+		"phone": "skibididtoilet"
+	}
+]
