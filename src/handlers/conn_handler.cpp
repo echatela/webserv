@@ -142,13 +142,14 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	return env;
 }
 
-void	ConnHandler::StartCgi(const CgiPlan & plan)
-{
+void	ConnHandler::StartCgi(const CgiPlan & plan) {
+	
 	std::string			path;
 	std::string			script_dir;
 	std::vector<std::string>	argv_str;
 	std::vector<std::string>	envp_str;
 
+	state_ = kCgi;
 
 	path = plan.interpreter.empty() ? plan.script_path : plan.interpreter;
 

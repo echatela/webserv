@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   config_lexer.cpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/05/28 14:19:42 by agalleze          #+#    #+#             */
-/*   Updated: 2026/06/17 14:08:54 by agalleze         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "config_lexer.hpp"
 #include <fstream>
 #include <stdexcept>
@@ -19,7 +7,6 @@ ConfigLexer::ConfigLexer(std::string filename) {
 	if (filename.compare(filename.size() - 5, 5, ".conf"))
 		throw std::logic_error("Missing file extension <.conf>");
 
-	// std::cout << "filename ." << filename.c_str() << std::endl;
 	std::ifstream 	file(filename.c_str());
 	std::string	line;
 	std::string	eof = "EOF";

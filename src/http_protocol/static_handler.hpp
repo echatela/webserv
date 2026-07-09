@@ -9,40 +9,25 @@ struct FormPart {
 
 	std::map<std::string, std::string>	headers;
 	std::string 				body;
-
 };
 
 struct FormData {
 
 	std::vector<FormPart>		form_parts;
-	std::string 			boundary;
-	std::string 			end_bound;
 	std::string 			start_bound;
-	std::vector<std::string>	tokens;
-
 };
 
 struct RouteInfo;
 
-class 	StaticHandler {
+namespace static_handler {
 
-private:
+HttpResponse	BuildStatic(const HttpRequest & req, RouteInfo & info);
 
-public:
-	StaticHandler();
-	~StaticHandler();
+HttpResponse	BuildGet(const HttpRequest & req, RouteInfo & info);
+HttpResponse	BuildDelete(const HttpRequest & req, RouteInfo & info);
+HttpResponse	BuildPost(const HttpRequest & req, RouteInfo & info);
 
-	static HttpResponse	BuildStatic(
-		const HttpRequest & req, RouteInfo & info);
-
-	static HttpResponse	BuildGet(
-		const HttpRequest & req, RouteInfo & info);
-	static HttpResponse	BuildDelete(
-		const HttpRequest & req, RouteInfo & info);
-	static HttpResponse	BuildPost(
-		const HttpRequest & req, RouteInfo & info);
-
-	static HttpResponse	BuildAutoindex(RouteInfo & info);
+HttpResponse	BuildAutoindex(RouteInfo & info);
 };
 
 

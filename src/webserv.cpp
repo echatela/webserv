@@ -1,8 +1,10 @@
 #include "webserv.hpp"
 #include <cstddef>
+#include <cstdlib>
 #include <fcntl.h>
 #include <sstream>
 #include <limits.h>
+#include <stdexcept>
 #include <stdlib.h>
 #include <cerrno>
 #include <sys/stat.h>
@@ -24,14 +26,14 @@ int	webserv::fd::SetCloExec(int fd)
 	return fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
 }
 
-std::string		webserv::utils::IntToStr(int value)
+std::string	webserv::utils::IntToStr(int value)
 {
 	std::ostringstream s;
 	s << value;
 	return (s.str());
 }
 
-std::string webserv::utils::AddrToString(const struct sockaddr_in& addr)
+std::string	webserv::utils::AddrToString(const struct sockaddr_in& addr)
 {
 	const unsigned char* b =
 		reinterpret_cast<const unsigned char*>(&addr.sin_addr.s_addr);
@@ -73,12 +75,44 @@ std::string	webserv::utils::Basedir(const std::string & path)
 unsigned int	webserv::utils::ParseUInt(std::string value)
 {
 	char*	end;
+	errno = 0;
 	long	val = std::strtol(value.c_str(), &end, 10);
 
 	if (errno == ERANGE || val < 0 || val > INT_MAX)
 		throw std::logic_error("UInt value overflows: " + value);
 		
 	return (static_cast<unsigned int>(val));
+}
+
+unsigned long	webserv::utils::ParseSize(std::string value) {
+
+	char*	end;
+	errno = 0;
+	unsigned long	val = std::strtoul(value.c_str(), &end, 10);
+
+	if (errno == ERANGE)
+		throw std::logic_error("size overflows: " + value);
+	if (end == value.c_str())
+		throw std::logic_error("invalid size: " + value);
+
+	unsigned long	mult = 1;
+	if (*end == 'k' || *end == 'K') {
+		mult = 1024UL;
+		end++;
+	} else if (*end == 'm' || *end == 'M') {
+		mult = 1024UL * 1024;
+		end++;
+	} else if (*end == 'g' || *end == 'G') {
+		mult = 1024UL * 1024 * 1024;
+		end++;
+	}
+
+	if (*end != '\0')
+		throw std::logic_error("invalid size suffix: " + value);
+	if (val > ULONG_MAX / mult)
+		throw std::logic_error("size overflows: " + value);
+
+	return val * mult;
 }
 
 

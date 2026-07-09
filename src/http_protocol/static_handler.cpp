@@ -12,14 +12,12 @@
 #include <sstream>
 #include <string>
 #include <dirent.h>
+#include <sys/stat.h>
 #include <vector>
 
-StaticHandler::StaticHandler() {}
+HttpResponse 	static_handler::BuildStatic(
+	const HttpRequest & req, RouteInfo & info) {
 
-StaticHandler::~StaticHandler() {}
-
-HttpResponse 	StaticHandler::BuildStatic(const HttpRequest & req, RouteInfo & info)
-{
 	if (req.method() == "GET")
 		return BuildGet(req, info);
 	else if (req.method() == "DELETE")
@@ -29,8 +27,8 @@ HttpResponse 	StaticHandler::BuildStatic(const HttpRequest & req, RouteInfo & in
 	return Router::ErrorResponse(kMethodNotAllowed);	
 }
 
-static void	FillBody(std::string & body, RouteInfo & info)
-{
+static void	FillBody(std::string & body, RouteInfo & info) {
+
 	std::ifstream	file(info.file_path.c_str(),
 		std::ios::in | std::ios::binary);
 
@@ -48,8 +46,8 @@ static void	FillBody(std::string & body, RouteInfo & info)
 		info.status_code = kNoContent;
 }
 
-static std::string	ValueFromExtension(const std::string & extension)
-{
+static std::string	ValueFromExtension(const std::string & extension) {
+
 	std::map<std::string, std::string> types;
 	types[".html"] = "text/html";
 	types[".css"] = "text/css";	
@@ -65,8 +63,8 @@ static std::string	ValueFromExtension(const std::string & extension)
 	return it->second;
 }
 
-static void	AddContentType(HttpResponse & current, const RouteInfo &info)
-{
+static void	AddContentType(HttpResponse & current, const RouteInfo &info) {
+
 	size_t		dot = info.file_path.find_last_of('.');
 	std::string	extension;
 	
@@ -75,13 +73,13 @@ static void	AddContentType(HttpResponse & current, const RouteInfo &info)
 	current.set_header("Content-Type", ValueFromExtension(extension));
 }
 
-static void	AddContentLength(HttpResponse & current, std::string body)
-{
+static void	AddContentLength(HttpResponse & current, std::string body) {
+
 	current.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 }
 
-HttpResponse	StaticHandler::BuildAutoindex(RouteInfo & info)
-{
+HttpResponse	static_handler::BuildAutoindex(RouteInfo & info) {
+
 	HttpResponse	response;
 
 	DIR	*dir = opendir(info.file_path.c_str());
@@ -117,8 +115,9 @@ HttpResponse	StaticHandler::BuildAutoindex(RouteInfo & info)
 	return response;
 }
 
-HttpResponse 	StaticHandler::BuildGet(const HttpRequest & req, RouteInfo & info)
-{
+HttpResponse 	static_handler::BuildGet(
+	const HttpRequest & req, RouteInfo & info) {
+
 	HttpResponse	response;
 	std::string 	body;
 	(void)req;
@@ -168,8 +167,8 @@ static std::string	Filename(const std::string & path) {
 
 }
 
-static std::string	FileDeletedBody(const RouteInfo & info)
-{
+static std::string	FileDeletedBody(const RouteInfo & info) {
+
 	std::string body;
 
 	body = "<html lang=\"en-US\">\r\n<body>\r\n<h1>File ";
@@ -179,8 +178,9 @@ static std::string	FileDeletedBody(const RouteInfo & info)
 	return body;
 }
 
-HttpResponse 	StaticHandler::BuildDelete(const HttpRequest & req, RouteInfo & info)
-{
+HttpResponse 	static_handler::BuildDelete(
+	const HttpRequest & req, RouteInfo & info) {
+
 	HttpResponse	response;
 
 	info.status_code = std::remove(info.file_path.c_str());
@@ -201,8 +201,8 @@ HttpResponse 	StaticHandler::BuildDelete(const HttpRequest & req, RouteInfo & in
 	return response;
 }
 
-static void	InsertHeader(std::string token, FormPart & form_part)
-{
+static void	InsertHeader(std::string token, FormPart & form_part) {
+
 	size_t sep = token.find(':');
 
 	if (sep == std::string::npos)
@@ -219,8 +219,8 @@ static void	InsertHeader(std::string token, FormPart & form_part)
 }
 
 static FormData	ParseMultipart(const std::string & body,
-	const std::string & content_type, RouteInfo & info)
-{
+	const std::string & content_type, RouteInfo & info) {
+
 	FormData	data;
 	size_t 		sep = content_type.find("boundary=");
 
@@ -244,9 +244,7 @@ static FormData	ParseMultipart(const std::string & body,
 		return data;
 	}
 
-	data.boundary = raw;
 	data.start_bound = "--" + raw;
-	data.end_bound = "--" + raw + "--";
 
 	size_t	pos = body.find(data.start_bound);
 	if (pos == std::string::npos) {
@@ -376,7 +374,7 @@ static std::string		MultiPartSuccessfullBody()
 	return body;
 }
 
-HttpResponse 	StaticHandler::BuildPost(const HttpRequest & req, RouteInfo & info)
+HttpResponse 	static_handler::BuildPost(const HttpRequest & req, RouteInfo & info)
 {
 	std::map<std::string, std::string>	req_headers = req.headers();
 	std::string 				content_type;
