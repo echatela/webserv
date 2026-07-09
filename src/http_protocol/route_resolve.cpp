@@ -49,7 +49,13 @@ std::string 	RouteResolve::BuildFilesystemPath(std::string uri, Config & config,
 	{
 		root_dir = config.root();
 	}
-		
+	
+	size_t mark;
+
+	mark = uri.find('?');
+	if (mark != std::string::npos)
+		uri = uri.substr(0, mark);	
+
 	return  root_dir + uri;
 
 }
@@ -114,7 +120,6 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 
 	InitRouteInfo(info);
 
-	std::cout << "=================================max_body_size is :" << config.max_body_size();
 	if (req.body().size() > config.max_body_size())
 	{
 		info.status_code = kPayloadTooLarge;
@@ -136,7 +141,7 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 
 	if (S_ISDIR(stat_info.st_mode))
 		info.is_directory = true;
-
+		
 	if (info.location.base_location == "/cgi")
 		info.is_cgi = true;
 	info.loc_found = location_found;

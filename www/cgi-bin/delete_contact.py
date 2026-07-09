@@ -87,6 +87,7 @@ def remove_uploaded_image(image_path):
 	try:
 		# Essaie de supprimer le fichier
 		os.remove(file_path)
+		print("image deleted\n")
 	except OSError:
 		# Si la suppression échoue, on ignore l'erreur silencieusement
 		pass

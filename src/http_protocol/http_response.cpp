@@ -67,6 +67,9 @@ void		HttpResponse::set_reason_phrase() {
 		case kInternalServerError:
 			reason_phrase_ = "Internal Server Error";
 			break;
+		case kNotImplemented:
+			reason_phrase_ = "Method Not Implemented";
+			break;
 	}
 }
 
@@ -100,6 +103,8 @@ std::string		HttpResponse::reason_phrase(int status_code) {
 			return "Payload Too Large";
 		case kInternalServerError:
 			return "Internal Server Error";
+		case kNotImplemented:
+			return "Method Not Implemented";
 	}
 	return "CODE NOT VALID";
 }

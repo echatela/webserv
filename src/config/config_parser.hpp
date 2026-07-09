@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config_parser.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alygalleze <alygalleze@student.42.fr>      +#+  +:+       +#+        */
+/*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 14:07:33 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/23 17:50:17 by alygalleze       ###   ########.fr       */
+/*   Updated: 2026/07/09 17:52:24 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,8 @@ class ConfigParser {
 		int			ParseMaxBodySize();
 		std::string		ParseCgi();
 		std::vector<std::string>	ParseStr(std::string directive);
+		bool				ParseUploadBool();
+		std::pair<int, std::string>	ParseErrorPage();
 
 		void			next();
 		Token			current();

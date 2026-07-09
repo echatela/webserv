@@ -225,6 +225,7 @@ static FormData	ParseMultipart(const std::string & body,
 	size_t 		sep = content_type.find("boundary=");
 
 	if (sep == std::string::npos) {
+		std::cout << "/////////////////CC/////////////////////\n";
 		info.status_code = kBadRequest;
 		return data;
 	}
@@ -289,7 +290,6 @@ static FormData	ParseMultipart(const std::string & body,
 
 		pos = next + 2 + data.start_bound.size();
 	}
-
 	info.status_code = kBadRequest;	// ended with break, wrong body
 	return data;
 }
@@ -364,7 +364,11 @@ static void	HandleMultipart(const FormData & data, RouteInfo & info)
 	}
 
 	if (!wrote)
+	{
+		std::cout << "/////////////////CC/////////////////////\n";
 		info.status_code = kBadRequest;
+
+	}
 }
 
 static std::string		MultiPartSuccessfullBody()
@@ -381,6 +385,8 @@ HttpResponse 	StaticHandler::BuildPost(const HttpRequest & req, RouteInfo & info
 	std::map<std::string, std::string>	req_headers = req.headers();
 	std::string 				content_type;
 
+	if (info.location.upload_enabled != true)
+		return Router::ErrorResponse(kMethodNotAllowed);
 	try {
 		content_type = req_headers.at("Content-Type");
 	}
@@ -407,7 +413,7 @@ HttpResponse 	StaticHandler::BuildPost(const HttpRequest & req, RouteInfo & info
 
 		return response;
 	}
-	return Router::ErrorResponse(kMethodNotAllowed);
+	return Router::ErrorResponse(kNotImplemented);
 }
 
 

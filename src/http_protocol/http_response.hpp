@@ -14,7 +14,8 @@ enum	HttpStatusCode {
 	kNotFound = 404,
 	kMethodNotAllowed = 405,
 	kPayloadTooLarge = 413,
-	kInternalServerError = 500
+	kInternalServerError = 500,
+	kNotImplemented = 501
 };
 
 struct	Header {

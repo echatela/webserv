@@ -18,6 +18,9 @@ void			Router::set_config(Config & config) { config_ = config; }
 // envoie la requete soit dans le process cgi soit dans le process classique/statique
 RouteResult		Router::ProcessRequest(HttpRequest & req)
 {
+	if (req.error() != 0)
+		return RouteResult::Response(ErrorResponse(req.error()));
+
 	RouteInfo info = RouteResolve::ResolveRoute(req, config_);
 
 	std::cout << "=================================="
@@ -28,8 +31,13 @@ RouteResult		Router::ProcessRequest(HttpRequest & req)
 			info.location.redirect[1]));
 	if (info.status_code != 200)
 		return RouteResult::Response(ErrorResponse(info.status_code));
+	if (req.method() == "POST" && info.location.upload_enabled != true)
+		return RouteResult::Response(ErrorResponse(kForbidden));
 	if (info.is_cgi == true)
+	{
+		std::cout << "/////////////request is cgi\n";
 		return RouteResult::Cgi(MakeCgiPlan(req));
+	}
 	return RouteResult::Response(StaticResponse(req, info));
 
 }

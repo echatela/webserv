@@ -9,13 +9,13 @@ TARGET = webserv
 
 # Source files
 SRCS =	$(addprefix src/, main.cpp webserv.cpp) \
-	$(addprefix src/reactor/, reactor.cpp epoll.cpp) \
-	$(addprefix src/handlers/, event_handler.cpp listen_handler.cpp \
-	conn_handler.cpp cgi_handler.cpp cgi_in_handler.cpp) \
-	$(addprefix src/http_protocol/, http_parser.cpp http_request.cpp \
-	http_response.cpp route_resolve.cpp route_result.cpp router.cpp \
-	static_handler.cpp) \
-	$(addprefix src/config/, config.cpp config_lexer.cpp config_parser.cpp)
+		$(addprefix src/reactor/, reactor.cpp epoll.cpp) \
+		$(addprefix src/handlers/, event_handler.cpp listen_handler.cpp \
+		conn_handler.cpp cgi_handler.cpp cgi_in_handler.cpp) \
+		$(addprefix src/http_protocol/, http_parser.cpp http_request.cpp \
+		http_response.cpp route_resolve.cpp route_result.cpp router.cpp \
+		static_handler.cpp) \
+		$(addprefix src/config/, config.cpp config_lexer.cpp config_parser.cpp)
 
 DIRS =	src src/reactor src/handlers src/http_protocol src/config
 

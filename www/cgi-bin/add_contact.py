@@ -9,6 +9,9 @@ from email.parser import BytesParser
 from urllib.parse import parse_qs
 
 
+MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024  # 2 MB
+
+
 def find_contacts_file():
 	script_dir = os.path.dirname(os.path.abspath(__file__))
 	return os.path.join(script_dir, "contacts.json")
@@ -150,12 +153,26 @@ def print_form(message="", message_color=None):
 		else:
 			print(f'\t\t<p>{html.escape(message)}</p>')
 
-	print('\t\t<form action="/cgi/add_contact.py" method="post" enctype="multipart/form-data">')
+	print("\t\t<script>")
+	print("\t\t\tfunction validateImageSize() {")
+	print("\t\t\t\tconst input = document.getElementById('image-upload');")
+	print("\t\t\t\tif (!input || !input.files || input.files.length === 0) return true;")
+	print("\t\t\t\tconst file = input.files[0];")
+	print("\t\t\t\tconst maxSize = 2 * 1024 * 1024;")
+	print("\t\t\t\tif (file.size > maxSize) {")
+	print("\t\t\t\t\talert('Image is too large. Maximum size is 2 MB.');")
+	print("\t\t\t\t\tinput.value = '';")
+	print("\t\t\t\t\treturn false;")
+	print("\t\t\t\t}")
+	print("\t\t\t\treturn true;")
+	print("\t\t\t}")
+	print("\t\t</script>")
+	print('\t\t<form action="/cgi/add_contact.py" method="post" enctype="multipart/form-data" onsubmit="return validateImageSize()">')
 	print('\t\t\t<label for="image-upload" class="upload-box">')
 	print('\t\t\t\t<i class="bx bx-image-add"></i>')
 	print('\t\t\t\t<p>Upload image</p>')
 	print('\t\t\t</label>')
-	print('\t\t\t<input type="file" id="image-upload" name="image" accept="image/*" hidden>')
+	print('\t\t\t<input type="file" id="image-upload" name="image" accept="image/*" hidden onchange="validateImageSize()">')
 	print('\t\t\t<input type="text" name="name" placeholder="Name"><br>')
 	print('\t\t\t<input type="text" name="phone" placeholder="Phone"><br>')
 	print('\t\t\t<button class="save" type="submit">Save</button>')
@@ -174,6 +191,10 @@ def handle_post():
 
 	if not name or not phone:
 		print_form("Name and phone are required.", message_color="red")
+		return
+
+	if image_field and len(image_field.get("content", b"")) > MAX_IMAGE_SIZE_BYTES:
+		print_form("Image is too large. Maximum size is 2 MB.", message_color="red")
 		return
 
 	contacts = load_contacts()

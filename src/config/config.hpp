@@ -23,6 +23,7 @@ struct LocationConfig {
 	std::vector<std::string>	index;
 	bool				autoindex;
 	std::vector<std::string>	redirect;
+	bool						upload_enabled;
 };
 
 struct	ServerConfig {
@@ -37,6 +38,7 @@ private:
 	std::map<std::string, LocationConfig>	locations_;
 	std::string				server_name_;
 	size_t					max_body_size_;
+	std::map<int, std::string>	error_pages;
 	
 	// std::vector<ServerConfig>	servers_info_;
 
@@ -51,6 +53,7 @@ public:
 	void	set_root(std::string root);
 	void	add_location(std::pair<std::string, LocationConfig> location);
 	void	set_max_body_size(size_t size);
+	void	add_error_page(std::pair<int, std::string> page);
 
 	std::string	root();	
 	size_t		max_body_size();	

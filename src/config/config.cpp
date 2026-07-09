@@ -44,6 +44,10 @@ void				Config::add_location(std::pair<std::string, LocationConfig> location) {
 	locations_.insert(location);
 }
 
+void				Config::add_error_page(std::pair<int, std::string> page) {
+	error_pages.insert(page);
+}
+
 void				Config::set_max_body_size(size_t size) {
 	max_body_size_ = size;
 }

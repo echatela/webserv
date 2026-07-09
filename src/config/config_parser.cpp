@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   config_parser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: willysex <willysex@student.42.fr>          +#+  +:+       +#+        */
+/*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/06/26 19:05:15 by willysex         ###   ########.fr       */
+/*   Updated: 2026/07/09 17:57:52 by agalleze         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ static int		parsePort(std::string value)
 	long	val = std::strtol(value.c_str(), &end, 10);
 
 	if (errno == ERANGE || val < 0 || val > 65535)
-		throw std::logic_error("Port value not valid: " + value);
+		throw std::logic_error("Port not valid: " + value);
 		
 	return (static_cast<int>(val));
 }
@@ -123,6 +123,22 @@ int					ConfigParser::ParseMaxBodySize() {
 	return (max_size);
 }
 
+bool				ConfigParser::ParseUploadBool() {
+
+	present("upload");
+
+	bool	upload;
+	if (current().content == "on")
+		upload = true;
+	else if (current().content == "off")
+		upload = false;
+	else
+		throw std::logic_error("Invalid upload argument");
+	current_++;
+	present(";");
+	return upload;
+}
+
 std::pair<std::string, LocationConfig>	ConfigParser::ParseLocation() {
 
 	std::string	base;
@@ -158,6 +174,8 @@ std::pair<std::string, LocationConfig>	ConfigParser::ParseLocation() {
 				throw std::runtime_error(
 					"Invalid argument: return");
 		}
+		else if (current().content == "upload")
+			directives.upload_enabled = ParseUploadBool();
 		else
 			throw std::logic_error("Unknown directive: "
 				+ current().content);
@@ -166,6 +184,25 @@ std::pair<std::string, LocationConfig>	ConfigParser::ParseLocation() {
 	std::pair<std::string, LocationConfig> location(base, directives);
 
 	return (location);
+}
+
+std::pair<int, std::string> ConfigParser::ParseErrorPage() {
+
+	present("error_page");
+	
+	int code = webserv::utils::ParseUInt(current().content);
+	if (code < 100 || code > 599)
+		throw std::runtime_error("Invalid error code.");
+	current_++;
+	
+	std::string url = current().content;
+	current_++;
+	
+	present(";");
+	
+	std::pair<int, std::string>	page(code, url);
+
+	return page;
 }
 
 Config		 				ConfigParser::ParseServer() {
@@ -185,6 +222,8 @@ Config		 				ConfigParser::ParseServer() {
 			server.add_location(ParseLocation());
 		else if (current().content == "client_max_body_size")
 			server.set_max_body_size(ParseMaxBodySize());
+		else if (current().content == "error_page")
+			server.add_error_page(ParseErrorPage());
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
 	}

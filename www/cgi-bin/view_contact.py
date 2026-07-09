@@ -60,6 +60,29 @@ def print_page_start(title):
     print(f"\t<title>{title}</title>")
     print('\t<link rel="stylesheet" href="../style.css">')
     print("\t<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>")
+    print("""
+        <script>
+        function deleteContact(contactId)
+        {
+            fetch("/cgi/delete_contact.py?id=" + contactId, {
+                method: "DELETE"
+            })
+            .then(response => {
+                if (!response.ok)
+                    throw new Error("Delete failed");
+                return response.text();
+            })
+            .then(() => {
+                // Recharge la page pour mettre à jour la liste
+                window.location.reload();
+            })
+            .catch(error => {
+                alert("Unable to delete contact.");
+                console.error(error);
+            });
+        }
+        </script>
+        """)
     print("</head>")
     print("<body>")
 
@@ -133,35 +156,6 @@ def print_contacts(contacts):
 
     # On ferme la page HTML.
     print_page_end()
-
-def add_delete_script():
-    # Ajoute le script JavaScript pour la suppression via fetch
-    script = """
-\t<script>
-\t\tfunction deleteContact(contactId) {
-\t\t\t// Appelle le CGI de suppression via fetch, sans confirmation
-\t\t\tfetch(`/cgi/delete_contact.py?id=${contactId}`, {
-\t\t\t\tmethod: 'POST'
-\t\t\t})
-\t\t\t.then(response => response.json())
-\t\t\t.then(data => {
-\t\t\t\tif (data.ok) {
-\t\t\t\t\t// Suppression réussie, recharge la page
-\t\t\t\t\talert(data.message);
-\t\t\t\t\tlocation.reload();
-\t\t\t\t} else {
-\t\t\t\t\t// Erreur de suppression
-\t\t\t\t\talert('Error: ' + data.message);
-\t\t\t\t}
-\t\t\t})
-\t\t\t.catch(error => {
-\t\t\t\talert('Network error: ' + error);
-\t\t\t});
-\t\t}
-\t</script>
-    """
-    print(script)
-	
 
 # Affichage de la response
 # ______________________________________
