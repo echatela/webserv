@@ -1,28 +1,52 @@
 #include "router.hpp"
 
+#include "http_parser.hpp"
+#include "http_response.hpp"
+#include "route_result.hpp"
 #include "webserv.hpp"
 #include "route_resolve.hpp"
 #include "static_handler.hpp"
 
+#include <cstddef>
 #include <fstream>
-#include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
 
-Router::Router(Config config) : config_(config) {error_pages_ = config_.error_pages();}
+Router::Router(Config config)
+	: config_(config) {
+	error_pages_ = config_.error_pages();
+}
 
-Router::Router() {}
+Router::Router() {
+}
 
-Router::~Router() {}
+Router::~Router() {
+}
 
-Config			Router::config() const {return config_;}
+Config	Router::config() const {return config_;}
 
-void			Router::set_config(const Config & config) { config_ = config; }
+void	Router::set_config(const Config & config) {
+	config_ = config;
+}
+
+static std::string	JoinMethods(const std::vector<std::string>& methods) {
+
+	std::string	out;
+
+	for (size_t i = 0; i < methods.size(); i++) {
+		out += methods[i];
+		if (i + 1 < methods.size())
+			out += ", ";
+	}
+	return out;
+}
 
 // si pas d'erreur au moment de la resolution de route,
 // envoie la requete soit dans le process cgi soit dans le process classique/statique
-RouteResult		Router::ProcessRequest(HttpRequest & req)
-{
-	if (req.error() != 0)
+RouteResult	Router::ProcessRequest(HttpRequest & req) {
+
+	if (req.error() != NO_ERROR)
 		return RouteResult::Response(ErrorResponse(req.error()));
 
 	RouteInfo info = RouteResolve::ResolveRoute(req, config_);
@@ -31,52 +55,76 @@ RouteResult		Router::ProcessRequest(HttpRequest & req)
 		return RouteResult::Response(RedirectResponse(
 			webserv::utils::ParseUInt(info.location.redirect[0]),
 			info.location.redirect[1]));
-	if (info.status_code != 200)
-		return RouteResult::Response(ErrorResponse(info.status_code, config_));
+	if (info.status_code == kMethodNotAllowed) {
+		HttpResponse	resp = ErrorResponse(kMethodNotAllowed);
+		resp.set_header("Allow", JoinMethods(info.location.methods));
+		return RouteResult::Response(resp);
+	}
+	if (info.status_code != kOk)
+		return RouteResult::Response(
+			ErrorResponse(info.status_code, config_));
 	if (req.method() == "POST" && info.location.upload_enabled != true)
 		return RouteResult::Response(ErrorResponse(kForbidden));
 	if (info.is_cgi == true)
-	{
 		return RouteResult::Cgi(MakeCgiPlan(req));
-	}
 	return RouteResult::Response(StaticResponse(req, info));
 
 }
 
 // construction objet http_reponse cgi
-HttpResponse 	Router::CgiResponse(const std::string output)
-{
+HttpResponse 	Router::CgiResponse(const std::string output) {
+
 	HttpResponse	response;
-	std::string	cgi_result = output;
+	size_t		headers_end = output.find("\r\n\r\n");
+	size_t		sep_len = 4;
+
+	if (headers_end == std::string::npos) {
+		headers_end = output.find("\n\n");
+		sep_len = 2;
+	}
+	if (headers_end == std::string::npos)
+		return ErrorResponse(kBadGateway);
+
+	std::string		head = output.substr(0, headers_end);
+	std::string		body = output.substr(headers_end + sep_len);
+	std::istringstream	iss(head);
+	std::string		line;
+	bool			has_type = false;
 
 	response.set_version("HTTP/1.1");
 	response.set_status(kOk);
-	response.set_reason_phrase();
 
-	size_t headers_end = cgi_result.find("\n\n");
-	size_t	line_end = cgi_result.find("\n");
-	while (line_end != std::string::npos)
-	{
-		size_t sep = cgi_result.find(':');
-		if (sep != std::string::npos)
-		{
+	while (std::getline(iss, line)) {
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1);
 
-			response.set_header(cgi_result.substr(0, sep), cgi_result.substr(sep + 2, line_end - 1));
-			// response.set_header(cgi_result.substr(0, sep), "text/html");
-			cgi_result.erase(0, line_end);
+		size_t	colon = line.find(':');
+		if (colon == std::string::npos)
+			continue;
+
+		std::string	key = line.substr(0, colon);
+		std::string	value = line.substr(colon + 1);
+		size_t		b = value.find_first_not_of(" \t");
+		value = (b == std::string::npos) ? "" : value.substr(b);
+
+		if (key == "Status") {
+			response.set_status(webserv::utils::ParseUInt(
+				value.substr(0, value.find(' '))));
+			continue;
 		}
-		if (line_end == headers_end)
-			break;
-		line_end = cgi_result.find("\n");
+		if (key == "Content-Length")
+			continue;
+		if (key == "Content-Type")
+			has_type = true;
+		response.set_header(key, value);
 	}
 
-	int i = 0;
-	while (cgi_result[i] == '\n')
-		i++;
-	cgi_result.substr(i, cgi_result.length());
-	response.set_body(cgi_result);
-	response.set_header("Content-Length",
+	if (!has_type)
+		response.set_header("Content-Type", "text/html");
+	response.set_body(body);
+	response.set_header("Content-Length", 
 		webserv::utils::IntToStr(response.body().size()));
+	response.set_reason_phrase();
 	return response;
 }
 
@@ -174,23 +222,22 @@ CgiPlan		Router::MakeCgiPlan(HttpRequest & req) {
 	size_t sep;
 
 	cgi.interpreter = config_.locations().at("/cgi").cgi[1];
-	sep = path.find(".py");
-	if (sep != std::string::npos)
-	{
-		cgi.script_name = path.substr(0, sep + 3);
-		std::string full_path = cgi.script_name.replace(0, 4, config_.root() + "/cgi-bin");
-		char	resolved_path[PATH_MAX];
-		char* res = realpath(full_path.c_str(), resolved_path);
-		if (res != NULL)
-			cgi.script_path = resolved_path;
-		path = path.substr(sep + 3, path.length());
-	}
+
 	sep = path.find('?');
-	if (sep != std::string::npos)
-	{
-		cgi.path_info = path.substr(0, sep);
+	if (sep != std::string::npos) {
 		cgi.query_string = path.substr(sep + 1, path.length());
+		path = path.substr(0, sep);
 	}
 
+	sep = path.find(".py");
+	if (sep != std::string::npos) {
+		cgi.script_name = path.substr(0, sep + 3);
+		cgi.path_info = path.substr(sep + 3);
+
+		std::string	full_path = cgi.script_name;
+		full_path.replace(0, 4, config_.root() + "/cgi-bin");
+		if (webserv::utils::StatCheck(full_path))
+			cgi.script_path = full_path;
+	}
 	return cgi;
 }

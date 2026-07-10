@@ -1,4 +1,5 @@
 #include "http_request.hpp"
+#include "http_parser.hpp"
 #include <cstddef>
 #include <map>
 #include <sstream>
@@ -30,7 +31,7 @@ HttpRequest& HttpRequest::operator=(const HttpRequest& other) {
 int HttpRequest::ParseMethod(const std::string& method)
 {
 	if (method != "GET" && method != "POST" && method != "DELETE")
-		return METHOD_NOT_ALLOWED;
+		return NOT_IMPLEMENTED;
 	return NO_ERROR;
 }
 
@@ -43,10 +44,8 @@ int HttpRequest::ParsePath(const std::string& path)
 
 int HttpRequest::ParseVersion(const std::string& version)
 {
-	if (version != "HTTP/1.1")
+	if (version != "HTTP/1.1" && version != "HTTP/1.0")
 		return HTTP_VERSION_NOT_SUPPORTED;
-	if (version.empty())
-		return BAD_REQUEST;
 	return NO_ERROR;
 }
 
@@ -94,7 +93,7 @@ int HttpRequest::ParseHeader(std::string header)
 	{
 		size_t pos = line.find(":");
 		if (pos == std::string::npos)
-			return BAD_HEADER;
+			return BAD_REQUEST;
 
 		std::string index = CanonKey(line.substr(0, pos));
 		std::string value = line.substr(pos + 1);
@@ -108,7 +107,7 @@ int HttpRequest::ParseHeader(std::string header)
 		this->header_[index] = value;
 	}
 	if (this->header_["Host"].empty())
-		return BAD_HEADER;
+		return BAD_REQUEST;
 	return NO_ERROR;
 }
 

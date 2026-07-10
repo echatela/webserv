@@ -4,6 +4,7 @@
 #include "event_handler.hpp"
 #include "../http_protocol/http_request.hpp"
 #include "../http_protocol/router.hpp"
+#include "http_response.hpp"
 #include <ctime>
 #include <stdint.h>
 #include <vector>
@@ -42,6 +43,7 @@ class ConnHandler : public EventHandler
 	void				HandleRequest();
 	void				StartCgi(const CgiPlan & plan);
 	std::vector<std::string>	BuildCgiEnv(const CgiPlan & plan) const;
+	void				SendResponse(HttpResponse& response);
 
 	static const int	kReadBufferSize = 4096;
 	static const int	kTimeoutSecs = 60;

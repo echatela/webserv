@@ -41,9 +41,6 @@ static void	FillBody(std::string & body, RouteInfo & info) {
 	ss << file.rdbuf();
 	body = ss.str();
 	file.close();
-
-	if (body.empty())
-		info.status_code = kNoContent;
 }
 
 static std::string	ValueFromExtension(const std::string & extension) {
@@ -182,22 +179,19 @@ HttpResponse 	static_handler::BuildDelete(
 	const HttpRequest & req, RouteInfo & info) {
 
 	HttpResponse	response;
+	(void)req;
 
-	info.status_code = std::remove(info.file_path.c_str());
-	if (info.status_code != 0)
-		return Router::ErrorResponse(kMethodNotAllowed, info.config);
+	if (info.is_directory)
+		return Router::ErrorResponse(kForbidden, info.config);
+	if (std::remove(info.file_path.c_str()) != 0)
+		return Router::ErrorResponse(kForbidden, info.config);
 
 	response.set_status(kOk);
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
-	AddContentType(response, info);
-	if (info.status_code != 0)
-		return Router::ErrorResponse(info.status_code, info.config);
-
+	response.set_header("Content-Type", "text/html");
 	response.set_body(FileDeletedBody(info));
 	AddContentLength(response, response.body());
-
-	(void)req;
 	return response;
 }
 
@@ -225,7 +219,6 @@ static FormData	ParseMultipart(const std::string & body,
 	size_t 		sep = content_type.find("boundary=");
 
 	if (sep == std::string::npos) {
-		std::cout << "/////////////////CC/////////////////////\n";
 		info.status_code = kBadRequest;
 		return data;
 	}
@@ -362,14 +355,10 @@ static void	HandleMultipart(const FormData & data, RouteInfo & info)
 	}
 
 	if (!wrote)
-	{
-		std::cout << "/////////////////CC/////////////////////\n";
 		info.status_code = kBadRequest;
-
-	}
 }
 
-static std::string		MultiPartSuccessfullBody()
+static std::string	MultiPartSuccessfullBody()
 {
 	std::string body;
 
@@ -384,7 +373,7 @@ HttpResponse 	static_handler::BuildPost(const HttpRequest & req, RouteInfo & inf
 	std::string 				content_type;
 
 	if (info.location.upload_enabled != true)
-		return Router::ErrorResponse(kMethodNotAllowed, info.config);
+		return Router::ErrorResponse(kForbidden, info.config);
 	try {
 		content_type = req_headers.at("Content-Type");
 	}
@@ -413,14 +402,3 @@ HttpResponse 	static_handler::BuildPost(const HttpRequest & req, RouteInfo & inf
 	}
 	return Router::ErrorResponse(kNotImplemented, info.config);
 }
-
-
-// 	// multipart/form-data -> creation de fichier a partir d'une structure .cf TODO_perso
-// 	// application/x-www-form-urlencoded -> cas de formulaire (connexion username + mdp par exemple)
-// 	// application/json
-// 	// application/x-www-form-urlencoded + location cgi-bin par exemple = cgi 
-
-// // same workflow pour la determination du chemin
-
-// // il faut un body 
-// // sa taille doit correspondre a content length

@@ -39,8 +39,6 @@ private:
 	std::map<int, std::string>		error_pages_;
 	std::string				server_name_;
 	size_t					max_body_size_;
-	
-	// std::vector<ServerConfig>	servers_info_;
 
 public:
 	Config();
@@ -58,8 +56,8 @@ public:
 
 	std::map<int, std::string> error_pages() const;
 
-	std::string	root() const;	
-	size_t		max_body_size() const;	
+	const std::string&	root() const;
+	size_t			max_body_size() const;
 
 	const std::vector<ListenInfo> &		listens_info() const;
 	std::map<std::string, LocationConfig>	locations() const;	

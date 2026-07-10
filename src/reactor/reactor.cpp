@@ -5,6 +5,7 @@
 #include <csignal>
 #include <cstddef>
 #include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <vector>
@@ -54,9 +55,17 @@ void	Reactor::Dispatch(int n)
 	for (int i = 0; i < n; i++) {
 		EventHandler	*handler
 			= static_cast<EventHandler*>(ev[i].data.ptr);
-		if (closed_.find(handler) == closed_.end())
+
+		if (closed_.find(handler) != closed_.end())
+			continue;
+
+		try {
 			if (handler->HandleEvent(ev[i].events) == kClose)
 				closed_.insert(handler);
+		} catch (std::exception& e) {
+			std::cerr << "handler error: " << e.what() << std::endl;
+			closed_.insert(handler);
+		}
 	}
 }
 
@@ -92,9 +101,15 @@ void	Reactor::CheckTimeouts()
 	time_t	now = time(NULL);
 
 	for (size_t i = 0; i < handlers_.size(); ++i) {
-		if (closed_.find(handlers_[i]) == closed_.end())
+		if (closed_.find(handlers_[i]) != closed_.end())
+			continue;
+		try {
 			if (handlers_[i]->CheckTimeout(now) == kClose)
 				closed_.insert(handlers_[i]);
+		} catch (std::exception& e) {
+			std::cerr << "timeout error: " << e.what() << std::endl;
+			closed_.insert(handlers_[i]);
+		}
 	}
 }
 
