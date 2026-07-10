@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 - Not Found</title>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    color: #111;
+    font-family: "Courier New", Courier, monospace;
+}
+
+.container {
+    text-align: center;
+}
+
+h1 {
+    font-size: 7rem;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: normal;
+    margin-bottom: 40px;
+}
+
+.loading {
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+}
+
+.loading::after {
+    content: "";
+    animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+    0%   { content: ""; }
+    25%  { content: "."; }
+    50%  { content: ".."; }
+    75%  { content: "..."; }
+    100% { content: ""; }
+}
+
+a {
+    display: inline-block;
+    padding: 12px 28px;
+    text-decoration: none;
+    color: black;
+    border: 1px solid black;
+    transition: .2s;
+}
+
+a:hover {
+    background: black;
+    color: white;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>404</h1>
+
+    <h2>Oops... The server lost its way.</h2>
+
+    <div class="loading">
+        Searching
+    </div>
+
+    <a href="../www/index.html">Back to Home</a>
+
+</div>
+
+</body>
+</html>
