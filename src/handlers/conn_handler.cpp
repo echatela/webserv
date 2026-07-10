@@ -7,6 +7,7 @@
 #include "listen_handler.hpp"
 #include "reactor.hpp"
 #include "../webserv.hpp"
+#include "router.hpp"
 
 #include <cstddef>
 #include <ctime>
@@ -34,12 +35,14 @@ static void	CloseFd(int & fd) {
 }
 
 ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
-			 Epoll & epoll, Reactor & reactor)
-: fd_(fd), state_(kReading), addr_(addr), write_off_(0),
-	start_time_(time(NULL)), epoll_(epoll), reactor_(reactor), listen_(listen), cgi_(NULL)
+	 Epoll & epoll, Reactor & reactor)
+	: fd_(fd), state_(kReading), addr_(addr), write_off_(0)
+	, start_time_(time(NULL)), epoll_(epoll), reactor_(reactor)
+	, listen_(listen), cgi_(NULL)
 {
 	try {
-		router_.set_config(const_cast<Config &>(listen_.config())); // a remodifier dans la classe pour eviter le cast degueu
+		router_.set_config(const_cast<Config &>(listen_.config()));
+		parser_.set_max_body_size(listen_.config().max_body_size());
 		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
 		close(fd_);
@@ -66,16 +69,9 @@ int	ConnHandler::HandleEvent(uint32_t events)
 			return kClose;
 		read_buf[n] = '\0';
 
-		int ret = parser_.Add(read_buf, n);
-		switch(ret) {
-			case false:
-				return kKeep;
-			case true:
-				HandleRequest();
-				return kKeep;
-			default:
-				return kClose;
-		}
+		if (parser_.Add(read_buf, n))
+			HandleRequest();
+		return kKeep;
 		
 	} else if (state_ == kWriting && events & EPOLLOUT) {
 		size_t	remaining = write_buf_.size() - write_off_;
@@ -93,20 +89,34 @@ int	ConnHandler::HandleEvent(uint32_t events)
 	return kClose;
 }
 
+void	ConnHandler::SendResponse(HttpResponse& response) {
+
+	response.set_header("Connection", "close");
+	write_buf_ = response.ToCharVector();
+	state_ = kWriting;
+	epoll_.Mod(fd_, EPOLLOUT, this);
+}
+
 void	ConnHandler::HandleRequest()
 {
+	if (parser_.bad_request()) {
+		HttpResponse	resp = Router::ErrorResponse(kBadRequest);
+		SendResponse(resp);
+		return;
+	}
+	if (parser_.too_large()) {
+		HttpResponse	resp = Router::ErrorResponse(kPayloadTooLarge);
+		SendResponse(resp);
+		return;
+	}
+
 	parser_.ParseRequest(request_);
-	std::cout << CYAN << parser_.buf() << RESET << std::endl;
 	
 	RouteResult result = router_.ProcessRequest(request_);
 	switch (result.type()) {
 		case kRouteResponse: {
-			HttpResponse response = result.response();
-
-			write_buf_ = response.ToCharVector();
-			std::cout << YELLOW << response.ToString() << RESET << std::endl;
-			state_ = kWriting;
-			epoll_.Mod(fd_, EPOLLOUT, this);
+			HttpResponse resp = result.response();
+			SendResponse(resp);
 			break;
 		}
 		case kRouteCgi:

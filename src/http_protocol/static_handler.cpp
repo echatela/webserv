@@ -4,6 +4,7 @@
 #include "router.hpp"
 #include "webserv.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -41,9 +42,6 @@ static void	FillBody(std::string & body, RouteInfo & info) {
 	ss << file.rdbuf();
 	body = ss.str();
 	file.close();
-
-	if (body.empty())
-		info.status_code = kNoContent;
 }
 
 static std::string	ValueFromExtension(const std::string & extension) {
@@ -182,22 +180,19 @@ HttpResponse 	static_handler::BuildDelete(
 	const HttpRequest & req, RouteInfo & info) {
 
 	HttpResponse	response;
+	(void)req;
 
-	info.status_code = std::remove(info.file_path.c_str());
-	if (info.status_code != 0)
-		return Router::ErrorResponse(kMethodNotAllowed);
+	if (info.is_directory)
+		return Router::ErrorResponse(kForbidden);
+	if (std::remove(info.file_path.c_str()) != 0)
+		return Router::ErrorResponse(kForbidden);
 
 	response.set_status(kOk);
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
-	AddContentType(response, info);
-	if (info.status_code != 0)
-		return Router::ErrorResponse(info.status_code);
-
+	response.set_header("Content-Type", "text/html");
 	response.set_body(FileDeletedBody(info));
 	AddContentLength(response, response.body());
-
-	(void)req;
 	return response;
 }
 
@@ -225,7 +220,6 @@ static FormData	ParseMultipart(const std::string & body,
 	size_t 		sep = content_type.find("boundary=");
 
 	if (sep == std::string::npos) {
-		std::cout << "/////////////////CC/////////////////////\n";
 		info.status_code = kBadRequest;
 		return data;
 	}
@@ -362,14 +356,10 @@ static void	HandleMultipart(const FormData & data, RouteInfo & info)
 	}
 
 	if (!wrote)
-	{
-		std::cout << "/////////////////CC/////////////////////\n";
 		info.status_code = kBadRequest;
-
-	}
 }
 
-static std::string		MultiPartSuccessfullBody()
+static std::string	MultiPartSuccessfullBody()
 {
 	std::string body;
 
@@ -384,7 +374,7 @@ HttpResponse 	static_handler::BuildPost(const HttpRequest & req, RouteInfo & inf
 	std::string 				content_type;
 
 	if (info.location.upload_enabled != true)
-		return Router::ErrorResponse(kMethodNotAllowed);
+		return Router::ErrorResponse(kForbidden);
 	try {
 		content_type = req_headers.at("Content-Type");
 	}

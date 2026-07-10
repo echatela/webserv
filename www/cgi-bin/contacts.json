@@ -14,5 +14,11 @@
     "name": "edouard",
     "phone": "017203740",
     "image": "/upload/contact_2_wall.jpg"
+  },
+  {
+    "id": 3,
+    "name": "awesome face",
+    "phone": "6666",
+    "image": "/upload/contact_3_awesomeface.png"
   }
 ]

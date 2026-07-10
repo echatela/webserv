@@ -11,7 +11,8 @@ HttpParser::HttpParser()
 	: buf_(), content_length_(0), headers_parsed_(false), chunked_(false)
 	, bad_request_(false), scan_pos_(0), decoded_body_()
 	, buf_size_(0), buf_size_without_body_(0), buf_size_with_body_(0)
-	, flag_(0),  has_body_(false) {
+	, flag_(0),  has_body_(false)
+	, max_body_size_(1048576), too_large_(false) {
 }
 
 HttpParser::~HttpParser() {
@@ -51,8 +52,13 @@ int HttpParser::Add(const char* buf, size_t n) {
 	buf_.append(buf, n);
 
 	size_t header_end = buf_.find("\r\n\r\n");
-	if (header_end == std::string::npos)
-		return (flag_ = false);
+	if (header_end == std::string::npos) {
+		if (buf_.size() > kMaxHeaderSize)
+			bad_request_ = true;
+		return (flag_ = bad_request_);
+	}
+	if (header_end > kMaxHeaderSize)
+		bad_request_ = true;
 
 	if (!headers_parsed_) {
 
@@ -63,7 +69,6 @@ int HttpParser::Add(const char* buf, size_t n) {
 		chunked_ = (te.find("chunked") != std::string::npos);
 
 		if (!chunked_) {
-			
 			std::string	cl = FindHeader(
 				buf_, header_end, "content-length");
 			if (cl.empty())
@@ -84,9 +89,18 @@ int HttpParser::Add(const char* buf, size_t n) {
 	if (bad_request_)
 		return (flag_ = true);
 
-	if (chunked_)
+	if (!chunked_ && content_length_ > max_body_size_) {
+		too_large_ = true;
+		return (flag_ = true);
+	}
+
+	if (chunked_) {
 		flag_ = ScanChunks(header_end + 4);
-	else
+		if (decoded_body_.size() > max_body_size_) {
+			too_large_ = true;
+			flag_ = true;
+		}
+	} else
 		flag_ = (buf_size_ >= header_end + 4 + content_length_);
 
 	return flag_;
@@ -162,3 +176,8 @@ bool	HttpParser::ScanChunks(size_t body_start) {
 int			HttpParser::flag() const { return flag_; }
 const std::string&	HttpParser::buf() const { return buf_; }
 bool			HttpParser::bad_request() const { return bad_request_; }
+bool			HttpParser::too_large() const { return too_large_; }
+
+void			HttpParser::set_max_body_size(size_t size) {
+	max_body_size_ = size;
+}

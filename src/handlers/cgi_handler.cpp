@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "conn_handler.hpp"
+#include "http_response.hpp"
 
 CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 		       Epoll& epoll)
@@ -21,7 +22,7 @@ int	CgiHandler::HandleEvent(uint32_t events) {
 
 	if (events & EPOLLERR) {
 		if (conn_)
-			conn_->OnCgiError(502);
+			conn_->OnCgiError(kBadGateway);
 		return kClose;
 	}
 
@@ -32,14 +33,14 @@ int	CgiHandler::HandleEvent(uint32_t events) {
 	ssize_t	n = read(stdout_fd_, read_buf, kReadBufferSize);
 	if (n < 0) {
 		if (conn_)
-			conn_->OnCgiError(502);
+			conn_->OnCgiError(kBadGateway);
 		return kClose;
 	} else if (n == 0) {
 		if (conn_) {
 			if (!output_buf_.empty())
 				conn_->OnCgiDone(output_buf_);
 			else
-				conn_->OnCgiError(502);
+				conn_->OnCgiError(kBadGateway);
 		}
 		return kClose;
 	} else {
@@ -52,7 +53,7 @@ int	CgiHandler::CheckTimeout(time_t now)
 {
 	if (difftime(now, start_time_) >= kTimeoutSecs) {
 		if (conn_)
-			conn_->OnCgiError(504);
+			conn_->OnCgiError(kGatewayTimeout);
 		return kClose;
 	}
 	return kKeep;

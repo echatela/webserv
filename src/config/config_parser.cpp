@@ -14,21 +14,31 @@
 #include "../webserv.hpp"
 #include <cerrno>
 #include <cstddef>
+#include <cstring>
 #include <stdexcept>
 #include <string>
+#include <sys/socket.h>
 #include <vector>
+#include <netdb.h>
 
-ConfigParser::ConfigParser(std::vector<Token> tokens) : tokens_(tokens), current_(0) {}
+ConfigParser::ConfigParser(std::vector<Token> tokens)
+	: tokens_(tokens), current_(0) {
+}
 
-ConfigParser::ConfigParser(const ConfigParser& other) : tokens_(other.tokens_), current_(other.current_) {}
+ConfigParser::ConfigParser(const ConfigParser& other)
+	: tokens_(other.tokens_), current_(other.current_) {
+}
 
-ConfigParser::ConfigParser() : tokens_(), current_(0) {}
+ConfigParser::ConfigParser()
+	: tokens_(), current_(0) {
+}
 
-ConfigParser::~ConfigParser() {}
+ConfigParser::~ConfigParser() {
+}
 
-const ConfigParser&			ConfigParser::operator=(const ConfigParser& other) {
-	if (this != &other)
-	{
+const ConfigParser&	ConfigParser::operator=(const ConfigParser& other) {
+
+	if (this != &other) {
 		tokens_ = other.tokens_;
 		current_ = other.current_;
 	}
@@ -40,42 +50,67 @@ void	ConfigParser::next() {
 		current_++;
 }
 
-Token 						ConfigParser::current() {
+Token	ConfigParser::current() {
 	return (tokens_[current_]);
 }
 
-void						ConfigParser::present(std::string expected) {
+void	ConfigParser::present(std::string expected) {
+
 	if (tokens_[current_].content != expected)
 		throw std::logic_error("Expected a " + expected);
 	else
 		current_++;
 }
 
-static int		parsePort(std::string value)
-{
+static int	parsePort(std::string value) {
+
 	char*	end;
+	errno = 0;
 	long	val = std::strtol(value.c_str(), &end, 10);
 
-	if (errno == ERANGE || val < 0 || val > 65535)
+	if (errno == ERANGE || end == value.c_str() || *end != '\0'
+		|| val < 1 || val > 65535)
 		throw std::logic_error("Port not valid: " + value);
-		
 	return (static_cast<int>(val));
 }
-ListenInfo 				ConfigParser::ParseListen() {
+
+ListenInfo	ConfigParser::ParseListen() {
+
 	present("listen");
+
 	ListenInfo	listen_info;
-	int			port = parsePort(current().content);
+	std::string	token = current().content;
+	std::string	host = "0.0.0.0";
+	std::string	port = token;
+	size_t		sep = token.find(':');
 
-	listen_info.port = current().content;
-	memset(&listen_info.address, 0, sizeof(listen_info.address));
-	listen_info.address.sin_family = AF_INET;
-	listen_info.address.sin_port = htons(port);
-	listen_info.address.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (sep != std::string::npos) {
+		host = token.substr(0, sep);
+		port = token.substr(sep + 1);
+	}
+	parsePort(port);
 
-// check valid
+	struct addrinfo		hints;
+	struct addrinfo*	res = NULL;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	int	rc = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
+	if (rc != 0 || res == NULL)
+		throw std::logic_error("listen" + token + ": "
+			+ gai_strerror(rc));
+
+	listen_info.host = host;
+	listen_info.port = port;
+	memcpy(&listen_info.address, res->ai_addr, sizeof(listen_info.address));
+	freeaddrinfo(res);
+
 	current_++;
 	present(";");
-	return (listen_info);
+	return listen_info;
 }
 
 std::string 		ConfigParser::ParseRoot() {

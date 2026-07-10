@@ -38,18 +38,18 @@ void	Config::add_location(std::pair<std::string, LocationConfig> location) {
 	locations_.insert(location);
 }
 
-void				Config::add_error_page(std::pair<int, std::string> page) {
-	error_pages.insert(page);
+void	Config::add_error_page(std::pair<int, std::string> page) {
+	error_pages_.insert(page);
 }
 
 void	Config::set_max_body_size(size_t size) {
 	max_body_size_ = size;
 }
 
-std::string	Config::root() { return (root_); }
-size_t		Config::max_body_size() { return max_body_size_; }
+const std::string&	Config::root() const { return root_; }
+size_t			Config::max_body_size() const { return max_body_size_; }
 std::map<std::string, LocationConfig>	Config::locations() const {
-	return (locations_);
+	return locations_;
 }
 const std::vector<ListenInfo> &Config::listens_info() const {
 	return listens_info_;

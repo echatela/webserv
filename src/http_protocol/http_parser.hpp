@@ -25,6 +25,10 @@ public:
 	int			flag() const;
 	const std::string&	buf() const;
 	bool			bad_request() const;
+	void			set_max_body_size(size_t size);
+	bool			too_large() const;
+
+	static const size_t	kMaxHeaderSize = 8192;
 
 private :
 	std::string	buf_;
@@ -39,6 +43,8 @@ private :
 	size_t		buf_size_with_body_;
 	int		flag_;
 	bool		has_body_;
+	size_t		max_body_size_;
+	bool		too_large_;
 
 	HttpParser(const HttpParser& other);
 	HttpParser& operator=(const HttpParser& other);
