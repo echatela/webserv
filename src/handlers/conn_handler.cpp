@@ -63,8 +63,8 @@ int	ConnHandler::HandleEvent(uint32_t events)
 
 	if (state_ == kReading && events & EPOLLIN) {
 		char read_buf[kReadBufferSize];
-
 		ssize_t n = recv(fd_, read_buf, kReadBufferSize - 1, 0);
+
 		if (n <= 0)
 			return kClose;
 		read_buf[n] = '\0';
@@ -78,10 +78,9 @@ int	ConnHandler::HandleEvent(uint32_t events)
 		ssize_t	n = send(
 			fd_, &write_buf_[0] + write_off_, remaining, 0);
 
-		if (n > 0)
-			write_off_ += n;
-		// decide to respect http/1.0 protocol here for simplicity
-		// and security
+		if (n <= 0)
+			return kClose;
+		write_off_ += n;
 		if (write_off_ == write_buf_.size())
 			return kClose;
 		return kKeep;
@@ -248,9 +247,7 @@ void	ConnHandler::OnCgiDone(const std::string & output)
 	HttpResponse	response = router_.CgiResponse(output);
 
 	cgi_ = NULL;
-	write_buf_ = response.ToCharVector();
-	epoll_.Mod(fd_, EPOLLOUT, this);
-	state_ = kWriting;
+	SendResponse(response);
 }
 
 void	ConnHandler::OnCgiError(int status)
@@ -258,9 +255,7 @@ void	ConnHandler::OnCgiError(int status)
 	HttpResponse	response(router_.ErrorResponse(status));
 
 	cgi_ = NULL;
-	write_buf_ = response.ToCharVector();
-	epoll_.Mod(fd_, EPOLLOUT, this);
-	state_ = kWriting;
+	SendResponse(response);
 }
 
 void	ConnHandler::Detach() { cgi_ = NULL; }

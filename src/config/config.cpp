@@ -46,7 +46,7 @@ void	Config::set_max_body_size(size_t size) {
 	max_body_size_ = size;
 }
 
-std::map<int, std::string>	Config::error_pages() const {
+const std::map<int, std::string>&	Config::error_pages() const {
 	return error_pages_;
 }
 

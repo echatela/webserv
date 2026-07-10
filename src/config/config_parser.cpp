@@ -159,7 +159,7 @@ size_t	ConfigParser::ParseMaxBodySize() {
 	return (max_size);
 }
 
-bool				ConfigParser::ParseUploadBool() {
+bool	ConfigParser::ParseUploadBool() {
 
 	present("upload");
 
@@ -186,6 +186,7 @@ std::pair<std::string, LocationConfig>	ConfigParser::ParseLocation() {
 	current_++;
 	present("{");
 	directives.autoindex = false;
+	directives.upload_enabled = false;
 	
 	while (current_ < tokens_.size() && current().content != "}")
 	{
@@ -212,6 +213,13 @@ std::pair<std::string, LocationConfig>	ConfigParser::ParseLocation() {
 		}
 		else if (current().content == "upload")
 			directives.upload_enabled = ParseUploadBool();
+		else if (current().content == "upload_path") {
+			std::vector<std::string> tmp = ParseStr("upload_path");
+			if (tmp.size() != 1)
+				throw std::runtime_error(
+					"Invalid argument: upload_path");
+			directives.upload_path = tmp[0];
+		}
 		else
 			throw std::logic_error("Unknown directive: "
 				+ current().content);

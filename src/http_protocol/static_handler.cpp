@@ -340,7 +340,10 @@ static void	HandleMultipart(const FormData & data, RouteInfo & info)
 			return ;
 		}
 
-		std::string	path = info.file_path + "/" + filename;
+		std::string	dir = info.location.upload_path.empty()
+			? info.file_path
+			: info.location.upload_path;
+		std::string	path = dir + "/" + filename;
 		std::ofstream	new_file(path.c_str(),
 			 std::ios::out | std::ios::binary | std::ios::trunc);
 		if (!new_file.is_open()) {

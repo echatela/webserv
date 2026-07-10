@@ -9,7 +9,7 @@
 
 struct RouteInfo {
 
-	Config			config; 
+	Config		config; 
 
 	LocationConfig	location;
 	bool 		loc_found;
@@ -33,25 +33,22 @@ public:
 	Router();
 	~Router();
 
-
-	// bool	IsCgi(HttpRequest & req);
-
-	// void	FillRouteInfo(HttpRequest & req);
-
 	CgiPlan			MakeCgiPlan(HttpRequest & req);
 
 	RouteResult 		ProcessRequest(HttpRequest & req);
 	
 	HttpResponse		CgiResponse(const std::string output);
-	HttpResponse 		StaticResponse(HttpRequest & req, RouteInfo & info);
+	HttpResponse 		StaticResponse(
+		HttpRequest & req, RouteInfo & info);
 
 	static HttpResponse	RedirectResponse(int code, std::string target);
 	HttpResponse		ErrorResponse(int status_code);
-	static HttpResponse	ErrorResponse(int status_code, const Config & config);
+	static HttpResponse	ErrorResponse(
+		int status_code, const Config & config);
 
 	HttpResponse 		GetErrorPage(int status_code);
 	static HttpResponse	StaticError(int status_code);
-	static HttpResponse	ErrorPage(std::string path);
+	static HttpResponse	ErrorPage(int status_code, std::string path);
 
 	void			set_config(const Config & config);
 	Config 			config() const;
@@ -59,7 +56,6 @@ public:
 private:
 	Config	config_;
 	std::map<int, std::string> error_pages_;
-	// RouteInfo		route_info_;
 };
 
 

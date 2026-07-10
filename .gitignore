@@ -5,6 +5,9 @@ __pycache__/
 TODO_perso.txt
 todo_httpresponse.txt
 TODO.txt
-.cache
+.cache/
 Bugs_berk.txt
 TODO_LIST.txt
+*.pyc
+compile_commands.json
+.build/

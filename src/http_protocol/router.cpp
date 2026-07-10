@@ -9,6 +9,7 @@
 
 #include <cstddef>
 #include <fstream>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -159,15 +160,12 @@ HttpResponse 	Router::ErrorResponse(int status_code) {
 
 HttpResponse 	Router::ErrorResponse(int status_code, const Config & config) {
 	
-	try {
-		std::string page_path = config.error_pages().at(status_code);
-		page_path = config.root() + config.error_pages()[status_code].substr(1);
-		return ErrorPage(page_path);
-	}
-	catch (std::exception & e) {
-		return StaticError(status_code);
-	}
-	
+	const std::map<int, std::string>&	pages = config.error_pages();
+	std::map<int, std::string>::const_iterator it = pages.find(status_code);
+
+	if (it != pages.end())
+		return ErrorPage(status_code, config.root() + it->second.substr(1));
+	return StaticError(status_code);
 }
 
 HttpResponse 	Router::StaticError(int status_code) {
@@ -190,29 +188,27 @@ HttpResponse 	Router::StaticError(int status_code) {
 
 }
 
-HttpResponse	Router::ErrorPage(std::string path) {
+HttpResponse	Router::ErrorPage(int status_code, std::string path) {
 
 	HttpResponse	resp;
 	std::ifstream 	file(path.c_str(), std::ios::in | std::ios::binary);
 
-	if (!file.is_open()) {
-		return StaticError(kForbidden);
-	}
+	if (!file.is_open())
+		return StaticError(status_code);
 
 	std::ostringstream ss;
 	ss << file.rdbuf();
-	resp.set_body(ss.str());
-	file.close();
 	if (resp.body().empty())
-		return StaticError(kNoContent);
-	resp.set_header("Content-Length", webserv::utils::IntToStr(resp.body().size()));
-	resp.set_status(kOk);
+		return StaticError(status_code);
+
+	resp.set_status(status_code);
 	resp.set_reason_phrase();
 	resp.set_version("HTTP/1.1");
+	resp.set_body(ss.str());
 	resp.set_header("Content-Type", "text/html");
-
+	resp.set_header("Content-Length",
+		 webserv::utils::IntToStr(resp.body().size()));
 	return resp;
-
 }
 
 CgiPlan		Router::MakeCgiPlan(HttpRequest & req) {

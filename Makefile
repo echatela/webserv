@@ -41,13 +41,11 @@ $(D_BUILD)%.o: %.cpp
 
 # Clean rule to remove generated files
 clean:
-	rm -r $(D_BUILD)
+	rm -rf $(D_BUILD)
 
 fclean: clean
 	rm -f $(TARGET)
 
 re: fclean all
 
-# Rule to run the executable
-run: $(TARGET)
-	./$(TARGET) src/Configuration.conf
+.PHONY: all clean fclean re
