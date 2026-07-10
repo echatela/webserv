@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 
 class HttpRequest;
 
-enum ParseError
-{
+enum ParseError {
 	NO_ERROR,
 	BAD_REQUEST = 400,
 	METHOD_NOT_ALLOWED = 405,
@@ -21,21 +21,27 @@ public:
 	~HttpParser();
 
 	int	Add(const char* buf, size_t n);
-
-	int		flag() const;
-	std::string	buf() const;
-
 	int	ParseRequest(HttpRequest& req) const;
+	bool	ScanChunks(size_t body_start);
+
+	int			flag() const;
+	const std::string&	buf() const;
+	bool			bad_request() const;
 
 private :
-	HttpParser(const HttpParser& other);
-	HttpParser& operator=(const HttpParser& other);
-
 	std::string	buf_;
+	size_t		content_length_;
+	bool		headers_parsed_;
+	bool		chunked_;
+	bool		bad_request_;
+	size_t		scan_pos_;
+	std::string	decoded_body_;
 	size_t		buf_size_;
 	size_t		buf_size_without_body_;
 	size_t		buf_size_with_body_;
 	int		flag_;
-	int		content_length_;
-	bool	has_body_;
+	bool		has_body_;
+
+	HttpParser(const HttpParser& other);
+	HttpParser& operator=(const HttpParser& other);
 };

@@ -114,9 +114,7 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 
 	InitRouteInfo(info);
 
-	std::cout << "=================================max_body_size is :" << config.max_body_size();
-	if (req.body().size() > config.max_body_size())
-	{
+	if (req.body().size() > config.max_body_size()) {
 		info.status_code = kPayloadTooLarge;
 		return info;
 	}

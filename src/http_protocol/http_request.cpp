@@ -1,4 +1,6 @@
 #include "http_request.hpp"
+#include <cstddef>
+#include <map>
 #include <sstream>
 #include <iostream>
 
@@ -11,10 +13,10 @@ HttpRequest::HttpRequest(const HttpRequest& other)
 {
 }
 
-HttpRequest& HttpRequest::operator=(const HttpRequest& other)
-{
-	if (this != &other)
-	{
+HttpRequest& HttpRequest::operator=(const HttpRequest& other) {
+
+	if (this != &other) {
+
 		this->method_ = other.method_;
 		this->path_ = other.path_;
 		this->version_ = other.version_;
@@ -23,70 +25,6 @@ HttpRequest& HttpRequest::operator=(const HttpRequest& other)
 		this->error_ = other.error_;
 	}
 	return *this;
-}
-
-const std::string &	HttpRequest::method() const
-{
-	return method_;
-}
-
-const std::string &	HttpRequest::path() const
-{
-	return path_;
-}
-
-const std::string &	HttpRequest::version() const
-{
-	return version_;
-}
-
-const std::map<std::string, std::string> &	HttpRequest::headers() const
-{
-	return header_;
-}
-
-const std::string &	HttpRequest::body() const
-{
-	return body_;
-}
-
-int HttpRequest::error() const
-{
-	return error_;
-}
-
-std::string	HttpRequest::header(std::string key) const
-{
-	size_t	i = 0;
-	
-	while (i < key.size())
-	{
-		if (key[i] == '-')
-		{
-			i++;
-			key[i] = std::toupper(key[i]);
-		}
-		else {
-			key[i] = std::tolower(key[i]);
-		}
-		i++;
-	}
-	key[0] = std::toupper(key[0]);
-	// std::cout << "key ." << key << ".\n";
-	std::string value;
-	try {
-		value = header_.at(key);
-	}
-	catch (std::exception& e) {
-		std::cerr << "Value for " << key << " not found\n"; // print a garder ou retirer, des fois le content-type par exemple n'est pas dans la requete
-		return value;
-	}
-	return value;
-}
-
-void HttpRequest::set_error(int error)
-{
-	error_ = error;
 }
 
 int HttpRequest::ParseMethod(const std::string& method)
@@ -136,6 +74,17 @@ int HttpRequest::ParseRequestLine(std::string requestline)
 	return NO_ERROR;
 }
 
+static std::string	CanonKey(std::string key) {
+	
+	for (size_t i = 0; i < key.size(); i++) {
+		if (i == 0 || key[i - 1] == '-')
+			key[i] = std::toupper(key[i]);
+		else
+			key[i] = std::tolower(key[i]);
+	}
+	return key;
+}
+
 int HttpRequest::ParseHeader(std::string header)
 {
 	std::istringstream iss(header);
@@ -146,17 +95,16 @@ int HttpRequest::ParseHeader(std::string header)
 		size_t pos = line.find(":");
 		if (pos == std::string::npos)
 			return BAD_HEADER;
-		std::string index = line.substr(0, pos);
-		std::string value = line.substr(pos + 2);
-		size_t start = value.find_first_not_of("\t");
+
+		std::string index = CanonKey(line.substr(0, pos));
+		std::string value = line.substr(pos + 1);
+		size_t start = value.find_first_not_of(" \t");
 		size_t end = value.find_last_not_of("\t\r\n");
 		if (start == std::string::npos || end == std::string::npos)
 			value.clear();
 		else
 			value = value.substr(start, end - start + 1);
-		// std::cout << "key ." << index << ".\n";
-		// std::cout << "value ." << value << ".\n";
-		// retirer les espaces en prefixes & les retours chariots !!!!
+
 		this->header_[index] = value;
 	}
 	if (this->header_["Host"].empty())
@@ -168,4 +116,23 @@ int HttpRequest::ParseBody(std::string body)
 {
 	this->body_ = body;
 	return NO_ERROR;
+}
+
+const std::string &	HttpRequest::method() const { return method_; }
+const std::string &	HttpRequest::path() const { return path_; }
+const std::string &	HttpRequest::version() const { return version_; }
+const std::map<std::string, std::string> &	HttpRequest::headers() const {
+	return header_;
+}
+const std::string &	HttpRequest::body() const { return body_; }
+int HttpRequest::error() const { return error_; }
+std::string	HttpRequest::header(std::string key) const {
+	std::map<std::string, std::string>::const_iterator it
+		= header_.find(CanonKey(key));
+	if (it == header_.end())
+		return "";
+	return it->second;
+}
+void HttpRequest::set_error(int error) {
+	error_ = error;
 }
