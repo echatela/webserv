@@ -119,6 +119,7 @@ RouteInfo 	RouteResolve::ResolveRoute(HttpRequest & req, Config & config) {
 	struct stat stat_info;
 
 	InitRouteInfo(info);
+	info.config = config;
 
 	if (req.body().size() > config.max_body_size())
 	{

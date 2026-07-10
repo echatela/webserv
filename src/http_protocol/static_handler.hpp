@@ -28,6 +28,7 @@ HttpResponse	BuildDelete(const HttpRequest & req, RouteInfo & info);
 HttpResponse	BuildPost(const HttpRequest & req, RouteInfo & info);
 
 HttpResponse	BuildAutoindex(RouteInfo & info);
+
 };
 
 

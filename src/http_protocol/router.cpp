@@ -4,15 +4,19 @@
 #include "route_resolve.hpp"
 #include "static_handler.hpp"
 
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
-Router::Router(Config config) : config_(config) {}
+Router::Router(Config config) : config_(config) {error_pages_ = config_.error_pages();}
 
 Router::Router() {}
 
 Router::~Router() {}
 
-void			Router::set_config(Config & config) { config_ = config; }
+Config			Router::config() const {return config_;}
+
+void			Router::set_config(const Config & config) { config_ = config; }
 
 // si pas d'erreur au moment de la resolution de route,
 // envoie la requete soit dans le process cgi soit dans le process classique/statique
@@ -23,19 +27,16 @@ RouteResult		Router::ProcessRequest(HttpRequest & req)
 
 	RouteInfo info = RouteResolve::ResolveRoute(req, config_);
 
-	std::cout << "=================================="
-		<< info.status_code << std::endl;
 	if (!info.location.redirect.empty())
 		return RouteResult::Response(RedirectResponse(
 			webserv::utils::ParseUInt(info.location.redirect[0]),
 			info.location.redirect[1]));
 	if (info.status_code != 200)
-		return RouteResult::Response(ErrorResponse(info.status_code));
+		return RouteResult::Response(ErrorResponse(info.status_code, config_));
 	if (req.method() == "POST" && info.location.upload_enabled != true)
 		return RouteResult::Response(ErrorResponse(kForbidden));
 	if (info.is_cgi == true)
 	{
-		std::cout << "/////////////request is cgi\n";
 		return RouteResult::Cgi(MakeCgiPlan(req));
 	}
 	return RouteResult::Response(StaticResponse(req, info));
@@ -105,10 +106,27 @@ HttpResponse  Router::RedirectResponse(int code, std::string target)
 
 // construction objet http_reponse erreur
 HttpResponse 	Router::ErrorResponse(int status_code) {
+	return ErrorResponse(status_code, config_);
+}
+
+HttpResponse 	Router::ErrorResponse(int status_code, const Config & config) {
+	
+	try {
+		std::string page_path = config.error_pages().at(status_code);
+		page_path = config.root() + config.error_pages()[status_code].substr(1);
+		return ErrorPage(page_path);
+	}
+	catch (std::exception & e) {
+		return StaticError(status_code);
+	}
+	
+}
+
+HttpResponse 	Router::StaticError(int status_code) {
 	
 	HttpResponse	resp;
 	std::string	body;
-
+	
 	resp.set_status(status_code);
 	resp.set_reason_phrase();
 	resp.set_version("HTTP/1.1");
@@ -121,6 +139,31 @@ HttpResponse 	Router::ErrorResponse(int status_code) {
 	resp.set_header("Content-Type", "text/html");
 	resp.set_header("Content-Length", webserv::utils::IntToStr(body.size()));
 	return (resp);
+
+}
+
+HttpResponse	Router::ErrorPage(std::string path) {
+
+	HttpResponse	resp;
+	std::ifstream 	file(path.c_str(), std::ios::in | std::ios::binary);
+
+	if (!file.is_open()) {
+		return StaticError(kForbidden);
+	}
+
+	std::ostringstream ss;
+	ss << file.rdbuf();
+	resp.set_body(ss.str());
+	file.close();
+	if (resp.body().empty())
+		return StaticError(kNoContent);
+	resp.set_header("Content-Length", webserv::utils::IntToStr(resp.body().size()));
+	resp.set_status(kOk);
+	resp.set_reason_phrase();
+	resp.set_version("HTTP/1.1");
+	resp.set_header("Content-Type", "text/html");
+
+	return resp;
 
 }
 

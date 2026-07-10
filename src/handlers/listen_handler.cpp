@@ -4,6 +4,7 @@
 #include "../webserv.hpp"
 #include <stdint.h>
 #include <exception>
+#include <iostream>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <stdexcept>
