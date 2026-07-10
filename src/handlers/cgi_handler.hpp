@@ -19,7 +19,7 @@ private:
 	Epoll &		epoll_;
 	std::string	output_buf_;
 
-	static const int	kTimeoutSecs = 10;
+	static const int	kTimeoutSecs = 30;
 	time_t		start_time_;
 
 	static const int	kReadBufferSize = 4096;

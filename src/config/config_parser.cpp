@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   config_parser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: agalleze <agalleze@student.42.fr>          +#+  +:+       +#+        */
+/*   By: willysex <willysex@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/29 15:12:45 by willysex          #+#    #+#             */
-/*   Updated: 2026/07/09 17:57:52 by agalleze         ###   ########.fr       */
+/*   Updated: 2026/07/10 11:19:07 by willysex         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "config_parser.hpp"
 #include "../webserv.hpp"
 #include <cerrno>
+#include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -113,10 +114,10 @@ std::vector<std::string>			ConfigParser::ParseStr(std::string directive) {
 	return result;
 }
 
-int					ConfigParser::ParseMaxBodySize() {
+size_t	ConfigParser::ParseMaxBodySize() {
 	
 	present("client_max_body_size");
-	size_t max_size = webserv::utils::ParseUInt(current().content);
+	size_t max_size = webserv::utils::ParseSize(current().content);
 
 	current_++;
 	present(";");

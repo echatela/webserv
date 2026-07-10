@@ -15,6 +15,7 @@
 
 #include "config_lexer.hpp"
 #include "config.hpp"
+#include <cstddef>
 #include <cstring>
 #include <stdlib.h>
 
@@ -35,7 +36,7 @@ class ConfigParser {
 
 		ListenInfo		ParseListen();
 		std::string		ParseRoot();
-		int			ParseMaxBodySize();
+		size_t			ParseMaxBodySize();
 		std::string		ParseCgi();
 		std::vector<std::string>	ParseStr(std::string directive);
 		bool				ParseUploadBool();

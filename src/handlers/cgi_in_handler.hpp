@@ -16,7 +16,7 @@ class CgiInHandler : public EventHandler
 	std::vector<char>	write_buf_;
 	size_t			write_off_;
 
-	static const int	kTimeoutSecs = 10;
+	static const int	kTimeoutSecs = 30;
 	time_t			start_time_;
 
 	CgiInHandler();

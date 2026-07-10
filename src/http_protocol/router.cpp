@@ -81,7 +81,7 @@ HttpResponse 	Router::CgiResponse(const std::string output)
 
 // construction objet http_reponse statique
 HttpResponse 	Router::StaticResponse(HttpRequest& req, RouteInfo & info) {
-	return StaticHandler::BuildStatic(req, info);
+	return static_handler::BuildStatic(req, info);
 }
 
 HttpResponse  Router::RedirectResponse(int code, std::string target)

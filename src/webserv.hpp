@@ -13,6 +13,7 @@ std::string 		AddrToString(const struct sockaddr_in& addr);
 std::string		Basename(const std::string & path);
 std::string		Basedir(const std::string & path);
 unsigned int		ParseUInt(std::string value);
+unsigned long		ParseSize(std::string value);
 bool			StatCheck(std::string path);
 }
 namespace fd {
