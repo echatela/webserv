@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <ctime>
-#include <exception>
 #include <string>
 #include <sys/types.h>
 #include <unistd.h>
@@ -11,18 +10,13 @@
 CgiInHandler::CgiInHandler(int stdin_fd, Epoll & epoll,
 			   const std::string & body)
 : stdin_fd_(stdin_fd), epoll_(epoll), write_buf_(body.begin(), body.end()),
-	write_off_(0), start_time_(time(NULL))
-{
-	try {
-		epoll_.Add(stdin_fd_, EPOLLOUT, this);
-	} catch (std::exception&) {
-		close(stdin_fd_);
-		throw;
-	}
+	write_off_(0), start_time_(time(NULL)) {
+
+	epoll_.Add(stdin_fd_, EPOLLOUT, this);
 }
 
-int	CgiInHandler::HandleEvent(uint32_t events)
-{
+int	CgiInHandler::HandleEvent(uint32_t events) {
+
 	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
 

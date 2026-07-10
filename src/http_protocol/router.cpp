@@ -131,23 +131,22 @@ CgiPlan		Router::MakeCgiPlan(HttpRequest & req) {
 	size_t sep;
 
 	cgi.interpreter = config_.locations().at("/cgi").cgi[1];
-	sep = path.find(".py");
-	if (sep != std::string::npos)
-	{
-		cgi.script_name = path.substr(0, sep + 3);
-		std::string full_path = cgi.script_name.replace(0, 4, config_.root() + "/cgi-bin");
-		char	resolved_path[PATH_MAX];
-		char* res = realpath(full_path.c_str(), resolved_path);
-		if (res != NULL)
-			cgi.script_path = resolved_path;
-		path = path.substr(sep + 3, path.length());
-	}
+
 	sep = path.find('?');
-	if (sep != std::string::npos)
-	{
-		cgi.path_info = path.substr(0, sep);
+	if (sep != std::string::npos) {
 		cgi.query_string = path.substr(sep + 1, path.length());
+		path = path.substr(0, sep);
 	}
 
+	sep = path.find(".py");
+	if (sep != std::string::npos) {
+		cgi.script_name = path.substr(0, sep + 3);
+		cgi.path_info = path.substr(sep + 3);
+
+		std::string	full_path = cgi.script_name;
+		full_path.replace(0, 4, config_.root() + "/cgi-bin");
+		if (webserv::utils::StatCheck(full_path))
+			cgi.script_path = full_path;
+	}
 	return cgi;
 }

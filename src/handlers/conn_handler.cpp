@@ -26,6 +26,13 @@
 #define YELLOW  "\033[33m"      /* Yellow */
 #define CYAN    "\033[36m"      /* Cyan */
 
+static void	CloseFd(int & fd) {
+	if (fd >= 0) {
+		close(fd);
+		fd = -1;
+	}
+}
+
 ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
 			 Epoll & epoll, Reactor & reactor)
 : fd_(fd), state_(kReading), addr_(addr), write_off_(0),
@@ -44,6 +51,9 @@ int	ConnHandler::HandleEvent(uint32_t events)
 {
 	if (events & (EPOLLERR | EPOLLHUP))
 		return kClose;
+
+	if (state_ == kCgi)
+		return kKeep;
 
 	if (CheckTimeout(time(NULL)) == kClose)
 		return kClose;
@@ -148,66 +158,78 @@ void	ConnHandler::StartCgi(const CgiPlan & plan) {
 	std::string			script_dir;
 	std::vector<std::string>	argv_str;
 	std::vector<std::string>	envp_str;
+	int				out_pipe[2] = {-1, -1};
+	int				in_pipe[2] = {-1, -1};
 
 	state_ = kCgi;
 
-	path = plan.interpreter.empty() ? plan.script_path : plan.interpreter;
-
 	script_dir = webserv::utils::Basedir(plan.script_path);
+
+	if (plan.interpreter.empty())
+		path = "./" + webserv::utils::Basename(plan.script_path);
+	else
+		path = plan.interpreter;
 
 	argv_str.push_back(webserv::utils::Basename(path));
 	if (path == plan.interpreter)
-		argv_str.push_back(plan.script_path);
+		argv_str.push_back(webserv::utils::Basename(plan.script_path));
 
 	envp_str = BuildCgiEnv(plan);
 
-	int	out_pipe[2];
-	if (pipe(out_pipe) < 0)
-		throw std::runtime_error("pipe() failed");
+	try {
+		if (pipe(out_pipe) < 0)
+			throw std::runtime_error("pipe() failed");
+		if (webserv::fd::SetNonBlock(out_pipe[0]) < 0
+			|| webserv::fd::SetCloExec(out_pipe[0]) < 0)
+			throw std::runtime_error("SetNonBlock() failed");
 
-	if (webserv::fd::SetNonBlock(out_pipe[0]) < 0
-		|| webserv::fd::SetCloExec(out_pipe[0]) < 0)
-		throw std::runtime_error("SetNonBlock() failed");
+		if (pipe(in_pipe) < 0)
+			throw std::runtime_error("pipe() failed");
+		if (webserv::fd::SetNonBlock(in_pipe[1]) < 0
+			|| webserv::fd::SetCloExec(in_pipe[1]) < 0)
+			throw std::runtime_error("SetNonBlock() failed");
 
-	int	in_pipe[2];
-	if (pipe(in_pipe) < 0)
-		throw std::runtime_error("pipe() failed");
+		std::vector<char*> argv = webserv::utils::ToCStrArray(argv_str);
+		std::vector<char*> envp = webserv::utils::ToCStrArray(envp_str);
 
-	if (webserv::fd::SetNonBlock(in_pipe[1]) < 0
-		|| webserv::fd::SetCloExec(in_pipe[1]) < 0)
-		throw std::runtime_error("SetNonBlock() failed");
+		pid_t	pid = fork();
+		if (pid < 0)
+			throw std::runtime_error("fork() failed");
 
-	std::vector<char *>	argv = webserv::utils::ToCStrArray(argv_str);
-	std::vector<char *>	envp = webserv::utils::ToCStrArray(envp_str);
-
-	pid_t	pid = fork();
-	if (pid < 0)
-		throw std::runtime_error("fork() failed");
-
-	if (pid == 0) {
-		if (dup2(in_pipe[0], STDIN_FILENO) < 0)
+		if (pid == 0) {
+			if (dup2(in_pipe[0], STDIN_FILENO) < 0)
+				_exit(1);
+			if (dup2(out_pipe[1], STDOUT_FILENO) < 0)
+				_exit(1);
+			close(in_pipe[0]); close(in_pipe[1]);
+			close(out_pipe[0]); close(out_pipe[1]);
+			if (chdir(script_dir.c_str()) < 0)
+				_exit(1);
+			execve(path.c_str(), &argv[0], &envp[0]);
 			_exit(1);
-		if (dup2(out_pipe[1], STDOUT_FILENO) < 0)
-			_exit(1);
-		close(in_pipe[0]); close(in_pipe[1]);
-		close(out_pipe[0]); close(out_pipe[1]);
-		if (chdir(script_dir.c_str()) < 0)
-			_exit(1);
-		execve(path.c_str(), &argv[0], &envp[0]);
-		_exit(1);
+		}
+
+		CloseFd(in_pipe[0]);
+		CloseFd(out_pipe[1]);
+
+		if (request_.body().empty())
+			CloseFd(in_pipe[1]);
+		else {
+			CgiInHandler *cgi_in = new CgiInHandler(
+				in_pipe[1], epoll_, request_.body());
+			in_pipe[1] = -1;
+			reactor_.AddEventHandler(cgi_in);
+		}
+		cgi_ = new CgiHandler(pid, out_pipe[0], *this, epoll_);
+		out_pipe[0] = -1;
+		reactor_.AddEventHandler(cgi_);
+	} catch (std::exception&) {
+		CloseFd(in_pipe[0]);
+		CloseFd(in_pipe[1]);
+		CloseFd(out_pipe[0]);
+		CloseFd(out_pipe[1]);
+		throw;
 	}
-
-	close(in_pipe[0]);
-	if (request_.body().empty())
-		close(in_pipe[1]);
-	else {
-		CgiInHandler *cgi_in = new CgiInHandler(
-			in_pipe[1], epoll_, request_.body());
-		reactor_.AddEventHandler(cgi_in);
-	}
-	close(out_pipe[1]);
-	cgi_ = new CgiHandler(pid, out_pipe[0], *this, epoll_);
-	reactor_.AddEventHandler(cgi_);
 }
 
 void	ConnHandler::OnCgiDone(const std::string & output)

@@ -94,30 +94,29 @@ int HttpParser::Add(const char* buf, size_t n) {
 
 int HttpParser::ParseRequest(HttpRequest & req) const
 {
-	int error = 0;
+	int error;
 
-	size_t pos = this->buf_.find("\r\n");
-	std::string requestLine = this->buf_.substr(0, pos);
-	error = req.ParseRequestLine(requestLine);
-
-	if (error != NO_ERROR)
+	size_t pos = buf_.find("\r\n");
+	error = req.ParseRequestLine(buf_.substr(0, pos));
+	if (error != NO_ERROR) {
+		req.set_error(error);
 		return error;
+	}
 
-	size_t startHeader = pos + 2;
-	size_t endHeader = this->buf_.find("\r\n\r\n");
-	if (endHeader == std::string::npos)
-		return OTHER_ERROR;
-	std::string header = this->buf_.substr(startHeader, endHeader - startHeader);
-	error = req.ParseHeader(header);
-
-	if (error != NO_ERROR)
+	size_t end_header = buf_.find("\r\n\r\n");
+	if (end_header == std::string::npos) {
+		req.set_error(BAD_REQUEST);
+		return BAD_REQUEST;
+	}
+	error = req.ParseHeader(buf_.substr(pos + 2, end_header - pos - 2));
+	if (error != NO_ERROR) {
+		req.set_error(error);
 		return error;
+	}
 
-	size_t startBody = endHeader + 4;
-	std::string body = chunked_
+	error = req.ParseBody(chunked_
 		? decoded_body_
-		: buf_.substr(startBody, content_length_);
-	error = req.ParseBody(body);
+		: buf_.substr(end_header + 4, content_length_));
 	req.set_error(error);
 	return error;
 }

@@ -9,13 +9,17 @@ enum	HttpStatusCode {
 	kCreated = 201,
 	kNoContent = 204,
 	kMovedPermanently = 301,
+	kFound = 302,
 	kBadRequest = 400,
 	kForbidden = 403,
 	kNotFound = 404,
 	kMethodNotAllowed = 405,
 	kPayloadTooLarge = 413,
 	kInternalServerError = 500,
-	kNotImplemented = 501
+	kNotImplemented = 501,
+	kBadGateway = 502,
+	kGatewayTimeout = 504,
+	kHttpVersionNotSupported = 505
 };
 
 struct	Header {

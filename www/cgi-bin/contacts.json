@@ -8,5 +8,11 @@
     "id": 1,
     "name": "bdfngn",
     "phone": "mhgm"
+  },
+  {
+    "id": 2,
+    "name": "edouard",
+    "phone": "017203740",
+    "image": "/upload/contact_2_wall.jpg"
   }
 ]

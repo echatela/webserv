@@ -36,50 +36,11 @@ void		HttpResponse::set_status(int status) {status_code_ = status;}
 void		HttpResponse::set_version(std::string version) {version_ = version;}
 
 void		HttpResponse::set_reason_phrase() {
-	switch (status_code_) {
-		case kOk:
-			reason_phrase_ = "OK";
-			break;
-		case kCreated:
-			reason_phrase_ = "Created";
-			break;
-		case kNoContent:
-			reason_phrase_ = "No Content";
-			break;
-		case kMovedPermanently:
-			reason_phrase_ = "Moved Permanently";
-			break;
-		case kBadRequest:
-			reason_phrase_ = "Bad Request";
-			break;
-		case kForbidden:
-			reason_phrase_ = "Forbidden";
-			break;
-		case kNotFound:
-			reason_phrase_ = "Not Found";
-			break;
-		case kMethodNotAllowed:
-			reason_phrase_ = "Method Not Allowed";
-			break;
-		case kPayloadTooLarge:
-			reason_phrase_ = "Payload Too Large";
-			break;
-		case kInternalServerError:
-			reason_phrase_ = "Internal Server Error";
-			break;
-		case kNotImplemented:
-			reason_phrase_ = "Method Not Implemented";
-			break;
-	}
+	reason_phrase_ = reason_phrase(status_code_);
 }
 
-std::string		HttpResponse::body() const {
-	return body_;
-}
-
-int 			HttpResponse::status_code() const {
-	return status_code_;
-}
+std::string		HttpResponse::body() const { return body_; }
+int 			HttpResponse::status_code() const { return status_code_; }
 
 std::string		HttpResponse::reason_phrase(int status_code) {
 	switch (status_code) {
@@ -91,6 +52,8 @@ std::string		HttpResponse::reason_phrase(int status_code) {
 			return "No Content";
 		case kMovedPermanently:
 			return "Moved Permanently";
+		case kFound:
+			return "Found";
 		case kBadRequest:
 			return "Bad Request";
 		case kForbidden:
@@ -104,9 +67,15 @@ std::string		HttpResponse::reason_phrase(int status_code) {
 		case kInternalServerError:
 			return "Internal Server Error";
 		case kNotImplemented:
-			return "Method Not Implemented";
+			return "Not Implemented";
+		case kBadGateway:
+			return "Bad Gateway";
+		case kGatewayTimeout:
+			return "Gateway Timeout";
+		case kHttpVersionNotSupported:
+			return "HTTP Version Not Supported";
 	}
-	return "CODE NOT VALID";
+	return "Internal Server Error";
 }
 
 

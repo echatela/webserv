@@ -12,18 +12,13 @@
 CgiHandler::CgiHandler(pid_t pid, int stdout_fd, ConnHandler& conn,
 		       Epoll& epoll)
 : pid_(pid), stdout_fd_(stdout_fd), conn_(&conn), epoll_(epoll),
-	start_time_(time(NULL))
-{
-	try {
-		epoll_.Add(stdout_fd_, EPOLLIN, this);
-	} catch (std::exception&) {
-		close(stdout_fd);
-		throw;
-	}
+	start_time_(time(NULL)) {
+
+	epoll_.Add(stdout_fd_, EPOLLIN, this);
 }
 
-int	CgiHandler::HandleEvent(uint32_t events)
-{
+int	CgiHandler::HandleEvent(uint32_t events) {
+
 	if (events & EPOLLERR) {
 		if (conn_)
 			conn_->OnCgiError(502);
