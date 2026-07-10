@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include <cstring>
+#include <iostream>
 
 Config::Config()
 : max_body_size_(1048576) {
@@ -20,6 +21,7 @@ Config &	Config::operator=(const Config & rhs) {
 		listens_info_ = rhs.listens_info_;
 		root_ = rhs.root_;
 		locations_ = rhs.locations_;
+		error_pages_ = rhs.error_pages_;
 		server_name_ = rhs.server_name_;
 		max_body_size_ = rhs.max_body_size_;
 	}
@@ -39,21 +41,27 @@ void	Config::add_location(std::pair<std::string, LocationConfig> location) {
 }
 
 void				Config::add_error_page(std::pair<int, std::string> page) {
-	error_pages.insert(page);
+	error_pages_.insert(page);
 }
 
 void	Config::set_max_body_size(size_t size) {
 	max_body_size_ = size;
 }
 
-std::string	Config::root() { return (root_); }
-size_t		Config::max_body_size() { return max_body_size_; }
+std::map<int, std::string> Config::error_pages() const {return error_pages_;}
+
+std::string	Config::root() const { return (root_); }
+
+size_t		Config::max_body_size() const { return max_body_size_; }
+
 std::map<std::string, LocationConfig>	Config::locations() const {
 	return (locations_);
 }
+
 const std::vector<ListenInfo> &Config::listens_info() const {
 	return listens_info_;
 }
+
 std::vector<ListenInfo> Config::listens_info(std::vector<Config> configs) {
 	std::vector<ListenInfo> listens;
 	for (size_t i = 0; i < configs.size(); i++)

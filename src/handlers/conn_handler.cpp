@@ -32,7 +32,7 @@ ConnHandler::ConnHandler(sockaddr_in addr, int fd, const ListenHandler & listen,
 	start_time_(time(NULL)), epoll_(epoll), reactor_(reactor), listen_(listen), cgi_(NULL)
 {
 	try {
-		router_.set_config(const_cast<Config &>(listen_.config())); // a remodifier dans la classe pour eviter le cast degueu
+		router_.set_config(listen_.config());
 		epoll_.Add(fd_, EPOLLIN, this);
 	} catch (std::exception &) {
 		close(fd_);

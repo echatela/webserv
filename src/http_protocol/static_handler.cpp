@@ -24,7 +24,7 @@ HttpResponse 	static_handler::BuildStatic(
 		return BuildDelete(req, info);
 	else
 		return BuildPost(req, info);
-	return Router::ErrorResponse(kMethodNotAllowed);	
+	return Router::ErrorResponse(kMethodNotAllowed, info.config);	
 }
 
 static void	FillBody(std::string & body, RouteInfo & info) {
@@ -84,7 +84,7 @@ HttpResponse	static_handler::BuildAutoindex(RouteInfo & info) {
 
 	DIR	*dir = opendir(info.file_path.c_str());
 	if (dir == NULL)
-		return Router::ErrorResponse(kForbidden);
+		return Router::ErrorResponse(kForbidden, info.config);
 
 	std::string uri = info.uri;
 	if (uri.empty() || uri[uri.size() - 1] != '/')
@@ -141,12 +141,12 @@ HttpResponse 	static_handler::BuildGet(
 		if (!found) {
 			if (info.location.autoindex)
 				return BuildAutoindex(info);
-			return Router::ErrorResponse(kForbidden);
+			return Router::ErrorResponse(kForbidden, info.config);
 		}
 	}
 	FillBody(body, info);
 	if (info.status_code != kOk)
-		return Router::ErrorResponse(info.status_code);
+		return Router::ErrorResponse(info.status_code, info.config);
 	AddContentLength(response, body);
 
 	response.set_body(body);
@@ -185,14 +185,14 @@ HttpResponse 	static_handler::BuildDelete(
 
 	info.status_code = std::remove(info.file_path.c_str());
 	if (info.status_code != 0)
-		return Router::ErrorResponse(kMethodNotAllowed);
+		return Router::ErrorResponse(kMethodNotAllowed, info.config);
 
 	response.set_status(kOk);
 	response.set_reason_phrase();
 	response.set_version("HTTP/1.1");
 	AddContentType(response, info);
 	if (info.status_code != 0)
-		return Router::ErrorResponse(info.status_code);
+		return Router::ErrorResponse(info.status_code, info.config);
 
 	response.set_body(FileDeletedBody(info));
 	AddContentLength(response, response.body());
@@ -384,22 +384,22 @@ HttpResponse 	static_handler::BuildPost(const HttpRequest & req, RouteInfo & inf
 	std::string 				content_type;
 
 	if (info.location.upload_enabled != true)
-		return Router::ErrorResponse(kMethodNotAllowed);
+		return Router::ErrorResponse(kMethodNotAllowed, info.config);
 	try {
 		content_type = req_headers.at("Content-Type");
 	}
 	catch (std::exception& e) {
-		return Router::ErrorResponse(kBadRequest);
+		return Router::ErrorResponse(kBadRequest, info.config);
 	}
 	if (content_type.compare(0, 19,"multipart/form-data") == 0)
 	{
 		FormData data = ParseMultipart(req.body(), content_type, info);
 		if (info.status_code != kOk)
-			return Router::ErrorResponse(info.status_code);
+			return Router::ErrorResponse(info.status_code, info.config);
 
 		HandleMultipart(data, info);
 		if (info.status_code != kOk)
-			return Router::ErrorResponse(info.status_code); 
+			return Router::ErrorResponse(info.status_code, info.config); 
 		HttpResponse response;
 
 		response.set_status(info.status_code);
@@ -411,7 +411,7 @@ HttpResponse 	static_handler::BuildPost(const HttpRequest & req, RouteInfo & inf
 
 		return response;
 	}
-	return Router::ErrorResponse(kNotImplemented);
+	return Router::ErrorResponse(kNotImplemented, info.config);
 }
 
 

@@ -9,6 +9,8 @@
 
 struct RouteInfo {
 
+	Config			config; 
+
 	LocationConfig	location;
 	bool 		loc_found;
 	
@@ -44,12 +46,19 @@ public:
 	HttpResponse 		StaticResponse(HttpRequest & req, RouteInfo & info);
 
 	static HttpResponse	RedirectResponse(int code, std::string target);
-	static HttpResponse	ErrorResponse(int status_code);
+	HttpResponse		ErrorResponse(int status_code);
+	static HttpResponse	ErrorResponse(int status_code, const Config & config);
 
-	void			set_config(Config & config);
+	HttpResponse 		GetErrorPage(int status_code);
+	static HttpResponse	StaticError(int status_code);
+	static HttpResponse	ErrorPage(std::string path);
+
+	void			set_config(const Config & config);
+	Config 			config() const;
 
 private:
 	Config	config_;
+	std::map<int, std::string> error_pages_;
 	// RouteInfo		route_info_;
 };
 
