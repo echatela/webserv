@@ -1,1 +1,0 @@
-. POST avec url-formencoded machin

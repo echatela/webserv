@@ -127,6 +127,8 @@ HttpResponse 	static_handler::BuildGet(
 		bool	found = false;
 		for (size_t i = 0; i < candidates.size(); ++i) {
 			std::string	path(info.file_path);
+			if (!path.empty() && path[path.size() - 1] != '/')
+				path += "/";
 			path.append(candidates[i]);
 			if (webserv::utils::StatCheck(path)) {
 				info.file_path = path;

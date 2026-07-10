@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>Upload</title>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+	<body>
+		<div class="phonebook">
+			<h1>Upload</h1>
+			<p>Send a file to the server.</p>
+			<form action="/upload" method="post" enctype="multipart/form-data">
+				<input type="file" name="file">
+				<button class="links" type="submit">Upload</button>
+			</form>
+			<a href="/"><button class="links">Back to home</button></a>
+		</div>
+	</body>
+</html>

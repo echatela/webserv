@@ -198,7 +198,7 @@ HttpResponse	Router::ErrorPage(int status_code, std::string path) {
 
 	std::ostringstream ss;
 	ss << file.rdbuf();
-	if (resp.body().empty())
+	if (ss.str().empty())
 		return StaticError(status_code);
 
 	resp.set_status(status_code);
