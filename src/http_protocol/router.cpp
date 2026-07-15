@@ -64,10 +64,10 @@ RouteResult	Router::ProcessRequest(HttpRequest & req) {
 	if (info.status_code != kOk)
 		return RouteResult::Response(
 			ErrorResponse(info.status_code, config_));
-	if (req.method() == "POST" && info.location.upload_enabled != true)
-		return RouteResult::Response(ErrorResponse(kForbidden));
 	if (info.is_cgi == true)
 		return RouteResult::Cgi(MakeCgiPlan(req));
+	if (req.method() == "POST" && info.location.upload_enabled != true)
+		return RouteResult::Response(ErrorResponse(kForbidden));
 	return RouteResult::Response(StaticResponse(req, info));
 
 }

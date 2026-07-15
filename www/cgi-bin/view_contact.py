@@ -169,4 +169,3 @@ if len(contacts) == 0:
     print_empty_state()
 else:
     print_contacts(contacts)
-    add_delete_script()

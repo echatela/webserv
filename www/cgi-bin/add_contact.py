@@ -124,7 +124,7 @@ def store_uploaded_image(image_field, contact_id):
 	# ecrit le contenu de l'image dans le fichier
 	with open(stored_path, "wb") as output_file:
 		output_file.write(image_field["content"])
-	return "/upload/" + stored_name
+	return "/images/" + stored_name
 
 def print_page_start(title):
 	print("<!doctype html>")
