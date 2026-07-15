@@ -20,7 +20,7 @@ Config &	Config::operator=(const Config & rhs) {
 		root_ = rhs.root_;
 		locations_ = rhs.locations_;
 		error_pages_ = rhs.error_pages_;
-		server_name_ = rhs.server_name_;
+		server_names_ = rhs.server_names_;
 		max_body_size_ = rhs.max_body_size_;
 	}
 	return (*this);
@@ -76,4 +76,10 @@ std::vector<ListenInfo> Config::listens_info(std::vector<Config> configs) {
 	}
 	return listens;
 }
-const std::string &	Config::server_name() const { return server_name_; }
+void	Config::set_server_names(std::vector<std::string> names) {
+	server_names_ = names;
+}
+
+const std::vector<std::string> &	Config::server_names() const {
+	return server_names_;
+}

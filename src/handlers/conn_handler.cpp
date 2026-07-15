@@ -112,7 +112,11 @@ void	ConnHandler::HandleRequest()
 	}
 
 	parser_.ParseRequest(request_);
-	
+
+	// Virtual hosting : le bloc server est choisi selon le header Host
+	// une fois la requete lue (le meme socket peut porter plusieurs blocs).
+	router_.set_config(listen_.matchConfig(request_.header("Host")));
+
 	RouteResult result = router_.ProcessRequest(request_);
 	switch (result.type()) {
 		case kRouteResponse: {
@@ -150,8 +154,10 @@ std::vector<std::string> ConnHandler::BuildCgiEnv(const CgiPlan & plan) const
 	env.push_back("REMOTE_USER="); // authentification, no need to include
 	env.push_back("REQUEST_METHOD=" + request_.method()); // a changer selon la methode
 	env.push_back("SCRIPT_NAME=" + plan.script_name);
-	std::string	server_name = listen_.config().server_name();
-	// Value "Host" in the request
+	std::string	server_name = request_.header("Host");
+	size_t		colon = server_name.find(':');
+	if (colon != std::string::npos)
+		server_name = server_name.substr(0, colon);
 	if (server_name.empty())
 		server_name = listen_.listen_info().host;
 	env.push_back("SERVER_NAME=" + server_name);

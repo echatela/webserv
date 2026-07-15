@@ -10,5 +10,11 @@
     "name": "Test 2",
     "phone": "image",
     "image": "/images/contact_1_ScreenshotFrom2026-07-1514-56-49.png"
+  },
+  {
+    "id": 2,
+    "name": "sadhf",
+    "phone": "98374598",
+    "image": "/images/contact_2_awesomeface.png"
   }
 ]

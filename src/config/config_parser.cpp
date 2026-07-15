@@ -268,6 +268,8 @@ Config		 				ConfigParser::ParseServer() {
 			server.set_max_body_size(ParseMaxBodySize());
 		else if (current().content == "error_page")
 			server.add_error_page(ParseErrorPage());
+		else if (current().content == "server_name")
+			server.set_server_names(ParseStr("server_name"));
 		else
 			throw std::logic_error("Unknown directive: " + current().content);
 	}

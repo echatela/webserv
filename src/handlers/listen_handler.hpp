@@ -6,17 +6,18 @@
 #include "event_handler.hpp"
 #include <stdint.h>
 #include <netinet/in.h>
+#include <vector>
 
 class Reactor;
 
 class ListenHandler : public EventHandler
 {
 private:
-	int			fd_;
-	Epoll &			epoll_;
-	Reactor &		reactor_;
-	const Config &		config_;
-	const ListenInfo &	listen_info_;
+	int				fd_;
+	Epoll &				epoll_;
+	Reactor &			reactor_;
+	std::vector<const Config*>	configs_;
+	const ListenInfo &		listen_info_;
 
 	ListenHandler();
 	ListenHandler(const ListenHandler & src);
@@ -24,13 +25,14 @@ private:
 
 public:
 	ListenHandler(const ListenInfo & info, Epoll & epoll, Reactor & reactor,
-	const Config & config);
+	const std::vector<const Config*> & configs);
 
 	int	HandleEvent(uint32_t events);
 
 	int			fd() const;
 	Reactor &		reactor() const;
 	const Config &		config() const;
+	const Config &		matchConfig(const std::string & host) const;
 	const ListenInfo &	listen_info() const;
 
 

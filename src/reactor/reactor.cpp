@@ -13,20 +13,44 @@
 Reactor::Reactor(std::vector<Config> const & configs)
 : configs_(configs) //configs_ -> vecteur de serveur config
 {
+	std::vector<const ListenInfo*>			endpoints;
+	std::vector<std::vector<const Config*> >	groups;
+
+	// Regroupe les blocs server partageant un meme host:port : chaque
+	// endpoint unique donne un seul socket, portant tous ses blocs.
 	for (size_t i = 0; i < configs_.size(); ++i) {
 		const std::vector<ListenInfo> &cur_listens
 			= configs_[i].listens_info();
 		for (size_t j = 0; j < cur_listens.size(); ++j) {
-			ListenHandler *listen = NULL;
+			std::string	key = cur_listens[j].host + ":"
+				+ cur_listens[j].port;
+			size_t		idx = endpoints.size();
 
-			try {
-				listen = new ListenHandler(cur_listens[j],
-			epoll_, *this, configs_[i]);
-				handlers_.push_back(listen);
-			} catch (std::exception&) {
-				delete listen;
-				throw;
+			for (size_t k = 0; k < endpoints.size(); ++k) {
+				if (endpoints[k]->host + ":"
+					+ endpoints[k]->port == key) {
+					idx = k;
+					break;
+				}
 			}
+			if (idx == endpoints.size()) {
+				endpoints.push_back(&cur_listens[j]);
+				groups.push_back(std::vector<const Config*>());
+			}
+			groups[idx].push_back(&configs_[i]);
+		}
+	}
+
+	for (size_t i = 0; i < endpoints.size(); ++i) {
+		ListenHandler *listen = NULL;
+
+		try {
+			listen = new ListenHandler(*endpoints[i],
+				epoll_, *this, groups[i]);
+			handlers_.push_back(listen);
+		} catch (std::exception&) {
+			delete listen;
+			throw;
 		}
 	}
 }

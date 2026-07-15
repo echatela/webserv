@@ -14,8 +14,8 @@
 #include "reactor.hpp"
 
 ListenHandler::ListenHandler(const ListenInfo & info, Epoll & epoll, Reactor & reactor,
-	       const Config & config)
-: epoll_(epoll), reactor_(reactor), config_(config), listen_info_(info)
+	       const std::vector<const Config*> & configs)
+: epoll_(epoll), reactor_(reactor), configs_(configs), listen_info_(info)
 {
 	fd_ = socket(AF_INET, SOCK_STREAM, 0);
 	if (fd_ < 0)
@@ -78,7 +78,27 @@ int	ListenHandler::HandleEvent(uint32_t events)
 
 int	ListenHandler::fd() const { return fd_; }
 
-const Config &	ListenHandler::config() const { return config_; }
+const Config &	ListenHandler::config() const { return *configs_[0]; }
+
+// Choisit le bloc server dont un server_name correspond au header Host
+// (port retire) ; a defaut, le premier bloc = serveur par defaut de l'endpoint.
+const Config &	ListenHandler::matchConfig(const std::string & host) const
+{
+	std::string	name = host;
+	size_t		colon = name.find(':');
+
+	if (colon != std::string::npos)
+		name = name.substr(0, colon);
+
+	for (size_t i = 0; i < configs_.size(); ++i) {
+		const std::vector<std::string> &	names
+			= configs_[i]->server_names();
+		for (size_t j = 0; j < names.size(); ++j)
+			if (names[j] == name)
+				return *configs_[i];
+	}
+	return *configs_[0];
+}
 
 Reactor &	ListenHandler::reactor() const { return reactor_; }
 
