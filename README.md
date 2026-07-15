@@ -24,7 +24,6 @@ The server behavior is configured through a configuration file inspired by **NGI
 * File uploads
 * CGI support
 * Request body parsing
-* Persistent connections (Keep-Alive)
 * Configurable client body size
 * Event-driven architecture using `epoll`
 * Multiple simultaneous client connections
@@ -54,14 +53,6 @@ Run the server with a configuration file:
 ./webserv Configuration.conf
 ```
 
-or simply
-
-```bash
-./webserv
-```
-
-if the default configuration is used.
-
 ### Testing
 
 Open your browser and visit:
@@ -74,12 +65,6 @@ You can also test the server using:
 
 ```bash
 curl http://localhost:8080
-```
-
-or
-
-```bash
-telnet localhost 8080
 ```
 
 ---
@@ -119,39 +104,6 @@ Request
 
 ---
 
-## HTTP Vocabulary
-
-| Term                          | Meaning                                                                                              |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
-| **HTTP**                      | HyperText Transfer Protocol used for communication between clients and servers.                      |
-| **Request**                   | Message sent by the client to the server.                                                            |
-| **Response**                  | Message returned by the server.                                                                      |
-| **Method**                    | Action requested by the client (GET, POST, DELETE...).                                               |
-| **URI / URL**                 | Resource requested by the client.                                                                    |
-| **Header**                    | Metadata describing the request or response.                                                         |
-| **Body**                      | Optional content of a request or response.                                                           |
-| **Status Code**               | Numerical result of the request (200, 404, 500...).                                                  |
-| **Content-Length**            | Size of the message body in bytes.                                                                   |
-| **Content-Type**              | MIME type of the transmitted resource.                                                               |
-| **Keep-Alive**                | Allows multiple requests on the same TCP connection.                                                 |
-| **Chunked Transfer Encoding** | Body transmitted in successive chunks instead of one block.                                          |
-| **CGI**                       | Common Gateway Interface allowing external programs to generate dynamic content.                     |
-| **Socket**                    | Communication endpoint between client and server.                                                    |
-| **TCP**                       | Reliable transport protocol used by HTTP.                                                            |
-| **Port**                      | Network endpoint used by the server (e.g. 8080).                                                     |
-| **Host**                      | Server hostname requested by the client.                                                             |
-| **Virtual Host**              | Multiple websites served by the same server.                                                         |
-| **Route (Location)**          | Configuration block matching a URI.                                                                  |
-| **Autoindex**                 | Automatic generation of directory listings.                                                          |
-| **Multipart/Form-Data**       | HTTP format commonly used for file uploads.                                                          |
-| **MIME Type**                 | Describes the format of a file (`text/html`, `image/png`, etc.).                                     |
-| **Persistent Connection**     | Connection kept open after a response has been sent.                                                 |
-| **epoll**                     | Linux event notification interface used to efficiently monitor many file descriptors simultaneously. |
-| **File Descriptor (FD)**      | Integer identifying an opened file or socket.                                                        |
-| **Blocking / Non-blocking**   | Defines whether I/O operations wait for data or return immediately.                                  |
-
----
-
 ## Technical Choices
 
 * Language: **C++98**
@@ -168,12 +120,17 @@ Request
 
 ```
 .
-├── config/
-├── includes/
 ├── src/
+  ├── config/
+  ├── handlers/
+  ├── http_protocol/
+  ├── reactor/
 ├── www/
-├── cgi-bin/
-├── errors/
+  ├── cgi-bin/
+  ├── errors/
+  ├── folder/
+  ├── uploads/
+├── Configuration.conf
 ├── Makefile
 └── README.md
 ```
