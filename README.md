@@ -4,115 +4,135 @@
 
 ## Description
 
-**Webserv** is a custom HTTP/1.1 web server written entirely in **C++98**, without relying on existing web server implementations.
+**Webserv** is a custom HTTP/1.1 web server written entirely in **C++98**, without
+relying on any existing web server implementation.
 
-The goal of this project is to understand how web servers work internally by implementing the complete request/response lifecycle: accepting TCP connections, parsing HTTP requests, serving static files, executing CGI scripts, handling multiple clients simultaneously, and generating appropriate HTTP responses.
+The goal of the project is to understand how a web server works internally by
+implementing the full request/response lifecycle: accepting TCP connections,
+parsing HTTP requests, serving static files, running CGI scripts, handling many
+clients at once through a single event loop, and producing accurate HTTP
+responses.
 
-The server behavior is configured through a configuration file inspired by **NGINX**, allowing multiple virtual servers, custom routes, error pages, upload directories, CGI execution, and request limitations.
+All I/O — listening sockets, client connections and CGI pipes — is driven by a
+**single `epoll` instance**. Sockets are non-blocking and the server never reads
+or writes outside of an epoll readiness notification, so a slow or misbehaving
+client can never block the others.
+
+The server is configured through an **NGINX-inspired configuration file** that
+supports multiple virtual servers, per-route rules, custom error pages, upload
+directories, redirections, CGI execution and request-size limits.
+
+To exercise every feature, the repository ships a small **phonebook
+application** (`www/cgi-bin/`): a set of Python CGI scripts that add, list and
+delete contacts, each contact carrying an uploaded image.
+
+---
+
+## Architecture
+
+The server is built around a **reactor pattern** on top of `epoll`:
+
+* `Reactor` owns the event loop and dispatches ready file descriptors to their
+  handlers; any exception raised while handling one connection is caught and
+  closes only that connection, never the server.
+* `EventHandler` is the base class for everything registered in epoll:
+  * `ListenHandler` — accepts new connections on a listening socket;
+  * `ConnHandler` — reads a request, parses it, routes it, sends the response;
+  * `CgiHandler` / `CgiInHandler` — stream a request body into a CGI process and
+    read its output back, all non-blocking.
+
+```
+Client ─► Listen socket ─► epoll ─► ConnHandler ─► HTTP parser ─► Router
+                                                                    │
+                                        ┌───────────────┬───────────┤
+                                        ▼               ▼           ▼
+                                   Static file    CGI process   Error page
+                                        └───────────────┴───────────┘
+                                                        ▼
+                                                  HTTP response ─► Client
+```
+
+---
+
+## Configuration
+
+The configuration file describes one or more `server` blocks. The demo
+configuration (`Configuration.conf`) exposes two virtual servers on
+`127.0.0.1:8080` and `127.0.0.1:8081`.
+
+Supported directives:
+
+| Directive               | Level    | Purpose                                        |
+|-------------------------|----------|------------------------------------------------|
+| `listen host:port`      | server   | Interface and port to bind                     |
+| `root`                  | server / location | Filesystem root for the served files  |
+| `client_max_body_size`  | server   | Maximum accepted request body (→ 413)          |
+| `error_page code path`  | server   | Custom error page for a status code            |
+| `location <prefix>`     | server   | Per-route rules                                |
+| `methods`               | location | Allowed HTTP methods (→ 405 + `Allow`)         |
+| `index`                 | location | Default file served for a directory            |
+| `autoindex on\|off`     | location | Directory listing                              |
+| `return code target`    | location | HTTP redirection                               |
+| `cgi .ext interpreter`  | location | CGI interpreter for a file extension           |
+| `upload on\|off`        | location | Enable multipart file upload                   |
+| `upload_path`           | location | Storage directory for uploaded files           |
+
+Example route:
+
+```nginx
+location /cgi {
+    root ./cgi-bin;
+    cgi .py /usr/bin/python3;
+}
+```
 
 ---
 
 ## Features
 
-* HTTP/1.1 compliant request parsing
-* Multiple virtual servers
-* Configurable host and ports
-* Static file serving
+* HTTP/1.1 request parsing with accurate status codes
+* Multiple virtual servers (`host:port` pairs)
+* Static file serving with MIME-type detection
 * Directory listing (autoindex)
-* Custom error pages
-* GET, POST and DELETE methods
-* File uploads
-* CGI support
-* Request body parsing
-* Configurable client body size
-* Event-driven architecture using `epoll`
-* Multiple simultaneous client connections
-* Fully compatible with C++98
+* `GET`, `POST`, `DELETE` methods, with per-route allow-lists
+* Configurable custom error pages, with sensible built-in fallbacks
+* HTTP redirections (`return`)
+* Multipart file uploads to a configurable directory
+* CGI execution (Python) with chunked-body support and a 30 s timeout (→ 504)
+* Configurable request-body size limit (→ 413)
+* Single `epoll` event loop, non-blocking sockets, resilient to client failures
+* Fully C++98, no external dependency
 
 ---
 
 ## Instructions
 
-### Compilation
+### Build
 
 ```bash
 make
 ```
 
-This generates the executable:
+Produces the `./webserv` executable.
 
-```text
-./webserv
-```
-
-### Execution
-
-Run the server with a configuration file:
+### Run
 
 ```bash
 ./webserv Configuration.conf
 ```
 
-### Testing
+### Try it
 
-Open your browser and visit:
-
-```
-http://localhost:8080
-```
-
-You can also test the server using:
+Open a browser at `http://localhost:8080/`, or use `curl`:
 
 ```bash
-curl http://localhost:8080
+curl http://localhost:8080/                 # home page
+curl http://localhost:8080/folder/          # autoindex listing
+curl -X DELETE http://localhost:8080/...     # delete a file
 ```
 
----
-
-## Project Architecture
-
-```
-Client
-   │
-   ▼
-Socket
-   │
-   ▼
-Epoll
-   │
-   ▼
-Connection Handler
-   │
-   ▼
-HTTP Parser
-   │
-   ▼
-Request
-   │
-   ├─────────────► Static File
-   │
-   ├─────────────► CGI
-   │
-   └─────────────► Error Response
-                 │
-                 ▼
-             HTTP Response
-                 │
-                 ▼
-              Client
-```
-
----
-
-## Technical Choices
-
-* Language: **C++98**
-* Event-driven architecture
-* Non-blocking sockets
-* `epoll` for I/O multiplexing
-* Configuration parser inspired by NGINX
-* CGI execution using child processes
-* Object-oriented design with separated responsibilities
+The phonebook demo lives under `/cgi/add_contact.py`, `/cgi/view_contact.py`
+and `/cgi/delete_contact.py`.
 
 ---
 
@@ -121,15 +141,16 @@ Request
 ```
 .
 ├── src/
-  ├── config/
-  ├── handlers/
-  ├── http_protocol/
-  ├── reactor/
+│   ├── config/          # config lexer / parser / Config objects
+│   ├── handlers/        # ListenHandler, ConnHandler, CgiHandler
+│   ├── http_protocol/   # parser, request, response, router, static handler
+│   └── reactor/         # Reactor + epoll wrapper
 ├── www/
-  ├── cgi-bin/
-  ├── errors/
-  ├── folder/
-  ├── uploads/
+│   ├── assets/          # images (uploaded by the CGI phonebook)
+│   ├── cgi-bin/         # Python CGI scripts
+│   ├── errors/          # custom error pages
+│   ├── folder/          # autoindex demo
+│   └── uploads/         # static multipart upload target
 ├── Configuration.conf
 ├── Makefile
 └── README.md
@@ -143,8 +164,9 @@ Request
 
 * RFC 7230 – HTTP/1.1 Message Syntax and Routing
 * RFC 7231 – HTTP/1.1 Semantics and Content
+* RFC 3875 – The Common Gateway Interface (CGI/1.1)
 * NGINX Documentation
-* Linux `epoll(7)` Manual
+* Linux `epoll(7)` manual
 * Beej's Guide to Network Programming
 * C++98 Reference
 
@@ -155,7 +177,8 @@ Request
 
 ### AI Usage
 
-Artificial Intelligence was used as a learning and productivity tool throughout the project.
+Artificial Intelligence was used as a learning and productivity tool throughout
+the project.
 
 It was primarily used to:
 
@@ -164,10 +187,8 @@ It was primarily used to:
 * review design ideas and architecture;
 * explain RFC specifications;
 * assist with debugging and interpreting compiler or runtime errors;
-* improve project documentation and code comments.
-* debugging and learning aid for the Python language used to develop the project's CGI scripts.
+* improve project documentation and code comments;
+* act as a debugging and learning aid for the Python CGI scripts.
 
-All implementation decisions, architecture, development, testing, debugging, and validation were carried out by the project authors.
-
----
-
+All implementation decisions, architecture, development, testing, debugging and
+validation were carried out by the project authors.
