@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include <cstring>
+#include <stdexcept>
 
 Config::Config()
 : max_body_size_(1048576) {
@@ -27,6 +28,12 @@ Config &	Config::operator=(const Config & rhs) {
 }
 
 void	Config::add_listen_info(ListenInfo listen) {
+	for (size_t i = 0; i < listens_info_.size(); ++i) {
+		if (listens_info_[i].host == listen.host
+			&& listens_info_[i].port == listen.port)
+			throw std::logic_error("duplicate listen: "
+				+ listen.host + ":" + listen.port);
+	}
 	listens_info_.push_back(listen);
 }
 
