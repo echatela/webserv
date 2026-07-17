@@ -7,6 +7,7 @@
 #include <set>
 #include <vector>
 #include "listen_handler.hpp"
+#include <csignal>
 
 class Reactor
 {
@@ -28,11 +29,15 @@ private:
 	Reactor(const Reactor & src);
 	Reactor &	operator=(const Reactor & rhs);
 
-public:
+	
+	public:
 	Reactor(const std::vector<Config> & configs);
-
+	
 	void	Run();
 	void	AddEventHandler(EventHandler * ev);
+	
+	static void	HandleSignal(int signal);
+	static volatile sig_atomic_t	stop_;
 
 	~Reactor();
 };

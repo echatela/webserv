@@ -55,10 +55,19 @@ Reactor::Reactor(std::vector<Config> const & configs)
 	}
 }
 
+volatile sig_atomic_t	Reactor::stop_ = 0;
+
+void Reactor::HandleSignal(int signal)
+{
+	if (signal == SIGINT)
+		stop_ = 1;
+}
+
 void	Reactor::Run()
 {
 	signal(SIGPIPE, SIG_IGN);
-	while (true) {
+	signal(SIGINT, HandleSignal);
+	while (!stop_) {
 		int	n = epoll_.Wait(kEpollTimeoutMs);
 		Dispatch(n);
 		CheckTimeouts();
