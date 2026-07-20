@@ -60,7 +60,10 @@ volatile sig_atomic_t	Reactor::stop_ = 0;
 void Reactor::HandleSignal(int signal)
 {
 	if (signal == SIGINT)
+	{
+		std::cout << '\n';
 		stop_ = 1;
+	}
 }
 
 void	Reactor::Run()

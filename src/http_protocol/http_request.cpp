@@ -96,6 +96,7 @@ int HttpRequest::ParseHeader(std::string header)
 			return BAD_REQUEST;
 
 		std::string index = CanonKey(line.substr(0, pos));
+		std::cout << "//////request header index is " << index << '\n';
 		std::string value = line.substr(pos + 1);
 		size_t start = value.find_first_not_of(" \t");
 		size_t end = value.find_last_not_of("\t\r\n");
