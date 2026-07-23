@@ -19,7 +19,7 @@ int	main(int argc, char **argv)
 	}
 	try
 	{
-		ConfigLexer 		Lexer(argv[1]);
+		ConfigLexer 		Lexer(conf_path);
 		ConfigParser 		config_parser(Lexer.Tokenize());
 		std::vector<Config>	configs = config_parser.Parse();
 		Reactor	reactor(configs);
