@@ -7,18 +7,22 @@
 
 int	main(int argc, char **argv)
 {
-	if (argc != 2)
-	{
-		std::cout << "Please enter configuration file.\n";
-		return 1;	
+	std::string	conf_path;
+
+	if (argc == 1) {
+		conf_path = "conf/default.conf";
+	} else if (argc == 2) {
+		conf_path = argv[1];
+	} else {
+		std::cout << "Usage: ./webserv [configuration.conf]\n";
+		return 1;
 	}
 	try
 	{
 		ConfigLexer 		Lexer(argv[1]);
 		ConfigParser 		config_parser(Lexer.Tokenize());
-		std::vector<Config>	configs = config_parser.Parse(); // -> vecteur direct 
-		// std::cout << "config " << config.servers_info()[0].listen_info.port << std::endl;
-		Reactor	reactor(configs);// -> envoyer vecteur 
+		std::vector<Config>	configs = config_parser.Parse();
+		Reactor	reactor(configs);
 		reactor.Run();
 	}
 	catch (std::exception & e)

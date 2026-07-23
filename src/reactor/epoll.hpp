@@ -5,9 +5,7 @@
 
 #define MAX_EVENTS 128
 
-class Epoll
-{
-private:
+class Epoll {
 	int			epfd_;
 	struct epoll_event	events_[MAX_EVENTS];
 
